@@ -23,7 +23,9 @@ printf '<meta name="description" content="%s">\n<link rel="canonical" href="%s/"
 printf '<meta property="og:type" content="website">\n<meta property="og:site_name" content="Last Partner Standing">\n<meta property="og:url" content="%s/">\n<meta property="og:title" content="Last Partner Standing">\n<meta property="og:description" content="%s">\n' "$SITE" "$DESC" >> "$PLAY"
 printf '<meta property="og:image" content="%s">\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n<meta property="og:image:alt" content="%s">\n' "$IMG" "$ALT" >> "$PLAY"
 printf '<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="Last Partner Standing">\n<meta name="twitter:description" content="%s">\n<meta name="twitter:image" content="%s">\n<meta name="twitter:image:alt" content="%s">\n' "$DESC" "$IMG" "$ALT" >> "$PLAY"
-printf '<link rel="icon" href="data:image/svg+xml,%%3Csvg xmlns=%%22http://www.w3.org/2000/svg%%22 viewBox=%%220 0 64 64%%22%%3E%%3Crect width=%%2264%%22 height=%%2264%%22 rx=%%2214%%22 fill=%%22%%231D6A4D%%22/%%3E%%3Ctext x=%%2232%%22 y=%%2244%%22 text-anchor=%%22middle%%22 font-family=%%22Arial,sans-serif%%22 font-weight=%%22700%%22 font-size=%%2230%%22 fill=%%22%%23F4FAF6%%22%%3ELP%%3C/text%%3E%%3Crect x=%%2214%%22 y=%%2250%%22 width=%%2236%%22 height=%%225%%22 rx=%%222%%22 fill=%%22%%23F2D449%%22/%%3E%%3C/svg%%3E">\n<link rel="apple-touch-icon" href="/last-partner-standing/apple-touch-icon.png">\n' >> "$PLAY"
+# The icon: src/icon.svg (a GP standing on the logo's yellow line), inlined as the favicon.
+ICON=$(base64 < src/icon.svg | tr -d '\n')
+printf '<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,%s">\n<link rel="apple-touch-icon" href="/last-partner-standing/apple-touch-icon.png">\n' "$ICON" >> "$PLAY"
 cat src/a-head.html >> "$PLAY"
 printf '</head>\n<body>\n<div id="app"></div>\n<script>\n' >> "$PLAY"
 cat $JS >> "$PLAY"

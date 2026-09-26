@@ -244,7 +244,7 @@ document.addEventListener('click', ev => {
     case 'look': UI.look.s = +arg; UI.lookOpen = true; keepScroll(renderTitle); break;
     case 'lookc': UI.look.c = +arg; UI.lookOpen = true; keepScroll(renderTitle); break;
     case 'dice': { UI.nameDraft = diceName(); keepScroll(renderTitle); break; }
-    case 'start': { const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; go(() => newGame(UI.pickPractice, nm)); break; }
+    case 'start': { const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; UI.intro = true; go(() => newGame(UI.pickPractice, nm)); break; }
     case 'continue': { const s = loadSave(); if (s) { S = s; UI.screen = 'game'; go(() => { }); } break; }
     case 'menu': openOverlay(menuHTML()); break;
     case 'how': openOverlay(howHTML()); break;
@@ -277,7 +277,7 @@ document.addEventListener('click', ev => {
       S.st.team = clamp(S.st.team - (big ? 6 : 3)); save(); keepScroll(renderPlan);
       toast(`${ROLES[arg].name} let go. Team morale ${big ? '−6' : '−3'}.`); break;
     }
-    case 'weekly': { const w = weeklyChallenge(); const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; go(() => newGame(w.practice, nm, { seed: w.seed, week: w.week })); break; }
+    case 'weekly': { const w = weeklyChallenge(); const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; UI.intro = true; go(() => newGame(w.practice, nm, { seed: w.seed, week: w.week })); break; }
     case 'begin': go(beginMonth); break;
     case 'suggest': { if (S.practiceKey === 'city') break; const why = suggestPlan(); save(); keepScroll(renderPlan); toast('Bev suggests: ' + why.join(', ') + '.'); break; }
     case 'choose': chooseAt(+arg); break;

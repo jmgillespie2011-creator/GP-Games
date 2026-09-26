@@ -160,6 +160,8 @@ function headingHTML(c) {
 }
 function renderPlan() {
   const pl = S.plan, c = calc(), p = prac();
+  // the opening: the lights come on one window at a time and your name goes on the plate (new games only, once)
+  const intro = !!UI.intro; UI.intro = false;
   const total = pl.clin + pl.admin + pl.mgmt;
   const bar = [];
   for (let i = 0; i < pl.clin; i++) bar.push('c');
@@ -205,7 +207,7 @@ function renderPlan() {
   ];
   const moneyTable = `<dl class="kv small">${moneyRows.map(([l, v, how]) => `<dt>${esc(l)}<small>${esc(how)}</small></dt><dd class="${v < 0 ? '' : 'good-t'}">${v < 0 ? '−' : '+'}${fmtK(Math.abs(v))}</dd>`).join('')}<dt class="sum">Net this month</dt><dd class="sum">${signK(c.net)}</dd></dl>`;
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap">
-    <div class="plan-top"><section class="front" aria-label="Your surgery">${facadeSVG(c)}${brassPlate()}<p class="front-hint">Each lit window is a meter. Tap one to see what's pulling it.</p></section>
+    <div class="plan-top"><section class="front${intro ? ' intro' : ''}" aria-label="Your surgery">${intro ? `<div class="intro-cap" aria-hidden="true">${calY(0) === 2026 ? 'Wednesday 1 April 2026' : '1 April'}, 7:59am</div>` : ''}${facadeSVG(c, { intro })}${brassPlate(intro)}<p class="front-hint">Each lit window is a meter. Tap one to see what's pulling it.</p></section>
     <div class="plan-head"><div><div class="eyebrow">Month plan</div><h1>${MONTHS[S.month]}</h1></div><p class="brief">${esc(BRIEF[S.month])} ${S.queue.length} things will land on your desk this month.${S.month === 0 && !S.yr && (S.gen || 1) === 1 ? (S.practiceKey === 'city' ? ' Nobody is going to tell you what to do here. Set your clinical sessions and pick a project; everything else can wait.' : ' New here? Set your clinical sessions and pick a project, or let Bev suggest a plan. Everything else can wait.') : ''}</p>${S.practiceKey === 'city' ? '' : '<button class="btn small" data-act="suggest" title="Sets sessions, cover, drawings and project for this month">Suggest a plan</button>'}</div></div>
     ${(() => { const q = S.lastQuiet; if (!q || q.yr !== (S.yr || 0) || q.m !== S.month - 1) return ''; return `<section class="panel lastq" aria-label="Last month"><h3>${MONTHS[q.m]}: a quiet month <small>nothing new landed, so the report was skipped</small></h3><p>“${esc(q.headline)}” ${q.cap} appointments a week offered against ${q.demand} requested. The bank ${q.net >= 0 ? 'rose' : 'fell'} ${fmtK(Math.abs(q.net))} to ${fmtK(q.cash)}.</p>${q.d.length ? `<p class="lastq-d">${q.d.map(([k, d]) => `<span class="${d > 0 ? 'good-t' : 'bad-t'}">${STAT_LABEL[k]} ${d > 0 ? '+' : '−'}${Math.abs(d)}</span>`).join(' ')}</p>` : ''}<p class="fc-note">Prefer every report? Switch it in the menu.</p></section>`; })()}
     <div class="plan-grid">

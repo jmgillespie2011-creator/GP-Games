@@ -134,6 +134,17 @@ p{margin:0}
 .lede-s{font-size:17px}
 @media (max-width:640px){.front{margin:0 -4px 14px;border-radius:12px}.brass{font-size:13px;padding:8px 12px}}
 .front-end{max-width:560px;margin:0 auto 18px}
+.front{position:relative}
+/* the opening: dark windows light up in turn, your name is engraved, the clock caption fades */
+.front .lo{opacity:0;pointer-events:none}
+.front.intro .lo{animation:lo-off .5s ease-out calc(.45s + var(--i) * .32s) backwards}
+@keyframes lo-off{from{opacity:1}35%{opacity:.25}55%{opacity:.7}to{opacity:0}}
+.front.intro .facade{animation:dusk 2.4s ease-out both}
+@keyframes dusk{from{filter:brightness(.55)}to{filter:none}}
+.brass b.engrave{animation:engrave 1.1s ease-out 2.1s backwards}
+@keyframes engrave{from{clip-path:inset(0 100% 0 0);text-shadow:0 0 8px #FFF6D0}60%{clip-path:inset(0 0 0 0);text-shadow:0 0 8px #FFF6D0}to{clip-path:inset(0 0 0 0);text-shadow:none}}
+.intro-cap{position:absolute;left:12px;top:10px;z-index:1;font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.06em;color:#F2D449;background:rgba(15,22,34,.75);padding:4px 9px;border-radius:6px;opacity:0;pointer-events:none;animation:cap 3.4s ease-in-out .1s}
+@keyframes cap{0%{opacity:0}15%{opacity:1}80%{opacity:1}100%{opacity:0}}
 .brief-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
 .btile{background:var(--sheet);border:1.5px solid var(--rule);border-radius:10px;padding:10px 12px;display:grid;gap:2px}
 .btile span{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
@@ -1212,7 +1223,7 @@ function facadeSVG(c, opts) {
   const sw = Math.max(96, prac().surgery.length * 5.3 + 18);
   g += `<rect x="${160 - sw / 2}" y="${P0.roof === 'flat' ? 34 : 30}" width="${sw}" height="13" rx="2" fill="${P0.sign}" stroke="${P0.trim}" stroke-width="1"/><text x="160" y="${P0.roof === 'flat' ? 43.4 : 39.4}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="7.4" font-weight="700" fill="#EFE3B8" letter-spacing=".6">${esc(prac().surgery.toUpperCase())}</text>`;
   // windows
-  WIN_LAYOUT.forEach(W => {
+  WIN_LAYOUT.forEach((W, wi) => {
     const L = lvl(W.k), v = W.k === 'cash' ? null : Math.round(st[W.k]);
     let inner = '';
     const base = W.y + W.h;
@@ -1253,6 +1264,7 @@ function facadeSVG(c, opts) {
       <rect x="${W.x - 3}" y="${W.y - 3}" width="${W.w + 6}" height="${W.h + 6}" fill="${P0.trim}"/>
       <rect x="${W.x}" y="${W.y}" width="${W.w}" height="${W.h}" fill="url(#fw-${W.k})"/>
       ${lamp}${inner}${panes}
+      ${opts.intro ? `<rect class="lo" style="--i:${wi}" x="${W.x}" y="${W.y}" width="${W.w}" height="${W.h}" fill="#1E1B17"/>` : ''}
       <rect x="${W.x - 5}" y="${base + 3}" width="${W.w + 10}" height="10" rx="1.5" fill="${P0.trim}"/>
       <text x="${W.x + W.w / 2}" y="${base + 10.6}" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="6.6" font-weight="600" fill="${L <= 1 && !closed ? '#A33A2A' : '#3B3226'}" letter-spacing=".4">${esc(lab)}</text>
     </g>`;
@@ -1276,12 +1288,12 @@ function facadeSVG(c, opts) {
   if (S.rooms > (prac().rooms || 0)) g += `<rect x="300" y="208" width="20" height="26" fill="#D5CFBE"/><rect x="304" y="214" width="12" height="8" fill="${glow[2]}"/>`;
   return `<svg class="facade" viewBox="0 0 320 250" role="img" aria-label="${esc(prac().surgery)} at night. Each lit window is one of your meters.">${defs}${g}</svg>`;
 }
-function brassPlate() {
+function brassPlate(intro) {
   const names = ['Dr ' + S.name].concat(Object.keys(S.partners).filter(id => isActive(id))
     .map(id => 'Dr ' + PARTNERS0[id].name.split(' ').pop()));
   const gone = Object.keys(S.partners).filter(id => S.partners[id].status === 'left').map(id => 'Dr ' + PARTNERS0[id].name.split(' ').pop());
   (S.lineage || []).slice().reverse().forEach(x => gone.unshift('Dr ' + x.n));
-  return `<div class="brass"><span class="brass-t">Partners</span> ${names.map(n => `<b>${esc(n)}</b>`).join('<i>·</i>')}${gone.map(n => `<i>·</i><s>${esc(n)}</s>`).join('')}${S.cqc ? `<span class="brass-cqc">CQC: ${esc(RATE_NAME[S.cqc.overall])}</span>` : ''}</div>`;
+  return `<div class="brass"><span class="brass-t">Partners</span> ${names.map((n, i) => `<b${intro && !i ? ' class="engrave"' : ''}>${esc(n)}</b>`).join('<i>·</i>')}${gone.map(n => `<i>·</i><s>${esc(n)}</s>`).join('')}${S.cqc ? `<span class="brass-cqc">CQC: ${esc(RATE_NAME[S.cqc.overall])}</span>` : ''}</div>`;
 }
 
 /* ---------- the year's brief: four numbers ---------- */
@@ -3873,6 +3885,8 @@ function headingHTML(c) {
 }
 function renderPlan() {
   const pl = S.plan, c = calc(), p = prac();
+  // the opening: the lights come on one window at a time and your name goes on the plate (new games only, once)
+  const intro = !!UI.intro; UI.intro = false;
   const total = pl.clin + pl.admin + pl.mgmt;
   const bar = [];
   for (let i = 0; i < pl.clin; i++) bar.push('c');
@@ -3918,7 +3932,7 @@ function renderPlan() {
   ];
   const moneyTable = `<dl class="kv small">${moneyRows.map(([l, v, how]) => `<dt>${esc(l)}<small>${esc(how)}</small></dt><dd class="${v < 0 ? '' : 'good-t'}">${v < 0 ? '−' : '+'}${fmtK(Math.abs(v))}</dd>`).join('')}<dt class="sum">Net this month</dt><dd class="sum">${signK(c.net)}</dd></dl>`;
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap">
-    <div class="plan-top"><section class="front" aria-label="Your surgery">${facadeSVG(c)}${brassPlate()}<p class="front-hint">Each lit window is a meter. Tap one to see what's pulling it.</p></section>
+    <div class="plan-top"><section class="front${intro ? ' intro' : ''}" aria-label="Your surgery">${intro ? `<div class="intro-cap" aria-hidden="true">${calY(0) === 2026 ? 'Wednesday 1 April 2026' : '1 April'}, 7:59am</div>` : ''}${facadeSVG(c, { intro })}${brassPlate(intro)}<p class="front-hint">Each lit window is a meter. Tap one to see what's pulling it.</p></section>
     <div class="plan-head"><div><div class="eyebrow">Month plan</div><h1>${MONTHS[S.month]}</h1></div><p class="brief">${esc(BRIEF[S.month])} ${S.queue.length} things will land on your desk this month.${S.month === 0 && !S.yr && (S.gen || 1) === 1 ? (S.practiceKey === 'city' ? ' Nobody is going to tell you what to do here. Set your clinical sessions and pick a project; everything else can wait.' : ' New here? Set your clinical sessions and pick a project, or let Bev suggest a plan. Everything else can wait.') : ''}</p>${S.practiceKey === 'city' ? '' : '<button class="btn small" data-act="suggest" title="Sets sessions, cover, drawings and project for this month">Suggest a plan</button>'}</div></div>
     ${(() => { const q = S.lastQuiet; if (!q || q.yr !== (S.yr || 0) || q.m !== S.month - 1) return ''; return `<section class="panel lastq" aria-label="Last month"><h3>${MONTHS[q.m]}: a quiet month <small>nothing new landed, so the report was skipped</small></h3><p>“${esc(q.headline)}” ${q.cap} appointments a week offered against ${q.demand} requested. The bank ${q.net >= 0 ? 'rose' : 'fell'} ${fmtK(Math.abs(q.net))} to ${fmtK(q.cash)}.</p>${q.d.length ? `<p class="lastq-d">${q.d.map(([k, d]) => `<span class="${d > 0 ? 'good-t' : 'bad-t'}">${STAT_LABEL[k]} ${d > 0 ? '+' : '−'}${Math.abs(d)}</span>`).join(' ')}</p>` : ''}<p class="fc-note">Prefer every report? Switch it in the menu.</p></section>`; })()}
     <div class="plan-grid">
@@ -4313,7 +4327,7 @@ document.addEventListener('click', ev => {
     case 'look': UI.look.s = +arg; UI.lookOpen = true; keepScroll(renderTitle); break;
     case 'lookc': UI.look.c = +arg; UI.lookOpen = true; keepScroll(renderTitle); break;
     case 'dice': { UI.nameDraft = diceName(); keepScroll(renderTitle); break; }
-    case 'start': { const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; go(() => newGame(UI.pickPractice, nm)); break; }
+    case 'start': { const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; UI.intro = true; go(() => newGame(UI.pickPractice, nm)); break; }
     case 'continue': { const s = loadSave(); if (s) { S = s; UI.screen = 'game'; go(() => { }); } break; }
     case 'menu': openOverlay(menuHTML()); break;
     case 'how': openOverlay(howHTML()); break;
@@ -4346,7 +4360,7 @@ document.addEventListener('click', ev => {
       S.st.team = clamp(S.st.team - (big ? 6 : 3)); save(); keepScroll(renderPlan);
       toast(`${ROLES[arg].name} let go. Team morale ${big ? '−6' : '−3'}.`); break;
     }
-    case 'weekly': { const w = weeklyChallenge(); const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; go(() => newGame(w.practice, nm, { seed: w.seed, week: w.week })); break; }
+    case 'weekly': { const w = weeklyChallenge(); const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; UI.intro = true; go(() => newGame(w.practice, nm, { seed: w.seed, week: w.week })); break; }
     case 'begin': go(beginMonth); break;
     case 'suggest': { if (S.practiceKey === 'city') break; const why = suggestPlan(); save(); keepScroll(renderPlan); toast('Bev suggests: ' + why.join(', ') + '.'); break; }
     case 'choose': chooseAt(+arg); break;

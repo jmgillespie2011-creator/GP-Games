@@ -201,7 +201,7 @@ function facadeSVG(c, opts) {
   const sw = Math.max(96, prac().surgery.length * 5.3 + 18);
   g += `<rect x="${160 - sw / 2}" y="${P0.roof === 'flat' ? 34 : 30}" width="${sw}" height="13" rx="2" fill="${P0.sign}" stroke="${P0.trim}" stroke-width="1"/><text x="160" y="${P0.roof === 'flat' ? 43.4 : 39.4}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="7.4" font-weight="700" fill="#EFE3B8" letter-spacing=".6">${esc(prac().surgery.toUpperCase())}</text>`;
   // windows
-  WIN_LAYOUT.forEach(W => {
+  WIN_LAYOUT.forEach((W, wi) => {
     const L = lvl(W.k), v = W.k === 'cash' ? null : Math.round(st[W.k]);
     let inner = '';
     const base = W.y + W.h;
@@ -242,6 +242,7 @@ function facadeSVG(c, opts) {
       <rect x="${W.x - 3}" y="${W.y - 3}" width="${W.w + 6}" height="${W.h + 6}" fill="${P0.trim}"/>
       <rect x="${W.x}" y="${W.y}" width="${W.w}" height="${W.h}" fill="url(#fw-${W.k})"/>
       ${lamp}${inner}${panes}
+      ${opts.intro ? `<rect class="lo" style="--i:${wi}" x="${W.x}" y="${W.y}" width="${W.w}" height="${W.h}" fill="#1E1B17"/>` : ''}
       <rect x="${W.x - 5}" y="${base + 3}" width="${W.w + 10}" height="10" rx="1.5" fill="${P0.trim}"/>
       <text x="${W.x + W.w / 2}" y="${base + 10.6}" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="6.6" font-weight="600" fill="${L <= 1 && !closed ? '#A33A2A' : '#3B3226'}" letter-spacing=".4">${esc(lab)}</text>
     </g>`;
@@ -265,12 +266,12 @@ function facadeSVG(c, opts) {
   if (S.rooms > (prac().rooms || 0)) g += `<rect x="300" y="208" width="20" height="26" fill="#D5CFBE"/><rect x="304" y="214" width="12" height="8" fill="${glow[2]}"/>`;
   return `<svg class="facade" viewBox="0 0 320 250" role="img" aria-label="${esc(prac().surgery)} at night. Each lit window is one of your meters.">${defs}${g}</svg>`;
 }
-function brassPlate() {
+function brassPlate(intro) {
   const names = ['Dr ' + S.name].concat(Object.keys(S.partners).filter(id => isActive(id))
     .map(id => 'Dr ' + PARTNERS0[id].name.split(' ').pop()));
   const gone = Object.keys(S.partners).filter(id => S.partners[id].status === 'left').map(id => 'Dr ' + PARTNERS0[id].name.split(' ').pop());
   (S.lineage || []).slice().reverse().forEach(x => gone.unshift('Dr ' + x.n));
-  return `<div class="brass"><span class="brass-t">Partners</span> ${names.map(n => `<b>${esc(n)}</b>`).join('<i>·</i>')}${gone.map(n => `<i>·</i><s>${esc(n)}</s>`).join('')}${S.cqc ? `<span class="brass-cqc">CQC: ${esc(RATE_NAME[S.cqc.overall])}</span>` : ''}</div>`;
+  return `<div class="brass"><span class="brass-t">Partners</span> ${names.map((n, i) => `<b${intro && !i ? ' class="engrave"' : ''}>${esc(n)}</b>`).join('<i>·</i>')}${gone.map(n => `<i>·</i><s>${esc(n)}</s>`).join('')}${S.cqc ? `<span class="brass-cqc">CQC: ${esc(RATE_NAME[S.cqc.overall])}</span>` : ''}</div>`;
 }
 
 /* ---------- the year's brief: four numbers ---------- */

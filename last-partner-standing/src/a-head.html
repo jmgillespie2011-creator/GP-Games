@@ -134,6 +134,17 @@ p{margin:0}
 .lede-s{font-size:17px}
 @media (max-width:640px){.front{margin:0 -4px 14px;border-radius:12px}.brass{font-size:13px;padding:8px 12px}}
 .front-end{max-width:560px;margin:0 auto 18px}
+.front{position:relative}
+/* the opening: dark windows light up in turn, your name is engraved, the clock caption fades */
+.front .lo{opacity:0;pointer-events:none}
+.front.intro .lo{animation:lo-off .5s ease-out calc(.45s + var(--i) * .32s) backwards}
+@keyframes lo-off{from{opacity:1}35%{opacity:.25}55%{opacity:.7}to{opacity:0}}
+.front.intro .facade{animation:dusk 2.4s ease-out both}
+@keyframes dusk{from{filter:brightness(.55)}to{filter:none}}
+.brass b.engrave{animation:engrave 1.1s ease-out 2.1s backwards}
+@keyframes engrave{from{clip-path:inset(0 100% 0 0);text-shadow:0 0 8px #FFF6D0}60%{clip-path:inset(0 0 0 0);text-shadow:0 0 8px #FFF6D0}to{clip-path:inset(0 0 0 0);text-shadow:none}}
+.intro-cap{position:absolute;left:12px;top:10px;z-index:1;font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.06em;color:#F2D449;background:rgba(15,22,34,.75);padding:4px 9px;border-radius:6px;opacity:0;pointer-events:none;animation:cap 3.4s ease-in-out .1s}
+@keyframes cap{0%{opacity:0}15%{opacity:1}80%{opacity:1}100%{opacity:0}}
 .brief-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
 .btile{background:var(--sheet);border:1.5px solid var(--rule);border-radius:10px;padding:10px 12px;display:grid;gap:2px}
 .btile span{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}

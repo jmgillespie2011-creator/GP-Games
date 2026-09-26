@@ -56,6 +56,13 @@ EVENTS.push(
   {t:'Fix how the team books and codes',fx:{inbox:50,team:-2,rep:3},o:`Three months later you're mid-table, having done exactly the same work.`},
   {t:'Write to the paper about data quality',fx:{you:-2},alt:{p:0.5,fx:{rep:-2},o:`They print it under the headline "GP blames the data".`},o:`They print a correction on page 17, beside the crossword.`}
  ]},
+{id:'letter_dump',who:'hospital',title:'Four thousand letters',once:1,tag:'story',
+ text:`St Swithin's has found a fault in its outpatient letter system: two years of clinic letters were never sent to GPs. They've fixed it, and at 9am the fault sent all of them at once. Docman shows 4,212 new documents. Somewhere in there are medication changes nobody made, tests nobody booked, and a few "please refer urgently".`,
+ choices:[
+  {t:'Stop routine work and read every letter',fx:{inbox:500,team:-4,you:-5,safety:3},run(){ addMod({ id: 'letterdump', label: 'Reading two years of hospital letters', months: 2, capMul: 0.9, hours: 3 }); plant({ in: 2, fx: { safety: 3, patients: 2 }, note: 'The hospital letter backlog is cleared. Your team found 61 actions nobody had taken, including three patients who needed urgent referral. All three have been seen.' }); },o:`Every clinician takes a pile. Reception moves routine appointments. It's the most boring important work you've ever done.`},
+  {t:'Make the hospital find the letters that need action',fx:{inbox:200,you:-2,icb:-2},alt:{p:0.5,fx:{inbox:350,team:-3,you:-3},o:`The hospital says it "doesn't have capacity to review historical correspondence". The ICB says it's a matter between you and the trust. The letters stay in Docman.`},o:`The trust's safety team agrees it's their incident. They send a list of 212 letters with actions in them, flagged. You read those first.`},
+  {t:'Admin files them, flagging anything marked "urgent"',fx:{inbox:150,team:-2},later:[{in:3,p:0.5,fx:{safety:-7,you:-5,patients:-2},note:'A letter from the hospital backlog, filed without being read, asked you to stop a medicine eighteen months ago. The patient was still taking it. It is now a significant event, and a complaint.'}],o:`The pile shrinks by a thousand a day. Nobody reads the ones that didn't say "urgent".`}
+ ]},
 /* ---------- the week, going wrong ---------- */
 {id:'fit_notes',who:'patient',title:'Back to work',months:[9,10],tag:'story',
  text:`The first week of January. Forty-one requests for fit notes, eleven of them for "stress", six backdated to Christmas Eve. Each one needs reading, and some need a conversation.`,

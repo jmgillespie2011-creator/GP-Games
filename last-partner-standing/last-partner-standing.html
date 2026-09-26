@@ -828,6 +828,9 @@ const SOURCES = {
   S91:['CQC: GP mythbuster 32, duty of candour and general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-32-duty-candour-general-practice-regulation-20','A'],
   S92:['GOV.UK: Awaab\'s Law, guidance for social landlords','https://www.gov.uk/government/publications/awaabs-law-guidance-for-social-landlords/awaabs-law-guidance-for-social-landlords-timeframes-for-repairs-in-the-social-rented-sector','A'],
   S93:['NHS England: Freedom to Speak Up policy and access to a guardian for primary care workers','https://www.england.nhs.uk/long-read/adoption-of-the-national-freedom-to-speak-up-policy-and-access-to-a-guardian-for-primary-care-workers/','A'],
+  S95:['National Audit Office: Investigation, clinical correspondence handling at NHS Shared Business Services','https://www.nao.org.uk/reports/investigation-clinical-correspondence-handling-at-nhs-shared-business-services/','A'],
+  S96:['Pulse: How undelivered hospital letters have caused chaos for GPs','https://www.pulsetoday.co.uk/analysis/special-investigations/youve-not-got-mail/how-undelivered-hospital-letters-have-caused-chaos-for-gps/','B'],
+  S97:['Pulse: Hospital trust fails to send over 50,000 patient letters to GPs due to IT fault','https://www.pulsetoday.co.uk/news/breaking-news/hospital-trust-fails-to-send-over-50000-patient-letters-to-gps-due-to-it-fault/','B'],
   S94:['NHS England Digital: Appointments in General Practice','https://digital.nhs.uk/data-and-information/publications/statistical/appointments-in-general-practice','A'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
@@ -2921,7 +2924,8 @@ EVENTS.push(
   {t:'Fix how the team books and codes',fx:{inbox:50,team:-2,rep:3},o:`Three months later you're mid-table, having done exactly the same work.`},
   {t:'Write to the paper about data quality',fx:{you:-2},alt:{p:0.5,fx:{rep:-2},o:`They print it under the headline "GP blames the data".`},o:`They print a correction on page 17, beside the crossword.`}
  ]},
-{id:'letter_dump',who:'hospital',title:'Four thousand letters',once:1,tag:'story',
+{id:'letter_dump',who:'hospital',title:'Four thousand letters',once:1,tag:'real',src:['S95','S96','S97'],
+ info:'This has happened, repeatedly. Between 2011 and 2016, NHS Shared Business Services failed to forward about 709,000 items of clinical correspondence, including test results and child protection notes. GPs were then asked to review them: by May 2017 the review had found 1,788 cases of potential harm (no actual harm was confirmed), at a cost of at least £6.6 million in administration. Since 2013, at least 18 hospital trusts have had IT failures that stopped letters reaching GPs, including more than 50,000 letters at one Essex trust and 24,000 at Newcastle. The hospital here is fictional.',
  text:`St Swithin's has found a fault in its outpatient letter system: two years of clinic letters were never sent to GPs. They've fixed it, and at 9am the fault sent all of them at once. Docman shows 4,212 new documents. Somewhere in there are medication changes nobody made, tests nobody booked, and a few "please refer urgently".`,
  choices:[
   {t:'Stop routine work and read every letter',fx:{inbox:500,team:-4,you:-5,safety:3},run(){ addMod({ id: 'letterdump', label: 'Reading two years of hospital letters', months: 2, capMul: 0.9, hours: 3 }); plant({ in: 2, fx: { safety: 3, patients: 2 }, note: 'The hospital letter backlog is cleared. Your team found 61 actions nobody had taken, including three patients who needed urgent referral. All three have been seen.' }); },o:`Every clinician takes a pile. Reception moves routine appointments. It's the most boring important work you've ever done.`},

@@ -12,6 +12,7 @@ function renderReport() {
   const dmap = {}; R.deltas.forEach(d => { dmap[d.k] = d.d; });
   const last = S.month >= 11;
   const notes = R.hires.concat(R.notes);
+  const avgH = Math.round((S.hoursTotal || 0) / (WEEKS * (R.month + 1)));
   const driftTxt = STAT_KEYS.map(k => `${STAT_LABEL[k]} ${R.drift[k] > 0 ? '+' : ''}${R.drift[k]}`).join(' · ');
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap report">
     <div class="clip"><div class="masthead"><span>${esc(prac().paper)}</span><span>${MONTHS[R.month]} ${CAL_YEAR[R.month]}</span></div>
@@ -24,10 +25,12 @@ function renderReport() {
           <dt>Appointments offered a week</dt><dd>${c.cap}</dd>
           <dt>Appointments requested a week</dt><dd>${c.demand}</dd>
           <dt>Inbox: start → end</dt><dd>${R.inboxStart} → ${R.inboxEnd}</dd>
-          <dt>Your hours a week</dt><dd>${Math.round(c.hours)}</dd>
+          <dt>Your hours a week this month</dt><dd>${Math.round(c.hours)}</dd>
+          <dt>Your average week so far this year</dt><dd class="${avgH > 48 ? 'bad-t' : ''}">${avgH} hours</dd>
           <dt>QOF achievement</dt><dd>${Math.round(S.qof)}%</dd>
           <dt>List size</dt><dd>${S.list.toLocaleString('en-GB')}</dd>
         </dl>
+        ${explain('Your hours against the 48-hour limit', `<p>Averaged over the ${R.month + 1} month${R.month ? 's' : ''} so far, you've worked about <b>${avgH} hours a week</b>, including leave. That's ${avgH > 48 ? `${avgH - 48} over` : avgH === 48 ? 'right at' : `${48 - avgH} under`} the 48-hour average that the Working Time Regulations set for employees, and ${avgH - 37.5 > 0 ? `${Math.round(avgH - 37.5)} hours more than` : 'within'} a standard 37.5-hour NHS week.</p><p>Your salaried GPs and staff are covered by that limit unless they opt out. As a partner you're self-employed, so it doesn't apply to you. Nothing stops you working 60 hours but the You meter.</p>`)}
         <h3 style="margin-top:6px">How everyone's feeling</h3>
         ${statLines(dmap)}
         ${explain('Why the meters moved', `<p>The practice's situation moved the meters by: ${esc(driftTxt)}. The rest came from this month's decisions and events.</p><p>Behind the scenes, your relationship with the ICB is <b>${relWord(S.icb)}</b> and your local reputation is <b>${relWord(S.rep)}</b>. Reputation shapes patient satisfaction and who applies for your jobs. The ICB shapes funding bids and how it treats you when things go wrong.</p>`)}

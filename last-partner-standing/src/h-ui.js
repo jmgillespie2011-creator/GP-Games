@@ -66,6 +66,7 @@ function hudHTML() {
       <span>Inbox <b class="${ib}">${Math.round(S.inbox)}</b></span>
       <span>List <b>${S.list.toLocaleString('en-GB')}</b></span>
       <span>Partners <b>You${others.length ? ', ' + others.join(', ') : ' alone'}</b></span>
+      ${S.goal && GOALS[S.goal] ? `<span>Goal <b>${esc(GOALS[S.goal].t)}</b>${S.week ? ` · <b>Weekly challenge</b>` : ''}</span>` : ''}
     </div>
   </div></header>`;
 }
@@ -103,6 +104,7 @@ function renderTitle() {
         ${boardOn() ? '<button class="btn ghost" data-act="board">Leaderboard</button>' : ''}
         ${saved ? `<button class="btn" data-act="continue">Continue: ${esc(PRACTICES[saved.practiceKey].surgery)}, ${MONTHS[Math.min(saved.month, 11)]}</button>` : ''}
       </div>
+      ${(() => { const w = weeklyChallenge(); return `<div class="weekly"><div class="eyebrow">Weekly challenge · ${w.week}</div><p>Everyone gets the same practice (<b>${esc(PRACTICES[w.practice].surgery)}</b>), the same goal and the same luck this week. Compare scores on the leaderboard.</p><button class="btn" data-act="weekly">Play this week's challenge</button></div>`; })()}
       ${best.length ? `<div class="best"><div class="eyebrow">Your best years</div><ol style="margin:6px 0 0;padding-left:1.2em">${best.map(b => `<li>${b.score} · ${esc(b.t)} · ${esc(b.p)}</li>`).join('')}</ol></div>` : ''}
     </section>
   </div></main>`;
@@ -156,20 +158,22 @@ function renderPlan() {
     ['QOF aspiration', c.inc.qof, `80% of last year's QOF (${p.lastQof}%) ÷ 12`],
     ['Network participation', c.inc.npp, `£${P.npp} × weighted list ÷ 12`],
     ['Vaccinations', c.inc.vacc, FLU_MONTHS.includes(S.month) ? 'Flu season: September to January' : 'Childhood and routine immunisations'],
-    ['Enhanced services', c.inc.es, 'Local and national enhanced services'],
+    ['Enhanced services', c.inc.es, c.serviceF < 0.98 ? `Only ${pct(c.serviceF)} claimed: not enough appointments to deliver them all` : 'Local and national enhanced services'],
     ['PCN', c.inc.pcn, 'Your share of PCN funding'],
     ['Private fees', c.inc.priv, 'Reports, medicals and letters'],
     ...(c.modCash ? [['Schemes, leases and extras', c.modCash, 'From earlier decisions']] : []),
     ['Staff', -c.cost.staff, 'Salaries plus 15% employer NI above £5,000 and 14.38% employer pension'],
     ...(c.cost.locum ? [['Locums and overtime', -c.cost.locum, [pl.locum ? `${pl.locum} locum sessions a week × £${Math.round(LOCUM_SESSION * 1000)}` : '', pl.extra ? `${pl.extra} overtime clinics a week × £${Math.round(OT_SESSION * 1000)}` : ''].filter(Boolean).join(', ') + ' × 4.33 weeks']] : []),
+    ...(c.cost.cover ? [['Sickness cover and incidents', -c.cost.cover, 'Low morale means sickness and cover. Unsafe care means incidents to investigate.']] : []),
     ['Running costs and premises', -c.cost.running, 'Office, IT, insurance, CQC fee, supplies, unreimbursed premises costs'],
     ['Partners\' drawings', -c.out.draw, `${c.partnersN} × £${DRAW[pl.draw]}k`],
     ['Partners\' pension contributions', -c.out.pension, `${Math.round(pensionRate(c.estShare * 0.95) * 1000) / 10}% of pensionable profit, paid monthly`]
   ];
   const moneyTable = `<dl class="kv small">${moneyRows.map(([l, v, how]) => `<dt>${esc(l)}<small>${esc(how)}</small></dt><dd class="${v < 0 ? '' : 'good-t'}">${v < 0 ? '−' : '+'}${fmtK(Math.abs(v))}</dd>`).join('')}<dt class="sum">Net this month</dt><dd class="sum">${signK(c.net)}</dd></dl>`;
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap">
-    <div class="plan-head"><div><div class="eyebrow">Month plan</div><h1>${MONTHS[S.month]}</h1></div><p class="brief">${esc(BRIEF[S.month])} ${S.queue.length} things will land on your desk this month.</p></div>
+    <div class="plan-head"><div><div class="eyebrow">Month plan</div><h1>${MONTHS[S.month]}</h1></div><p class="brief">${esc(BRIEF[S.month])} ${S.queue.length} things will land on your desk this month.${S.month === 0 ? ' New here? Set your clinical sessions and pick a project, or let Bev suggest a plan. Everything else can wait.' : ''}</p><button class="btn small" data-act="suggest" title="Sets sessions, cover, drawings and project for this month">Suggest a plan</button></div>
     <div class="plan-grid">
+      ${(() => { const Ty = c.T.you.v; const winterAhead = S.month >= 6 && S.month <= 9; if (!(winterAhead && Ty < 42) && !(S.st.you < 30)) return ''; return `<div class="warnbox" role="note"><b>${winterAhead ? 'Winter is coming for you.' : 'You are running on empty.'}</b> ${winterAhead ? 'January and February are when most partners burn out, and' : ''} your You meter is at ${Math.round(S.st.you)} and heading for ${Ty}. Book a week of leave, drop a clinical session, or add cover now, before the winter peak.</div>`; })()}
       <div class="col">
         <section class="panel" aria-labelledby="h-week">
           <h3 id="h-week">Your week <small>${total} sessions, about ${Math.round(c.hours)} hours once everything's counted</small></h3>
@@ -186,17 +190,18 @@ function renderPlan() {
             <div class="seg" role="group" aria-label="Drawings">${['low', 'std', 'high'].map(k => `<button data-act="draw" data-arg="${k}" aria-pressed="${pl.draw === k}">${k === 'low' ? 'Lean' : k === 'std' ? 'Standard' : 'Generous'} £${DRAW[k]}k</button>`).join('')}</div></div>
           ${explain('Drawings, pension and the tax bill', `<p>Drawings are payments on account of profit. On top, the practice pays each partner's NHS pension contributions: the member rate, up to 12.5%, plus the 14.38% employer share. Drawings aren't profits. At year end the accountant works out each partner's real share, and if drawings ran ahead, partners pay the difference back.</p><p>Income tax and Class 4 NI come later, through Self Assessment on 31 January and 31 July. A new partner's first bill can arrive about 22 months after joining, all at once.</p><p>Lean drawings protect the bank but weigh on you and on Nadia.</p>${srcLinks(['S21', 'S22', 'S23'])}`)}
         </section>
+        <section class="panel" aria-labelledby="h-proj">
+          <h3 id="h-proj">This month's project <small>Pick one.</small></h3>
+          <div class="projects">${projs}</div>
+          ${explain('How projects work', '<p>Effects land at the end of the month. Most are one-off boosts that fade as meters drift back toward where the practice\'s situation is taking them. A few change the situation itself: a mock CQC inspection leaves lasting improvements, and cloud telephony keeps patients happier for good.</p><p>Chasing unclaimed income finds less each time you do it.</p>')}
+        </section>
+        <details class="more-opts"${S.month < 2 ? '' : ' open'}><summary>More options: extra capacity and your team</summary>
         <section class="panel" aria-labelledby="h-locum">
           <h3 id="h-locum">Extra capacity <small>Locums at £${Math.round(LOCUM_SESSION * 1000)} a session, or your own staff on overtime at about £${Math.round(OT_SESSION * 1000)}.</small></h3>
           <div class="step" style="border:0"><div class="l"><b>Locum sessions per week</b><small>${pl.locum ? `${pl.locum * 14} extra appointments, about ${fmtK(c.cost.locum)} this month` : 'None booked'}</small></div>${stepper('locum', pl.locum, pl.locum <= 0, pl.locum >= locumMax(), 'Locum sessions')}</div>
           <div class="step" style="border:0"><div class="l"><b>Evening and Saturday clinics</b><small>${pl.extra ? `${pl.extra * OT_APPTS} extra appointments from your own staff on overtime, about ${fmtK(pl.extra * WEEKS * OT_SESSION)} this month` : 'None this month'}</small></div>${stepper('extra', pl.extra || 0, !(pl.extra > 0), (pl.extra || 0) >= OT_MAX, 'Evening and Saturday clinics')}</div>
           ${explain('Overtime clinics or locums?', `<p>An evening or Saturday clinic is run by your own salaried GPs and nurses on overtime, with a receptionist. At sessional rates plus employer NI and pension, that's about £${Math.round(OT_SESSION * 1000)} for ${OT_APPTS} appointments, much cheaper than a locum, and they know your patients and do their own paperwork.</p><p>They run outside core hours, so they don't take up a consulting room. The cost is tiredness: each weekly overtime session pulls Team down. Up to ${OT_MAX} a week.</p>`)}
           ${explain('What a locum costs', `<p>Typical in-hours GP locum rates in 2026 are £85 to £105 an hour, and agencies keep 15 to 25%. A 4h10m session at £100 an hour, plus 14.38% employer pension on NHS locum work, comes to about £${Math.round(LOCUM_SESSION * 1000)}.</p><p>Locums add appointments straight away, with no recruitment wait. They don't do results or letters, so each session adds a few items to your inbox.</p>${srcLinks(['S28', 'S22'])}`)}
-        </section>
-        <section class="panel" aria-labelledby="h-proj">
-          <h3 id="h-proj">This month's project <small>Pick one.</small></h3>
-          <div class="projects">${projs}</div>
-          ${explain('How projects work', '<p>Effects land at the end of the month. Most are one-off boosts that fade as meters drift back toward where the practice\'s situation is taking them. A few change the situation itself: a mock CQC inspection leaves lasting improvements, and cloud telephony keeps patients happier for good.</p><p>Chasing unclaimed income finds less each time you do it.</p>')}
         </section>
         <section class="panel" aria-labelledby="h-team">
           <h3 id="h-team">Team <small>ARRS ${arrsCount()}/${ARRS_CAP} · room sessions ${c.rNeed} of ${c.rAvail} booked · receptionists ${S.staff.recep} of ${c.recepNeed} needed</small></h3>
@@ -205,6 +210,7 @@ function renderPlan() {
           ${p.gpCap ? `<div class="fc-note"><p class="${gpHeadroom() < 6 ? 'bad-t' : ''}"><b>GPs are hard to find here.</b> Practices like yours can't recruit past about one GP per ${p.gpCap.toLocaleString('en-GB')} patients, against ${Math.round(BENCH.patients / BENCH.gp).toLocaleString('en-GB')} nationally. ${gpHeadroom() < 6 ? 'Nobody will apply for a salaried GP post unless your GP numbers fall below that.' : 'There\'s room for one more salaried GP.'} Locums are scarce too: at most ${locumMax()} sessions a week.</p>${explain('Why', `<p>GP numbers vary a lot by area. The worst-covered ICB, North West London, had one full-time GP for every 2,746 patients in late 2025, against about 2,200 nationally. Parts of Kent and Medway are worse: about 38 GPs per 100,000 people against 60 nationally, with some practices far beyond that. Deprived areas usually have the most patients per GP and the hardest time recruiting.</p>${srcLinks(['S66', 'S67', 'S59'])}`)}</div>` : ''}
           <details class="rolebox"${narrow() ? '' : ' open'}><summary>Staff, vacancies and recruitment</summary><div class="roles">${roles}</div></details>
         </section>
+        </details>
       </div>
       <aside class="panel forecast" aria-labelledby="h-fc">
         <h3 id="h-fc">Forecast <small>before whatever happens this month</small></h3>

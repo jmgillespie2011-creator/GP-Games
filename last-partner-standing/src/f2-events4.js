@@ -211,7 +211,7 @@ EVENTS.push(
 {id:'lifeline',arc:1,who:'bank',title:'Payroll day',tag:'real',src:['S23'],
  text:()=>`Payroll is due and you're past the £${Math.abs(S.overdraft)}k overdraft limit. The bank will extend it by £60,000 if every partner signs a personal guarantee.`,
  choices:[
-  {t:'Sign the personal guarantee',fx:{you:-8},run(){ S.overdraft-=60; },o:`Your signature now secures the practice overdraft against your house. Payroll goes out on time. Staff will never know.`},
+  {t:'Sign the personal guarantee',fx:{you:-8},alt:{p:0.15,fx:{you:-10},run(){ S.overdraft-=30; },o:`The bank's credit committee only agrees £30,000, against your house. Payroll goes out. Next month's won't unless something changes.`},run(){ if(!S._alt) S.overdraft-=60; },o:`Your signature now secures the practice overdraft against your house. Payroll goes out on time. Staff will never know.`},
   {t:'Refuse. Hand back the contract.',run(){ S.exit='handback'; return {o:`You refuse. The partnership can't pay its staff, so it hands back its contract.`}; }}
  ]},
 
@@ -219,14 +219,14 @@ EVENTS.push(
  info:'In the 2024 GP Worklife Survey, 37% of GPs reported a considerable or high intention to leave direct patient care within five years, rising to 55% of those over 50.',
  text:`You sat in the car park for twenty minutes before morning surgery, unable to go in. At home they've booked you an appointment with a GP. Not one at your practice.`,
  choices:[
-  {t:'Take a month off (locum cover about £14,000)',fx:{cash:-14,you:30},o:`Your GP signs you off. You sleep for most of the first week. When you come back, the practice is still there, and so are you.`},
+  {t:'Take a month off (locum cover about £14,000)',fx:{cash:-14,you:30},alt:{p:0.15,fx:{cash:-14,you:14,team:-3},o:`The locum agency cancels after a week. You come back early, half-recovered, to a practice that has been running on fumes.`},o:`Your GP signs you off. You sleep for most of the first week. When you come back, the practice is still there, and so are you.`},
   {t:'Keep going',fx:{you:-3},o:`You go in. You see 34 patients. You don't remember driving home.`}
  ]},
 
 {id:'crisis_team',arc:1,who:'bev',title:'Half the team',tag:'story',
  text:`Bev: "Half the team has been in to talk about leaving. We need to do something this week."`,
  choices:[
-  {t:'Emergency 5% pay rise',fx:{team:18,aim:{team:3}},run(){ S.payX+=nonGpPayroll()*0.05; },o:`It costs a lot. It also says something nobody has said out loud for a while.`},
+  {t:'Emergency 5% pay rise',fx:{team:18,aim:{team:3}},alt:{p:0.2,fx:{team:10,aim:{team:3},staff:{recep:-1}},run(){ S.payX+=nonGpPayroll()*0.05; },o:`It helps, but it's too late for one receptionist, who had already accepted a job at the council.`},run(){ if(!S._alt) S.payX+=nonGpPayroll()*0.05; },o:`It costs a lot. It also says something nobody has said out loud for a while.`},
   {t:'Away-day and a thank-you bonus (£6,000)',fx:{cash:-6,team:12},o:`A day at a hotel with bad coffee and good conversation. People stay, for now.`},
   {t:'"We\'re all in this together"',fx:{team:-6},o:`Nobody believes it, least of all you.`}
  ]},
@@ -236,7 +236,7 @@ EVENTS.push(
  text:`The ICB sends a remedial notice: patients "unable to access services in core hours". You have 28 days to put it right. After that, the ICB will keep watching access month by month.`,
  after(){ S.flags.remedialAt = S.month; },
  choices:[
-  {t:'Hire locums now (about £12,000 over two months)',fx:{patients:8,cash:-6,icb:4},run(){ addMod({id:'remedial',label:'Remedial locum cover',months:2,capAdd:84,fx:{cash:-3}}); },o:`Six extra locum sessions a week for two months. The ICB notes the improvement, and keeps monitoring.`},
+  {t:'Hire locums now (about £12,000 over two months)',fx:{patients:8,cash:-6,icb:4},alt:{p:()=>prac().locumMax?0.35:0.15,fx:{patients:3,cash:-6},run(){ addMod({id:'remedial',label:'Remedial locum cover (half-filled)',months:2,capAdd:42,fx:{cash:-1.5}}); },o:`The agency can only fill half the sessions. Access improves a little, and the ICB notices that it's only a little.`},run(){ if(!S._alt) addMod({id:'remedial',label:'Remedial locum cover',months:2,capAdd:84,fx:{cash:-3}}); },o:`Six extra locum sessions a week for two months. The ICB notes the improvement, and keeps monitoring.`},
   {t:'Contest the notice',fx:{icb:-10,you:-6},o:`The LMC helps you write a firm reply. The ICB is unmoved and schedules a review.`}
  ]},
 

@@ -20,13 +20,13 @@ function runCQC(reinspect) {
   else if (n('i') === 1 || n('ri') >= 2) overall = 'ri';
   else if (n('o') >= 3) overall = 'o';
   S.cqc = { overall, rates };
-  const fx = { o: { team: 10, you: 8, patients: 4, rep: 6 }, g: { team: 5, you: 4, rep: 2 }, ri: { team: -6, you: -8, safety: 4, rep: -4, aim: { safety: 2 } }, i: { team: -12, you: -15, patients: -8, safety: 6, rep: -10, icb: -10, aim: { safety: 4 } } }[overall];
+  const fx = { o: { team: 10, you: 8, patients: 4, rep: 6 }, g: { team: 5, you: 4, rep: 2 }, ri: { team: -6, you: -8, safety: 4, rep: -4, cash: -6, aim: { safety: 2 } }, i: { team: -12, you: -15, patients: -8, safety: 6, rep: -10, icb: -10, cash: -15, aim: { safety: 4 } } }[overall];
   applyFx(fx);
   let o;
   if (overall === 'o') o = 'Outstanding. Patricia almost smiles. Bev has the report framed before it is even published.';
   else if (overall === 'g') o = 'Good. The report praises "a caring, committed team working under significant pressure". Bev reads that line out loud four times.';
-  else if (overall === 'ri') o = 'Requires improvement. There is an action plan with 23 points, and it will make the practice safer. Patricia will be back to check.';
-  else o = reinspect ? 'Still inadequate. The ICB begins the process of terminating the contract.' : `Inadequate. Warning notices, special measures and a re-inspection in three months. The ${prac().paper} runs it on the front page.`;
+  else if (overall === 'ri') o = 'Requires improvement. There is an action plan with 23 points and about £6,000 of work in it: policies, training, a governance consultant. It will make the practice safer. Patricia will be back to check.';
+  else o = reinspect ? 'Still inadequate. The ICB begins the process of terminating the contract.' : `Inadequate. Warning notices, special measures, about £15,000 of improvement support you have to pay for, and a re-inspection in three months. The ${prac().paper} runs it on the front page.`;
   if (overall === 'i') { if (reinspect) S.forceOver = 'cqc'; else schedule('cqc_reinspect', 3); }
   if (overall === 'ri') schedule('cqc_factual', 1);
   S.flags.cqcDone = 1;
@@ -95,11 +95,13 @@ function finishYear(exit) {
   const perHour = pers.takeHome / hours;
   const st = S.st, others = activeOthers();
   const cqcB = S.cqc ? { o: 40, g: 20, ri: -10, i: -40 }[S.cqc.overall] : 0;
-  let score = st.patients + st.team + st.you + st.safety + S.qof + (annualK - 120) * 0.6 + cqcB + others * 8 + (others === 0 && !exit ? 25 : 0) + (S.cash < 0 ? -15 : 0);
+  let score = st.patients + st.team + st.you + st.safety + S.qof + clamp(annualK - 120, -60, 60) * 0.35 + cqcB + others * 8 + (others === 0 && !exit ? 25 : 0) + (S.cash < 0 ? -15 : 0);
+  const goalMet = !exit && S.goal && GOALS[S.goal] ? !!GOALS[S.goal].ok() : false;
+  if (goalMet) score += GOAL_BONUS;
   if (exit) score *= EXITS[exit].f;
   score = Math.round(Math.max(0, score));
   const arche = exit ? EXITS[exit] : archetype(annualK, others);
-  S.end = { exit, monthsDone, qofV, qofBal, partnersN, shareK, annualK, pers, balancing, hours, perHour, firstTax: (pers.tax + pers.c4) * 1.5, score, arche };
+  S.end = { goalMet, exit, monthsDone, qofV, qofBal, partnersN, shareK, annualK, pers, balancing, hours, perHour, firstTax: (pers.tax + pers.c4) * 1.5, score, arche };
   S.phase = 'end';
   recordBest(S.end);
   clearSave();

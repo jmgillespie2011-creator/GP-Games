@@ -1,5 +1,35 @@
 /* ===================== ENGINE: state, month flow, simulation ===================== */
 let S = null;
+// Weekly challenge games use a seeded random stream (kept in S.rng, so it survives saving); everything else uses the browser's.
+const _rand = Math.random.bind(Math);
+Math.random = () => {
+  if (!S || S.rng == null) return _rand();
+  S.rng = (S.rng + 0x6D2B79F5) >>> 0;
+  let t = S.rng;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+function isoWeek(d) {
+  d = d || new Date();
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y = t.getUTCFullYear();
+  return y + '-W' + String(Math.ceil(((t - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7)).padStart(2, '0');
+}
+function weekSeed(key) { let h = 2166136261; for (const ch of key) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0; return h; }
+function weeklyChallenge() { const week = isoWeek(), seed = weekSeed(week); return { week, seed, practice: ['suburb', 'town', 'city'][seed % 3] }; }
+// a goal for the year, worth a score bonus
+const GOALS = {
+  keepNadia: { t: 'Keep Nadia in the partnership', ok: () => isActive('okoye') },
+  cqcGood: { t: 'Get Good or Outstanding from CQC', ok: () => !!S.cqc && (S.cqc.overall === 'g' || S.cqc.overall === 'o') },
+  qof95: { t: 'Reach 95% QOF by 31 March', ok: () => S.qof >= 95 },
+  patients60: { t: 'Finish with Patients at 60 or more', ok: () => S.st.patients >= 60 },
+  steadyBank: { t: 'Never go past half your overdraft limit', ok: () => !S.flags.deepOD },
+  happyTeam: { t: 'Finish with Team at 65 or more', ok: () => S.st.team >= 65 }
+};
+const GOAL_BONUS = 40;
 const SAVE_KEY = 'lps-save-v2', BEST_KEY = 'lps-best-v1';
 const clamp = (v, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, v));
 const r1 = v => Math.round(v * 10) / 10;
@@ -41,6 +71,28 @@ function gpHiredSessions() {
 }
 function gpHeadroom() { const cap = prac().gpCap; return cap ? S.list / cap * GP_FTE_SESSIONS - gpHiredSessions() : Infinity; }
 const locumMax = () => prac().locumMax || 8;
+// a sensible plan for this month, explained. Used by "Suggest a plan" (hiring stays the player's call).
+function suggestPlan() {
+  const pl = S.plan, why = [];
+  pl.clin = S.st.you < 40 ? 5 : 6; pl.admin = 1; pl.mgmt = 1; pl.locum = 0; pl.extra = 0;
+  pl.leave = S.st.you < 50 && S.leaveUsed < 6;
+  if (pl.leave) why.push('a week off, because You is low');
+  pl.draw = S.cash < S.overdraft / 2 ? 'low' : 'std';
+  if (pl.draw === 'low') why.push('lean drawings to protect the bank');
+  let c = calc();
+  while (c.inboxEnd > 380 && pl.admin < 3) { pl.admin++; c = calc(); }
+  if (pl.admin > 1) why.push(`${pl.admin} admin sessions to keep the inbox safe`);
+  while (c.ratio < 0.97 && (pl.extra || 0) < 2 && S.st.team >= 50) { pl.extra = (pl.extra || 0) + 1; c = calc(); }
+  if (pl.extra) why.push(`${pl.extra} overtime clinic${pl.extra > 1 ? 's' : ''} a week`);
+  while (c.ratio < 0.95 && pl.locum < Math.min(4, locumMax()) && S.cash > S.overdraft + 25) { pl.locum++; c = calc(); }
+  if (pl.locum) why.push(`${pl.locum} locum session${pl.locum > 1 ? 's' : ''} a week`);
+  const done = id => (PROJECTS.find(x => x.id === id) || {}).once && S.flags['proj_' + id];
+  pl.project = S.flags.telephony && !done('telephony') ? 'telephony'
+    : S.st.team < 45 ? 'wellbeing' : S.st.safety < 45 ? 'cqc' : S.inbox > 450 ? 'inbox' : S.st.patients < 40 ? 'ppg'
+    : roomsNeeded() + 4 > roomsAvail() && !done('meetingroom') ? 'meetingroom' : S.cash < 0 ? 'claims' : 'qof';
+  why.push(`project: ${(PROJECTS.find(x => x.id === pl.project) || {}).name}`);
+  return why;
+}
 // headcount and FTE against the England averages for a list this size
 function benchmark() {
   const k = S.list / BENCH.patients;
@@ -75,10 +127,11 @@ function fill(t) {
     .replace(/\{list\}/g, S.list.toLocaleString('en-GB'));
 }
 
-function newGame(practiceKey, name) {
+function newGame(practiceKey, name, opts) {
+  opts = opts || {};
   const p = PRACTICES[practiceKey];
   S = {
-    v: 2, practiceKey, name: name || 'Jones', month: 0, phase: 'plan',
+    v: 2, practiceKey, name: name || 'Jones', month: 0, phase: 'plan', rng: opts.seed != null ? opts.seed >>> 0 : null, week: opts.week || null, goal: null,
     st: { ...p.st }, cash: p.cash, overdraft: p.overdraft, qof: 0, inbox: 180, list: p.list,
     demandMod: 0, adminMod: 0, rooms: p.rooms, icb: 55, rep: 55,
     aim: { patients: 0, team: 0, you: 0, safety: 0 },
@@ -95,6 +148,9 @@ function newGame(practiceKey, name) {
   [['contract_2026', 0], ['welcome', 0], ['hartley_retire', 0], ['okoye_email', 1], ['mini_docman', 1], ['pay_award', 2], ['mini_triage', 2],
    ['tom_partner', 3], ['survey', 3], ['headline', 4], ['flu_saturday', 5], ['okoye_leaving', 7], ['okoye_staying', 7],
    ['winter_phones', 8], ['qof_yearend', 10], ['contract_new', 11]].forEach(([id, m]) => S.sched.push({ id, m }));
+  S.goal = pick(Object.keys(GOALS));
+  // one late-year shock, so a good plan still gets tested
+  S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
   startMonth();
   save();
 }
@@ -115,7 +171,11 @@ function addMod(m) {
   S.mods.push(mod);
 }
 // plant a consequence that may land in a later month: {in, p, fx, note}
-function plant(seed) { S.later.push({ m: S.month + (seed.in || 1), p: seed.p == null ? 1 : seed.p, fx: seed.fx || {}, note: seed.note || '' }); S._planted = true; }
+function plant(seed) {
+  const e = S.phase === 'event' ? currentEvent() : null;
+  S.later.push({ m: S.month + (seed.in || 1), p: seed.p == null ? 1 : seed.p, fx: seed.fx || {}, note: seed.note || '', from: seed.from || (e ? fill(val(e.title)) + ', ' + MONTHS[S.month] : '') });
+  S._planted = true;
+}
 function partnerLeaves(id) {
   const q = S.partners[id];
   if (!q || q.status !== 'active') return;
@@ -234,7 +294,7 @@ function resolveChoice(i, extra) {
   S._alt = false; S._planted = false;
   const schedBefore = S.sched.length + S.queue.length;
   let fx = c.fx, o = c.o;
-  if (c.alt && chance(c.alt.p)) { S._alt = true; fx = c.alt.fx; o = c.alt.o; }
+  if (c.alt && chance(val(c.alt.p))) { S._alt = true; fx = c.alt.fx; o = c.alt.o; }
   applyFx(val(fx));
   if (!S._alt && c.later) c.later.forEach(plant);
   let res = null;
@@ -299,12 +359,14 @@ function calc() {
   // money, £k a month
   const partnersN = 1 + activeOthers();
   const w = weightedList();
+  // claims for vaccinations and enhanced services need appointments to deliver them
+  const serviceF = clamp(0.4 + 0.6 * ratio, 0.45, 1.03);
   const inc = {
     gs: w * P.gs * (1 - P.ooh) / 12 / 1000,
     qof: S.qofAsp,
     npp: P.npp * w / 12 / 1000,
-    vacc: S.list * PER_PATIENT.vacc * (0.4 / 12 + (FLU_MONTHS.includes(m) ? 0.12 * S.fluMod : 0)) / 1000,
-    es: S.list * PER_PATIENT.es / 12 / 1000,
+    vacc: serviceF * S.list * PER_PATIENT.vacc * (0.4 / 12 + (FLU_MONTHS.includes(m) ? 0.12 * S.fluMod : 0)) / 1000,
+    es: serviceF * S.list * PER_PATIENT.es / 12 / 1000,
     pcn: S.list * PER_PATIENT.pcn / 12 / 1000,
     priv: S.list * p.priv / 12 / 1000
   };
@@ -313,10 +375,12 @@ function calc() {
   const cost = {
     staff: roleCost + S.list * CORE_ADMIN + S.payX + S.tomRaise,
     locum: pl.locum * WEEKS * LOCUM_SESSION + (pl.extra || 0) * WEEKS * OT_SESSION,
-    running: S.list * RUNNING + p.premNet + p.overhead + S.premX + S.loan
+    running: S.list * RUNNING + p.premNet + p.overhead + S.premX + S.loan,
+    // neglect costs money: sickness cover when morale is low, incident handling when care is unsafe
+    cover: Math.max(0, 45 - S.st.team) * 0.25 + Math.max(0, 35 - S.st.safety) * 0.2
   };
   const incTot = Object.values(inc).reduce((a, b) => a + b, 0);
-  const costTot = cost.staff + cost.locum + cost.running;
+  const costTot = cost.staff + cost.locum + cost.running + cost.cover;
   const profit = incTot + modCash - costTot;
   const estShare = Math.max(0, profit * 12 / partnersN * 1000);
   const penEach = estShare * 0.95 * pensionRate(estShare * 0.95) / 12 / 1000;
@@ -334,7 +398,7 @@ function calc() {
   addH(activeOthers() === 0 ? 8 : activeOthers() === 1 ? 3 : 0, activeOthers() === 0 ? 'Doing every partner job yourself' : 'Only two partners to share the running of it');
   mods.forEach(x => { if (x.hours) addH(x.hours, x.label); });
   const qofGain = (1.5 + S.staff.nurse * 1.1 + S.staff.hca * 0.7 + S.staff.pharm * 0.7 + S.staff.cc * 1.8 + pl.mgmt * 1.1) * p.qofEase;
-  const c = { cap, demand, ratio, inflow, clear, inboxEnd, inc, cost, incTot, costTot, modCash, profit, out, net, penEach, estShare, sessions, hours, hWhy, recepNeed, recepShort, rNeed, rAvail, roomsOver, supN, qofGain, partnersN, capMul };
+  const c = { serviceF, cap, demand, ratio, inflow, clear, inboxEnd, inc, cost, incTot, costTot, modCash, profit, out, net, penEach, estShare, sessions, hours, hWhy, recepNeed, recepShort, rNeed, rAvail, roomsOver, supN, qofGain, partnersN, capMul };
   c.T = targets(c);
   return c;
 }
@@ -451,6 +515,7 @@ function monthEnd() {
   S.inbox = c.inboxEnd;
   // money
   S.cash = r1(S.cash + c.net);
+  if (S.cash < S.overdraft / 2) S.flags.deepOD = 1;
   S.aspPaid += c.inc.qof;
   S.drawTotal += DRAW[pl.draw];
   S.penTotal += c.penEach;
@@ -480,9 +545,14 @@ function monthEnd() {
   // delayed consequences of earlier decisions
   const due = S.later.filter(x => x.m <= S.month);
   S.later = S.later.filter(x => x.m > S.month);
-  due.forEach(x => { if (chance(x.p)) { applyFx(x.fx); if (x.note) consq.push(x.note); } });
+  due.forEach(x => { if (chance(x.p)) { applyFx(x.fx); if (x.note) consq.push((x.from ? `From “${x.from}”: ` : '') + x.note); } });
   // things that happen because of the state you're in
   incidents(c).forEach(n => consq.push(n));
+  // unhappy patients register elsewhere, and the global sum follows them
+  if (S.st.patients < 35) {
+    const gone = Math.round(S.list * 0.002 * (35 - S.st.patients) / 5 * (p.key === 'city' ? 0.6 : 1));
+    if (gone > 0) { S.list -= gone; consq.push(`Because patients are unhappy: ${gone} registered with other practices this month, and their funding went with them.`); }
+  }
   // the contract process: a remedial notice, a breach notice if access hasn't improved a month later,
   // and termination after three month-ends in a row of poor access once notice has been served
   const f = S.flags;

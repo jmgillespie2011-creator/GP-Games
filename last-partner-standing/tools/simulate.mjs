@@ -95,7 +95,7 @@ for (const practice of practices) for (const policy of policies) {
     const E = S.end;
     if (E.exit) { R.exits[E.exit] = (R.exits[E.exit] || 0) + 1; continue; }
     R.survived++;
-    R.share.push(E.annualK); R.take.push(E.pers.takeHome / 1000); R.perHour.push(E.perHour); R.qof.push(S.qof); R.cash.push(S.cash);
+    R.score = R.score || []; R.score.push(E.score); R.share.push(E.annualK); R.take.push(E.pers.takeHome / 1000); R.perHour.push(E.perHour); R.qof.push(S.qof); R.cash.push(S.cash);
     R.titles[E.arche.t] = (R.titles[E.arche.t] || 0) + 1;
     const cq = S.cqc ? S.cqc.overall : 'none'; R.cqc[cq] = (R.cqc[cq] || 0) + 1;
     for (const k of L.STAT_KEYS) R.st[k].push(S.st[k]);
@@ -105,7 +105,7 @@ for (const practice of practices) for (const policy of policies) {
   console.log(`  exits: ${top(R.exits)}`);
   console.log(`  game overs: ${top(R.overs)}`);
   if (R.survived) {
-    console.log(`  profit share £${avg(R.share).toFixed(0)}k, take-home £${avg(R.take).toFixed(0)}k, £${avg(R.perHour).toFixed(0)}/hour, QOF ${avg(R.qof).toFixed(0)}%, bank £${avg(R.cash).toFixed(0)}k`);
+    console.log(`  score ${avg(R.score || []).toFixed(0)},`); console.log(`  profit share £${avg(R.share).toFixed(0)}k, take-home £${avg(R.take).toFixed(0)}k, £${avg(R.perHour).toFixed(0)}/hour, QOF ${avg(R.qof).toFixed(0)}%, bank £${avg(R.cash).toFixed(0)}k`);
     console.log(`  final meters: ${L.STAT_KEYS.map(k => `${k} ${avg(R.st[k]).toFixed(0)}`).join(', ')}`);
     console.log(`  CQC: ${top(R.cqc)}`);
     console.log(`  titles: ${top(R.titles)}`);

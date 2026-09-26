@@ -46,6 +46,12 @@ A single-page vanilla JS game with no dependencies. The only build step is conca
 - **The ICB contract process.** The patients crisis card is a remedial notice (`flags.remedialAt`). If Patients is below 30 a month later, a breach notice follows. Once notice has been served, three month-ends in a row with Patients below the practice's `accessLine` (16 in the city, 10 elsewhere; counted in `flags.lowAccess`) make the ICB terminate the contract (`forceOver = 'patients'`). The month report warns after two.
 - **Crises before game over.** A meter at 18 or below, the bank past its overdraft limit, or being the last partner queues a one-off crisis card first.
 - **Other endings.** Setting `S.exit` in a choice (`sold`, `merged`, `salaried`, `emigrated`, `handback`) ends the game after the outcome card.
+- **Crisis cards can fail.** The lifeline, the month off, the 5% pay rise and the remedial locums each have an `alt` gamble (15–35%, highest for city locums) where the rescue only half works.
+- **Neglect costs money.** In `calc`, vaccination and enhanced-service income is scaled by `serviceF` (capacity against demand, 0.45 to 1.03), and a `cover` cost grows when Team is below 45 or Safety below 35 (sickness cover and incidents). Patients below 35 makes people leave the list each month. A CQC Requires improvement costs £6k and Inadequate £15k.
+- **Twists.** `newGame` schedules one late-year twist in months 6–9: `twist_ill` (a partner off sick, chosen by `illPartner()`), `twist_fire` (£38k fire doors) or `twist_flood` (two rooms lost). They are in `f4-events6.js`.
+- **Goals and the weekly challenge.** Each year gets one `GOALS` entry (`S.goal`), shown in the HUD; meeting it adds `GOAL_BONUS` (40) to the score. The weekly challenge (`weeklyChallenge()`) seeds `Math.random` from the ISO week (`S.rng`, mulberry32), so everyone that week gets the same practice, goal, twist and luck. Scores post with `week`, and the board has a "This week" tab. Normal games keep the browser's random numbers.
+- **Helping new players.** In April the Locum and Team sections sit closed under "More options". "Suggest a plan" (`suggestPlan()`) sets sessions, cover and a project with reasons. The month report has "Same plan, start May →" (`nextgo`), a "What's driving the practice" panel (the three biggest pulls from `targets()`), and delayed consequences say which card they came from. From October, a warning box appears when You is heading below 42 before the winter.
+- **Score.** Mostly meters, CQC and QOF, plus `clamp(annualK-120, -60, 60) * 0.35` for money and the goal bonus. Sensible play scores about 400 in the suburb and town and 250 in the city; random play about 210–240.
 - **Hidden relationships.** `S.icb` and `S.rep` (0–100) shape patient satisfaction, recruitment, bids and ICB behaviour. The report explains them.
 - **Money timing.** The global sum is paid on the weighted list. QOF pays 80% of last year's value monthly, and the balance is reconciled at year end (due by June). The partners' pension contributions are paid monthly on top of drawings, and personal tax is shown at the end.
 
@@ -100,15 +106,16 @@ These come from the scoping work behind this game.
 
 ### Balance
 
-The last run of `tools/simulate.mjs 400` covered 2,400 years:
+The last run of `tools/simulate.mjs 400` (after the neglect costs, twists and goals, September 2026) covered 2,400 years:
 
 | Practice | Random play survived | Sensible play survived | Sensible play profit share | Sensible play take-home | Sensible play QOF |
 |---|---|---|---|---|---|
-| Suburb | 55% | 100% | £150k | £73k | 94% |
-| Town | 48% | 100% | £156k | £75k | 93% |
-| City | 6% | 95% | £146k | £72k | 93% |
+| Suburb | 59% | 100% | £147k | £72k | 93% |
+| Town | 45% | 100% | £155k | £75k | 93% |
+| City | 6% | 92% | £139k | £69k | 93% |
 
 - Burnout in January and February is the most common game over.
+- Random play in the town still takes a slightly bigger profit share than sensible play (about £165k against £155k), because the sensible player pays for locums. That's realistic; the score rewards the quality instead.
 - The city was rebalanced in September 2026: it starts with a care coordinator and a social prescriber, £40k in the bank against a £110k overdraft, lower overheads and slightly lower demand. It also carries a small extra drag on You. Sensible play now ends with patients around 39, mostly Good from CQC (about a third Requires improvement) and the bank within its overdraft.
 - Random-play survival moves by about 5 points between runs.
 - The city must be able to beat a sensible player. With `accessLine: 16`, about 5% of sensible city years end with the ICB terminating the contract, mostly in February or March.

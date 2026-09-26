@@ -4,7 +4,7 @@
  and table constraints reject silly values. Scores are worked out in the browser, so they can be faked.
  If BOARD.url is empty, or the network is blocked (as inside a Claude Artifact), the board says so and the game carries on.
 */
-const BOARD = { url: 'https://rttvlxawjidhneljhglk.supabase.co', key: 'sb_publishable_Zj804D7rgJdWCl2QTNJWGw_RBPYmCWT', table: 'lps_scores', version: 'v4' };
+const BOARD = { url: 'https://rttvlxawjidhneljhglk.supabase.co', key: 'sb_publishable_Zj804D7rgJdWCl2QTNJWGw_RBPYmCWT', table: 'lps_scores', version: 'v5' };
 const BOARD_NAME_KEY = 'lps-board-name-v1';
 const PRAC_SHORT = { suburb: 'Suburb', town: 'Town', city: 'City' };
 let BD = { tab: 'all', rows: null, err: '', loading: false, posting: false, posted: null, rank: null };
@@ -23,7 +23,7 @@ function savedBoardName() { try { return localStorage.getItem(BOARD_NAME_KEY) ||
 function loadBoard() {
   if (!boardOn()) { BD.err = 'off'; return; }
   BD.loading = true; BD.err = '';
-  const q = `${BOARD.table}?select=id,name,practice,title,score,share_k,qof,cqc,exit,created_at&order=score.desc,created_at.asc&limit=20` + (BD.tab !== 'all' ? `&practice=eq.${BD.tab}` : '');
+  const q = `${BOARD.table}?select=id,name,practice,title,score,share_k,qof,cqc,exit,week,created_at&order=score.desc,created_at.asc&limit=20` + (BD.tab === 'week' ? `&week=eq.${isoWeek()}` : BD.tab !== 'all' ? `&practice=eq.${BD.tab}` : '');
   boardFetch(q, { headers: boardHeaders() })
     .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(rows => { BD.rows = Array.isArray(rows) ? rows : []; })
@@ -38,7 +38,7 @@ function postScore() {
   try { localStorage.setItem(BOARD_NAME_KEY, name); } catch (e) { }
   const E = S.end;
   const row = { name, practice: S.practiceKey, title: String(E.arche.t).slice(0, 48), score: Math.max(0, Math.min(800, E.score)),
-    share_k: Math.round(Math.max(-300, Math.min(500, E.annualK))), qof: Math.round(clamp(S.qof)), cqc: S.cqc ? S.cqc.overall : null, exit: E.exit || null, version: BOARD.version };
+    share_k: Math.round(Math.max(-300, Math.min(500, E.annualK))), qof: Math.round(clamp(S.qof)), cqc: S.cqc ? S.cqc.overall : null, exit: E.exit || null, week: S.week || null, version: BOARD.version };
   BD.posting = true; refreshBoard();
   boardFetch(BOARD.table, { method: 'POST', headers: boardHeaders({ Prefer: 'return=representation' }), body: JSON.stringify(row) })
     .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
@@ -59,10 +59,10 @@ function boardTableHTML() {
   if (BD.err === 'net') return `<p class="fc-note">The leaderboard can't be reached from here. It works at <a href="https://last-partner-standing.vercel.app" target="_blank" rel="noopener">last-partner-standing.vercel.app</a>.</p>`;
   if (!BD.rows) return '<p class="fc-note">Loading the leaderboard…</p>';
   if (!BD.rows.length) return '<p class="fc-note">No scores yet. Be the first partner on the board.</p>';
-  return `<ol class="board">${BD.rows.map((r, i) => `<li class="${BD.posted && r.id === BD.posted ? 'me' : ''}"><span class="pos">${i + 1}</span><span class="who-b"><b>${esc(r.name)}</b><small>${esc(r.title)} · ${esc(PRAC_SHORT[r.practice] || '')}${r.cqc ? ' · CQC ' + esc(RATE_NAME[r.cqc] || '') : ''}${r.share_k != null ? ' · £' + r.share_k + 'k' : ''}</small></span><span class="sc">${r.score}</span></li>`).join('')}</ol>`;
+  return `<ol class="board">${BD.rows.map((r, i) => `<li class="${BD.posted && r.id === BD.posted ? 'me' : ''}"><span class="pos">${i + 1}</span><span class="who-b"><b>${esc(r.name)}</b><small>${esc(r.title)} · ${esc(PRAC_SHORT[r.practice] || '')}${r.cqc ? ' · CQC ' + esc(RATE_NAME[r.cqc] || '') : ''}${r.share_k != null ? ' · £' + r.share_k + 'k' : ''}${r.week ? ' · weekly' : ''}</small></span><span class="sc">${r.score}</span></li>`).join('')}</ol>`;
 }
 function boardTabsHTML() {
-  return `<div class="seg board-tabs" role="group" aria-label="Filter by practice">${['all', 'suburb', 'town', 'city'].map(k => `<button data-act="board-tab" data-arg="${k}" aria-pressed="${BD.tab === k}">${k === 'all' ? 'All' : PRAC_SHORT[k]}</button>`).join('')}</div>`;
+  return `<div class="seg board-tabs" role="group" aria-label="Filter by practice">${['all', 'week', 'suburb', 'town', 'city'].map(k => `<button data-act="board-tab" data-arg="${k}" aria-pressed="${BD.tab === k}">${k === 'all' ? 'All' : k === 'week' ? 'This week' : PRAC_SHORT[k]}</button>`).join('')}</div>`;
 }
 function boardInner() { return `${boardTabsHTML()}<div id="board-list">${boardTableHTML()}</div>`; }
 

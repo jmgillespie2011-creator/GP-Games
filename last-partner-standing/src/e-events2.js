@@ -61,7 +61,7 @@ EVENTS.push(
  info:'In a 2026 study of 1,152 general practice staff, 92.3% had faced verbal abuse and 47.7% physical violence or threats. Reception staff were the most affected.',
  text:`A man has been shouting at Kayleigh for ten minutes because his prescription "should have been done already". It was requested 40 minutes ago. Kayleigh is 22. She's shaking.`,
  choices:[
-  {t:'Zero tolerance: warning letter, then removal',fx:{team:6,patients:-1,aim:{team:2}},o:`The letter goes out. The team notices you backed them, and they'll remember it.`},
+  {t:'Zero tolerance: warning letter, then removal',fx:{team:6,patients:-1,aim:{team:2}},later:[{in:2,p:0.3,fx:{you:-3,icb:-2,rep:-2},note:'The man you removed complained to the ICB and the local paper that he was "struck off for asking about a prescription". You spent an afternoon on the response.'}],o:`The letter goes out. The team notices you backed them, and they'll remember it.`},
   {t:'Step out and de-escalate it yourself',fx:{team:3,you:-3,patients:1},o:`You calm him down. It takes 15 minutes you didn't have. Kayleigh brings you a tea later without being asked.`},
   {t:'Fit panic alarms and a proper screen (£2,000)',fx:{team:4,cash:-2,aim:{team:1,safety:1}},o:`The installer asks if you'd like the bulletproof option. You pause for longer than you'd like to admit.`}
  ]},
@@ -212,7 +212,7 @@ EVENTS.push(
 {id:'wfh',who:'bev',title:'Working from home',tag:'story',
  text:`The admin team asks to work from home two days a week. "We code letters and summarise records. We could do it in our pyjamas." Two of them already look like they do.`,
  choices:[
-  {t:'Yes. Laptops and smartcard readers (£1,500)',fx:{team:5,cash:-1.5,inbox:-40,aim:{team:2}},o:`Productivity goes up. Nobody's sure why. Everyone suspects the quieter kitchen.`},
+  {t:'Yes. Laptops and smartcard readers (£1,500)',fx:{team:5,cash:-1.5,inbox:-40,aim:{team:2}},later:[{in:3,p:0.25,fx:{safety:-3,cash:-3,icb:-2},note:'A laptop with patient letters on it was left on a train. It was encrypted, but it\'s still a reportable data breach and a long week.'}],o:`Productivity goes up. Nobody's sure why. Everyone suspects the quieter kitchen.`},
   {t:'No. We need people in the building.',fx:{team:-4},later:[{in:2,p:0.45,fx:{admin:4,team:-2},note:'An admin coder left for an NHS job with hybrid working. Letters are now piling up faster.'}],o:`They accept it. Two start looking at jobs that offer hybrid working.`}
  ]},
 

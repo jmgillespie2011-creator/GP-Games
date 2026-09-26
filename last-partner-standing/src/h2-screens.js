@@ -16,6 +16,7 @@ function renderReport() {
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap report">
     <div class="clip"><div class="masthead"><span>${esc(prac().paper)}</span><span>${MONTHS[R.month]} ${CAL_YEAR[R.month]}</span></div>
       <h2>${esc(R.headline)}</h2><p>${c.cap} appointments offered a week against ${c.demand} requested (${pct(c.ratio)}).</p></div>
+    ${(() => { const all = []; STAT_KEYS.forEach(k => c.T[k].why.forEach(([d, l]) => all.push([d, l, k]))); const top = all.filter(x => Math.abs(x[0]) >= 3).sort((a, b) => Math.abs(b[0]) - Math.abs(a[0])).slice(0, 3); return top.length ? `<section class="panel"><h3>What's driving the practice <small>the biggest pulls on your meters right now</small></h3><ul class="why">${top.map(([d, l, k]) => `<li><span class="${d > 0 ? 'good-t' : 'bad-t'}">${d > 0 ? '+' : '−'}${Math.abs(d)}</span> ${STAT_LABEL[k]}: ${esc(l)}</li>`).join('')}</ul></section>` : ''; })()}
     ${R.consq.length ? `<section class="panel consq"><h3>What came of it <small>consequences of earlier decisions and of the state you're in</small></h3><ul class="notes">${R.consq.map(n => `<li>${esc(n)}</li>`).join('')}</ul></section>` : ''}
     <div class="rgrid">
       <section class="panel"><h3>The month in numbers</h3>
@@ -40,6 +41,7 @@ function renderReport() {
           ${c.modCash ? `<dt>Schemes, leases and extras</dt><dd>${signK(c.modCash)}</dd>` : ''}
           <dt>Staff</dt><dd>−${fmtK(c.cost.staff)}</dd>
           ${c.cost.locum ? `<dt>Locums and overtime</dt><dd>−${fmtK(c.cost.locum)}</dd>` : ''}
+          ${c.cost.cover ? `<dt>Sickness cover and incidents</dt><dd>−${fmtK(c.cost.cover)}</dd>` : ''}
           <dt>Running costs and premises</dt><dd>−${fmtK(c.cost.running)}</dd>
           <dt class="sum">Profit this month</dt><dd class="sum">${signK(c.profit)}</dd>
           <dt>Partners' drawings (${c.partnersN})</dt><dd>−${fmtK(c.out.draw)}</dd>
@@ -51,7 +53,7 @@ function renderReport() {
         ${notes.length ? `<h3 style="margin-top:6px">Notes</h3><ul class="notes">${notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
       </section>
     </div>
-    <div class="plan-go"><button class="btn primary" data-act="next">${checkOver() ? 'Uh oh…' : last ? 'See the year-end accounts →' : `On to ${MONTHS[S.month + 1]} →`}</button></div>
+    <div class="plan-go">${checkOver() || last ? `<button class="btn primary" data-act="next">${checkOver() ? 'Uh oh…' : 'See the year-end accounts →'}</button>` : `<div class="go-pair"><button class="btn" data-act="next">Plan ${MONTHS[S.month + 1]}</button><button class="btn primary" data-act="nextgo" title="Keep this month's sessions, cover and drawings">Same plan, start ${MONTHS[S.month + 1]} →</button></div><p class="fc-note">Same plan: ${S.plan.clin} clinical, ${S.plan.admin} admin and ${S.plan.mgmt} management sessions${S.plan.locum ? `, ${S.plan.locum} locum` : ''}${S.plan.extra ? `, ${S.plan.extra} overtime` : ''}. Leave and one-off projects don't carry over.</p>`}</div>
   </div></main>`;
 }
 
@@ -108,6 +110,7 @@ function renderEnd() {
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap ending">
     <section class="verdict"><div class="eyebrow">${E.exit ? MONTHS[S.month] + ' ' + CAL_YEAR[S.month] : '31st March 2027'} · ${esc(prac().surgery)}</div><span class="bigstamp">${esc(E.arche.s)}</span>
       <h1>${esc(E.arche.t)}</h1><p class="lede">${esc(E.arche.d)}</p>
+      ${S.goal && GOALS[S.goal] && !E.exit ? `<p class="goal-line ${E.goalMet ? 'good-t' : 'bad-t'}">${E.goalMet ? `Goal met: ${esc(GOALS[S.goal].t)}. +${GOAL_BONUS} points.` : `Goal missed: ${esc(GOALS[S.goal].t)}.`}</p>` : ''}
       <div class="score"><span>Score <b>${E.score}</b></span><span>Profit share <b>£${Math.round(E.annualK)}k</b></span><span>Take-home <b>${gbp(pers.takeHome)}</b></span><span>Per hour <b>£${Math.round(E.perHour)}</b></span></div>
       ${counterHTML(E.arche)}
     </section>
@@ -231,10 +234,13 @@ document.addEventListener('click', ev => {
       S.st.team = clamp(S.st.team - (big ? 6 : 3)); save(); keepScroll(renderPlan);
       toast(`${ROLES[arg].name} let go. Team morale ${big ? '−6' : '−3'}.`); break;
     }
+    case 'weekly': { const w = weeklyChallenge(); const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; go(() => newGame(w.practice, nm, { seed: w.seed, week: w.week })); break; }
     case 'begin': go(beginMonth); break;
+    case 'suggest': { const why = suggestPlan(); save(); keepScroll(renderPlan); toast('Bev suggests: ' + why.join(', ') + '.'); break; }
     case 'choose': chooseAt(+arg); break;
     case 'cont': go(continueOutcome); break;
     case 'next': go(nextMonth); break;
+    case 'nextgo': go(() => { nextMonth(); if (S.phase === 'plan') beginMonth(); }); break;
     case 'again': { const k = S.practiceKey, n = S.name; go(() => newGame(k, n)); break; }
     case 'home': S = null; UI.screen = 'title'; go(() => { }); break;
     case 'share': {

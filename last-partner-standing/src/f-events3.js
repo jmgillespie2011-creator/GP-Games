@@ -4,7 +4,7 @@ EVENTS.push(
  info:'Vaccines must be stored between 2°C and 8°C. After a cold-chain breach the stock is quarantined and the manufacturers are asked whether it\'s still usable. Using compromised vaccines can mean recalling patients to be revaccinated.',
  text:`Monday morning. The vaccine fridge data logger shows it reached 11°C for about six hours over the weekend. Inside: £7,000 of vaccines. Maureen is holding the logger like it's a murder weapon.`,
  choices:[
-  {t:'Quarantine the stock and ask the manufacturers for stability advice',fx:{you:-2,safety:4,cash:-2.5,aim:{safety:1}},o:`About two thirds is fine according to the manufacturers' data. The rest is binned. You write it up as a significant event and fit a second alarm. The system works.`},
+  {t:'Quarantine the stock and ask the manufacturers for stability advice',fx:{you:-3,safety:4,cash:-2.5,team:-1,inbox:20,aim:{safety:1}},later:[{in:1,p:0.35,fx:{cash:-3,patients:-2},note:'The manufacturers came back on the rest of the fridge stock: not usable after all. Another batch binned, and 60 flu appointments rebooked.'}],o:`About two thirds is fine according to the manufacturers' data. The rest is binned. You write it up as a significant event and fit a second alarm. The system works.`},
   {t:'Bin the lot, to be safe',fx:{cash:-7,safety:3},o:`£7,000 into the pharmaceutical waste bin. Safe, expensive and, it turns out, partly unnecessary.`},
   {t:'"They\'re probably fine."',fx:{safety:-4},later:[{in:4,p:0.4,fx:{safety:-14,cash:-7,patients:-5,rep:-6},note:'Because the vaccines from the broken fridge were used: an audit found the breach. 140 patients need recalling for revaccination, and the paper found out.'}],o:`Nobody says anything. You think about it every night at about 3am.`}
  ]},
@@ -27,7 +27,7 @@ EVENTS.push(
 {id:'methotrexate',who:'raj',title:'Nine months without bloods',tag:'story',
  text:`Raj has found a patient on methotrexate who hasn't had a blood test in nine months. The repeats have gone out every month without anyone noticing. Raj thinks there are more.`,
  choices:[
-  {t:'Run a full high-risk drug monitoring audit',need:()=>S.staff.pharm>0,why:'You need a clinical pharmacist',fx:{safety:6,inbox:40,team:-1,aim:{safety:2}},o:`Raj finds 31 patients overdue monitoring. Two had significant results. The audit may have saved a life, and now it runs every quarter.`},
+  {t:'Run a full high-risk drug monitoring audit',need:()=>S.staff.pharm>0,why:'You need a clinical pharmacist',fx:{safety:6,inbox:40,team:-1,you:-2,aim:{safety:2}},o:`Raj finds 31 patients overdue monitoring. Two had significant results. The audit may have saved a life, and now it runs every quarter.`},
   {t:'Block repeats until bloods are done',fx:{safety:3,patients:-3},o:`Thirty-one patients get a text asking them to book a blood test before their next prescription. Twenty-nine do.`},
   {t:'Book this one patient and carry on',fx:{safety:-4},later:[{in:3,p:0.4,fx:{safety:-8,you:-4},note:'Another patient on a high-risk drug with no monitoring was admitted with a low white cell count.'}],o:`He's fine. You don't know about the others yet.`}
  ]},
@@ -80,7 +80,7 @@ EVENTS.push(
  text:()=>{ const opts=[['An HRT patch',0.009],['A common ADHD medicine',0.004],['A widely used diabetes medicine',0.012],['A first-line antibiotic',0.003],['A common epilepsy medicine',0.003]]; if(S.flags.shortDrug==null) S.flags.shortDrug=Math.floor(Math.random()*opts.length); const [d,rate]=opts[S.flags.shortDrug]; return `Ashok rings. "${d} is out of stock everywhere. The wholesalers say eight weeks, maybe twelve." About ${Math.max(12,Math.round(S.list*rate))} of your patients take it. There's a Medicine Supply Notification listing alternatives, but there's no Serious Shortage Protocol, so every switch needs a new prescription from you.`; },
  after(){ delete S.flags.shortDrug; },
  choices:[
-  {t:'Raj reviews every patient and switches them one by one',need:()=>S.staff.pharm>0,why:'You need a clinical pharmacist',fx:{inbox:35,safety:3,patients:1,you:-1},o:`Raj works through the list: the right alternative for each patient, their other medicines checked, and a text explaining the change. Three patients need a GP. Nobody goes without.`},
+  {t:'Raj reviews every patient and switches them one by one',need:()=>S.staff.pharm>0,why:'You need a clinical pharmacist',fx:{inbox:35,safety:3,patients:1,you:-1,qof:-2},o:`Raj works through the list: the right alternative for each patient, their other medicines checked, and a text explaining the change. Nobody goes without, but his QOF medication reviews wait a month.`},
   {t:'Switch everyone to the first listed alternative in one batch',fx:{inbox:15,patients:-1,safety:-1},later:[{in:1,p:0.45,fx:{inbox:30,patients:-2,safety:-2},note:'Because of the batch switch: thirty patients rang about tablets that look different, and two had side effects from the alternative.'}],o:`One search, one batch of prescriptions, one text message. It's done by lunchtime. Mostly.`},
   {t:'Tell patients to try other pharmacies',fx:{patients:-4,rep:-2,inbox:10},later:[{in:1,p:0.5,fx:{safety:-4,you:-2},note:'Because patients were sent pharmacy to pharmacy: one went three weeks without their medicine and ended up in A&E.'}],o:`Reception gives out a list of pharmacies. Patients ring round, then ring you back.`}
  ]},

@@ -34,7 +34,24 @@ const DOCS = [
   {k:'Letter',f:'St Mary\'s Primary School',b:'Please provide a letter confirming Jayden had a cold on Tuesday.',a:['bounce'],w:'Schools should not need GP evidence for a cold.'},
   {k:'Letter',f:'PowerHouse Gym',b:'Please confirm Mr B is medically fit for spin classes.',a:['bounce'],w:'Not NHS work. Bounce it, or charge for it.'},
   {k:'Request',f:'Private ADHD clinic',b:'Please take over prescribing of lisdexamfetamine. No shared care agreement enclosed.',a:['bounce'],w:'No agreement, no shared care. Bounce it.'},
-  {k:'Clinic letter',f:'Gastroenterology',b:'Did not attend for the third time. Discharged back to GP.',a:['file','action'],w:'File it, or a gentle nudge.'}
+  {k:'Clinic letter',f:'Gastroenterology',b:'Did not attend for the third time. Discharged back to GP.',a:['file','action'],w:'File it, or a gentle nudge.'},
+  {k:'Blood result',f:'Pathology',b:'Glucose 31 mmol/L, ketones 3.4. Aged 19. Mum says he\'s been drinking loads and losing weight.',a:['urgent'],w:'Possible new type 1 diabetes with ketones: same day, probably hospital.'},
+  {k:'Blood result',f:'Pathology',b:'Neutrophils 0.3 x10^9/L. On methotrexate. Sore throat since yesterday.',a:['urgent'],w:'Neutropenia on a DMARD with a sore throat: same day.'},
+  {k:'Blood result',f:'Pathology',b:'ALT 1,450 U/L. Last month: 28. Started a new antibiotic ten days ago.',a:['urgent'],w:'Acute liver injury: same-day contact.'},
+  {k:'ECG',f:'Cardiology (open access)',b:'Report: new left bundle branch block. Referral note says "intermittent chest tightness".',a:['urgent'],w:'New LBBB with chest symptoms: same day.'},
+  {k:'Blood result',f:'Pathology',b:'Lithium level 2.1 mmol/L. Carer says she has been shaky and vomiting.',a:['urgent'],w:'Lithium toxicity: same day.'},
+  {k:'Blood result',f:'Pathology',b:'Vitamin D 62 nmol/L.',a:['file'],w:'Adequate. File it.'},
+  {k:'Screening',f:'AAA screening',b:'Aorta 2.4 cm. Normal. No further screening needed.',a:['file'],w:'Normal. File it.'},
+  {k:'Clinic letter',f:'ENT',b:'Tinnitus, normal audiogram. Reassured and discharged.',a:['file'],w:'Discharged with nothing for you. File it.'},
+  {k:'Screening',f:'Diabetic eye screening',b:'No retinopathy. Recall in 2 years.',a:['file'],w:'File it.'},
+  {k:'Blood result',f:'Pathology',b:'Lipids: total cholesterol 4.1, non-HDL 2.6. On atorvastatin.',a:['file'],w:'On target. File it.'},
+  {k:'Discharge summary',f:'St Swithin\'s',b:'Admitted with a fall. Stopped doxazosin. Please review BP in 2 weeks.',a:['action'],w:'Medication change and follow-up: action.'},
+  {k:'Clinic letter',f:'Endocrinology',b:'Please start a statin and recheck lipids in three months.',a:['action'],w:'A clear, reasonable ask. Action it.'},
+  {k:'Blood result',f:'Pathology',b:'eGFR 52, stable for two years. uACR 38 mg/mmol, new.',a:['action'],w:'New significant albuminuria: review treatment.'},
+  {k:'Request',f:'Insurance company',b:'Private medical report requested under the Access to Medical Reports Act. Fee offered.',a:['action'],w:'Paid, non-NHS, and yours to do: action.'},
+  {k:'Clinic letter',f:'Urology',b:'Please arrange a repeat ultrasound in six months and refer back if it has grown.',a:['bounce'],w:'Hospital-initiated follow-up tests are the hospital\'s to arrange.'},
+  {k:'Discharge summary',f:'St Swithin\'s',b:'Discharged on day 2. "GP to prescribe the remaining 5 days of antibiotics."',a:['bounce','action'],w:'The contract says hospitals supply enough to finish a short course. Bounce, but make sure the patient isn\'t left without.'},
+  {k:'Letter',f:'Letting agent',b:'Please confirm Ms K is a suitable tenant and "of good character".',a:['bounce'],w:'Not medical, not NHS. Bounce it.'}
 ];
 
 /* ---------------- 8am Rush triage items ---------------- */
@@ -69,7 +86,22 @@ const TRIAGE = [
   {b:'Lower back pain after gardening. No numbness, weeing normally.',a:['physio'],w:'No red flags: first contact physio.'},
   {b:'Knee pain for six weeks after five-a-side.',a:['physio'],w:'First contact physio.'},
   {b:'Shoulder has been stiff and sore for two months.',a:['physio'],w:'First contact physio.'},
-  {b:'Tennis elbow from my new padel obsession.',a:['physio'],w:'First contact physio.'}
+  {b:'Tennis elbow from my new padel obsession.',a:['physio'],w:'First contact physio.'},
+  {b:'Back pain, and since this morning I can\'t feel when I wipe and I can\'t wee properly.',a:['999','gp'],w:'Possible cauda equina: emergency assessment now.'},
+  {b:'My husband has been confused since yesterday and is burning up. He\'s 82.',a:['gp','999'],w:'New confusion with fever in an older adult: possible sepsis, urgent.'},
+  {b:'I took a whole packet of paracetamol about two hours ago.',a:['999'],w:'Overdose: emergency department now, even if they feel fine.'},
+  {b:'Pregnant, 30 weeks. Bad headache, flashing lights and my face is puffy.',a:['999','gp'],w:'Possible pre-eclampsia: urgent maternity assessment.'},
+  {b:'Baby is 6 weeks old and has a temperature of 38.4.',a:['gp','999'],w:'Fever in a baby under 3 months: urgent same-day assessment.'},
+  {b:'Red, hot, swollen area on my shin that\'s spreading. I feel a bit shivery.',a:['gp'],w:'Spreading cellulitis with systemic symptoms: same day.'},
+  {b:'Sudden painful red eye and my vision is blurry.',a:['gp'],w:'Painful red eye with reduced vision: same-day eye assessment.'},
+  {b:'Can I have my ear syringed? It feels blocked.',a:['routine','pharm'],w:'Routine, or self-care with drops first.'},
+  {b:'I need a fit note extended. My surgeon said six weeks off.',a:['routine'],w:'Routine admin. The hospital could have issued it.'},
+  {b:'I\'ve had heartburn for years and the pharmacy tablets work fine.',a:['pharm','routine'],w:'Self-care, with a routine review if it changes.'},
+  {b:'Insect bite on my arm, a bit red and itchy. No spreading.',a:['pharm'],w:'Pharmacy First covers infected insect bites; this one just needs self-care.'},
+  {b:'I\'ve lost a stone without trying and I keep getting indigestion. I\'m 67.',a:['gp','routine'],w:'Unexplained weight loss: prompt assessment, possible urgent referral.'},
+  {b:'Can you tell me the result of my blood test from last week?',a:['routine'],w:'Routine. Reception or the app can often answer.'},
+  {b:'Neck ache from sleeping funny. Turning my head hurts.',a:['physio','pharm'],w:'First contact physio or self-care.'},
+  {b:'Heel pain first thing in the morning for two months.',a:['physio'],w:'First contact physio.'}
 ];
 
 /* ---------------- The Walkround items ---------------- */
@@ -98,5 +130,20 @@ const WALK = [
   {k:'Consulting room',f:'Curtains',b:'"The couch curtains must be changed every six months exactly, whatever they look like."',a:['myth'],w:'CQC: no set frequency. Curtains must be visibly clean, and changed straight away if soiled.'},
   {k:'Children\'s corner',f:'Toys',b:'"You need a written toy-cleaning policy stating the frequency."',a:['myth'],w:'CQC expects toys to be clean. It doesn\'t expect a specific policy.'},
   {k:'Office',f:'Recruitment',b:'"DBS checks expire after three years, so everyone needs a new one."',a:['myth'],w:'A DBS check has no expiry date. Re-checking is the employer\'s risk-based decision.'},
-  {k:'Reception',f:'Uniform',b:'"Receptionists can\'t wear wristwatches. Bare below the elbows."',a:['myth'],w:'Bare below the elbows is for clinical care, not the front desk.'}
+  {k:'Reception',f:'Uniform',b:'"Receptionists can\'t wear wristwatches. Bare below the elbows."',a:['myth'],w:'Bare below the elbows is for clinical care, not the front desk.'},
+  {k:'Reception',f:'Confidentiality',b:'The screen at the front desk faces the queue. Today\'s clinic list is readable from the door.',a:['fix'],w:'Patient data on show is a confidentiality breach. Turn the screen or fit a privacy filter.'},
+  {k:'Treatment room',f:'Sharps',b:'A used needle is lying on the dressing trolley.',a:['fix'],w:'Dispose of it now and remind staff: sharps go straight in the bin.'},
+  {k:'Office',f:'Records',b:'A box of old paper notes is by the back door, waiting for "the shredding man".',a:['fix'],w:'Unsecured patient records. Lock them away until they\'re destroyed properly.'},
+  {k:'Stairs',f:'Premises',b:'The handrail on the stairs to the upstairs clinic is loose.',a:['fix'],w:'A fall risk for patients. Fix it.'},
+  {k:'Dispensary',f:'Controlled drugs',b:'The controlled drugs cupboard key is hanging on a hook next to the cupboard.',a:['fix'],w:'Controlled drugs keys must be kept by an authorised person, not on a hook.'},
+  {k:'Treatment room',f:'Cleaning',b:'"Who cleans the couches between patients, and how would we know?"',a:['log'],w:'A cleaning schedule, signed off, is the evidence.'},
+  {k:'Office',f:'Training',b:'"Can you show me that all staff have done safeguarding training at the right level?"',a:['log'],w:'A training matrix answers this in seconds.'},
+  {k:'Treatment room',f:'Equipment',b:'"When were the blood pressure monitors and scales last calibrated?"',a:['log'],w:'Medical devices need servicing and calibration records.'},
+  {k:'Office',f:'Prescriptions',b:'"How do you track blank prescription forms from delivery to printer?"',a:['log'],w:'Prescription stationery should be logged by serial number.'},
+  {k:'Nurse\'s room',f:'Chaperones',b:'"Who acts as chaperone, and have they been trained?"',a:['log','assess'],w:'Chaperones need training, and a DBS check or a risk assessment.'},
+  {k:'Waiting room',f:'Plants',b:'A large spider plant sits on the windowsill near the waiting chairs.',a:['myth'],w:'CQC doesn\'t ban plants. Keep them out of clinical areas.'},
+  {k:'Kitchen',f:'Food',b:'"Staff can\'t have a microwave in the building. It\'s an infection risk."',a:['myth'],w:'Nothing stops staff kitchens. Keep food out of clinical areas.'},
+  {k:'Reception',f:'Displays',b:'Colourful knitted ducks on the reception counter, made by a patient.',a:['myth','assess'],w:'Not a CQC rule. Keep them out of clinical rooms and wipeable areas.'},
+  {k:'Office',f:'Policies',b:'"You need a separate written policy for every single thing we might ask about."',a:['myth'],w:'CQC looks at what you do and how you know it works, not a stack of policies.'},
+  {k:'Car park',f:'Premises',b:'The disabled parking bay is used every day by a partner\'s car.',a:['fix'],w:'Accessibility matters. Free the bay.'}
 ];

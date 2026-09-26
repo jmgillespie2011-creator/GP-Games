@@ -241,7 +241,8 @@ p{margin:0}
 .gauge.bad b{background:var(--bad)}
 .fc-note{font-size:12.5px;color:var(--ink-2)}
 .good-t{color:var(--good)}.warn-t{color:var(--warn)}.bad-t{color:var(--bad)}
-.plan-go{display:flex;justify-content:flex-end;margin-top:16px}
+.plan-go{display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-top:16px}
+.go-pair{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 
 /* ---------- report ---------- */
 .report{max-width:860px;margin:0 auto;display:grid;gap:16px}
@@ -389,6 +390,17 @@ details.explain.heading .explain-body{padding-left:24px}
   .seg{width:100%}
   .seg button{flex:1 1 0;padding:.45em .4em;font-size:13px}
 }
+details.more-opts{display:grid;gap:14px}
+details.more-opts>summary{cursor:pointer;font-weight:700;color:var(--accent);padding:10px 14px;border:1.5px dashed var(--rule);border-radius:12px;background:var(--sheet)}
+details.more-opts[open]>summary{margin-bottom:14px}
+.plan-head .btn[data-act="suggest"]{align-self:center}
+/* ---------- warnings ---------- */
+.warnbox{grid-column:1/-1;border:1.5px solid var(--warn);background:color-mix(in srgb,var(--warn) 12%,var(--sheet));border-radius:12px;padding:10px 14px;font-size:15px}
+/* ---------- weekly challenge and goals ---------- */
+.weekly{display:grid;gap:8px;border:1.5px dashed var(--accent);border-radius:12px;padding:12px 14px;background:var(--accent-soft)}
+.weekly p{font-size:14.5px}
+.weekly .btn{justify-self:start}
+.goal-line{margin-top:10px;font-weight:700}
 /* ---------- leaderboard ---------- */
 .board{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:2px}
 .board li{display:grid;grid-template-columns:2.2em minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 8px;border-radius:8px;border-bottom:1px dashed var(--rule)}

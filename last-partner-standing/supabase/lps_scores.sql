@@ -48,3 +48,7 @@ create trigger lps_scores_rate_limit before insert on public.lps_scores
   for each row execute function public.lps_scores_rate_limit();
 
 revoke execute on function public.lps_scores_rate_limit() from public, anon, authenticated;
+
+-- Weekly challenge: the ISO week the score was played in (for example 2026-W39), or null for a normal game.
+alter table public.lps_scores add column if not exists week text check (week is null or week ~ '^[0-9]{4}-W[0-9]{2}$');
+create index if not exists lps_scores_week_score_idx on public.lps_scores (week, score desc, created_at);

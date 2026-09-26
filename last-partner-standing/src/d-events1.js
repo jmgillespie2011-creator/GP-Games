@@ -52,9 +52,9 @@ EVENTS.push(
  ],
  after(){ partnerLeaves('hartley'); }},
 
-{id:'okoye_email',arc:1,who:'okoye',title:'Just a joke',cond:()=>isActive('okoye'),tag:'real',src:['S36'],
- info:'In the national GP Worklife Survey, 37% of GPs reported a considerable or high intention to leave direct patient care within five years. Overseas recruiters target UK GPs directly.',
- text:`Nadia forwards you a job advert. Perth, Western Australia. Four-day week, 15-minute appointments, a clinic that shuts at 5pm. "Ha! As if!" she writes. Later, passing her room, you catch a glimpse of her screen. An AI chatbot is halfway through "Your 12-month plan to move to Perth as a GP: registration, visas, schools".`,
+{id:'okoye_email',arc:1,who:'okoye',title:'Just a joke',cond:()=>isActive('okoye'),tag:'real',src:['S36','S80','S81','S82'],
+ info:'Australian GPs are mostly paid a share of what they bill Medicare and patients, usually 65% to 70%, and practices recruiting from overseas often guarantee an hourly rate for the first months. Job sites put the average Perth GP at about A$181 an hour (A$139 to A$237), or about A$225,000 a year. At A$1.88 to the pound in September 2026, A$200 an hour is about £106. In the national GP Worklife Survey, 37% of UK GPs reported a considerable or high intention to leave direct patient care within five years, and Australian recruiters advertise to them directly.',
+ text:`Nadia forwards you a job advert. Perth, Western Australia: "A$200 an hour guaranteed for six months, then 70% of billings. Four-day week, 15-minute appointments, the clinic shuts at 5pm." That's about £106 an hour. "Ha! As if!" she writes. Later, passing her room, you catch a glimpse of her screen. An AI chatbot is halfway through "Your 12-month plan to move to Perth as a GP: registration, visas, schools".`,
  choices:[
   {t:'Offer to take over her QOF lead role',fx:{okoye:-18,you:-3,qof:2,mod:{id:'qoflead',label:'You took on the QOF lead role',months:6,hours:1.5}},o:`She hugs you. You now own the diabetes recall spreadsheet, which has 14 tabs and a macro nobody understands. It'll cost you an evening a week for a while.`},
   {t:'Laugh along: "Who even wants sunshine?"',fx:{okoye:12,you:1},o:`She laughs. The next time you pass her room, the chat window is minimised. Not closed.`},

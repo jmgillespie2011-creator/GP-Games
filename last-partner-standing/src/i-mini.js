@@ -34,7 +34,7 @@ function renderMini() {
   let body = '';
   if (MG.stage === 'intro') {
     body = `<div class="card mini-intro"><div class="eyebrow">Mini-game · 45 seconds</div><h2>${G.name}</h2><p class="text">${G.blurb}</p><ul>${G.rules.map(r => `<li>${r}</li>`).join('')}</ul>
-      <p class="muted" style="font-size:14px">Use the buttons, or number keys 1 to ${G.bins.length}.</p>
+      <p class="muted" style="font-size:14px">Use the buttons, or number keys 1 to ${G.bins.length}. Simplified for a game: not clinical guidance.</p>
       <div class="card-foot"><button class="btn primary" data-act="mini-start" autofocus>Start the clock</button></div></div>`;
   } else if (MG.stage === 'play') {
     const it = MG.items[MG.idx % MG.items.length];

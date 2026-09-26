@@ -20,7 +20,7 @@ EVENTS.push(
  text:`Bev is reading a post from GP Twitter out loud. A CQC inspector asked a practice for the risk assessment for its waiting-room fish tank. She lowers her phone and looks at Gerald, a goldfish who has outlived three practice managers. The children love Gerald. Several regulars say hello to him on the way in.`,
  choices:[
   {t:'Write Gerald a risk assessment',fx:{you:-1,safety:1,team:2},run(){ cqcPrep(1); },o:`Two pages. Hazards: water, electricity, a glass box at toddler height, and Gerald. Controls: a lid, gloves for cleaning the tank, and a sign asking children not to tap. Risk: low. Gerald is now the best-documented member of the practice.`},
-  {t:'Rehome Gerald with Kayleigh',fx:{patients:-2,team:-2},o:`Gerald moves into Kayleigh's flat. Reception gets asked "where's the fish?" thirty times a day. The empty corner is somehow worse.`},
+  {t:'Rehome Gerald with Kayleigh',fx:{patients:-2,team:-2,flags:{geraldGone:1}},o:`Gerald moves into Kayleigh's flat. Reception gets asked "where's the fish?" thirty times a day. The empty corner is somehow worse.`},
   {t:'Leave it. He\'s a goldfish.',fx:{you:1},later:[{in:3,p:0.35,fx:{you:-2,safety:-1},note:'Because Gerald never got a risk assessment: "Aquarium (no risk assessment)" appeared in the inspection feedback, just below the blind cord.'}],o:`Gerald stays, undocumented, and apparently happy about it.`}
  ]},
 

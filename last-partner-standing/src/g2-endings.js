@@ -61,9 +61,10 @@ const EXITS = {
   handback: { t: 'Handed back the contract', s: 'Doors closed', f: 0.3, d: 'You gave the contract back rather than carry it alone. The ICB finds a caretaker provider. The lease on the building, you discover, keeps running.', counter: '1,480 practices have closed or merged since 2015. If you lease the building, rent continues after the reimbursement stops.', src: ['S11', 'S23'] }
 };
 function gameOver(k) {
-  S.over = { k, month: S.month };
+  S.over = { k, month: S.month, months: (S.yr || 0) * 12 + S.month + 1 };
   S.phase = 'over';
   recordBest(null);
+  plaque(`${OVER[k].title}, ${MONTHS[S.month]}${S.yr ? ` of year ${S.yr + 1}` : ''}`, OVER[k].title, 0);
   clearSave();
 }
 
@@ -101,11 +102,58 @@ function finishYear(exit) {
   if (exit) score *= EXITS[exit].f;
   score = Math.round(Math.max(0, score));
   const arche = exit ? EXITS[exit] : archetype(annualK, others);
-  S.end = { goalMet, exit, monthsDone, qofV, qofBal, partnersN, shareK, annualK, pers, balancing, hours, perHour, firstTax: (pers.tax + pers.c4) * 1.5, score, arche };
+  const months = (S.yr || 0) * 12 + monthsDone;
+  S.end = { goalMet, exit, monthsDone, months, qofV, qofBal, partnersN, shareK, annualK, pers, balancing, hours, perHour, firstTax: (pers.tax + pers.c4) * 1.5, score, arche };
+  S.bestYear = Math.max(S.bestYear || 0, score);
   S.phase = 'end';
   recordBest(S.end);
-  clearSave();
+  plaque(exit ? EXITS[exit].t : `Year ${(S.yr || 0) + 1} complete`, arche.t, score);
+  if (exit) clearSave(); else save();
 }
+
+/* ---------- endless mode: carry on into another year ---------- */
+function continueYear() {
+  S.yr = (S.yr || 0) + 1;
+  S.qofAsp = P.qofAsp * qofValueK(S.qof) / 12;
+  S.qof = 0;
+  S.month = 0;
+  S.year = { inc: {}, exp: {}, oneoff: 0, profit: 0, share: 0 };
+  S.drawTotal = 0; S.penTotal = 0; S.aspPaid = 0; S.hoursTotal = 0; S.leaveUsed = 0;
+  S.history = []; S.end = null; S.exit = null; S.report = null;
+  // the card pool refreshes; one-off story arcs and last-chance crises stay used
+  const keep = id => (EVMAP[id] && EVMAP[id].arc) || /^crisis_|^last_partner|^lifeline/.test(id);
+  Object.keys(S.seen).forEach(id => { if (!keep(id)) delete S.seen[id]; });
+  S.counts = {};
+  delete S.flags.cqcDone;
+  delete S.flags.lifelineOffered;
+  S.sched = S.sched.filter(x => x.m > 11).map(x => ({ id: x.id, m: x.m - 12 }));
+  // anything timed by month moves back a year with the calendar
+  S.mods.forEach(x => { x.from -= 12; });
+  S.later.forEach(x => { x.m -= 12; });
+  S.newRegs.forEach(x => { x.until -= 12; });
+  ['remedialAt', 'breachAt'].forEach(k => { if (S.flags[k] != null) S.flags[k] -= 12; });
+  [['year_new', 0], ['mini_docman', 1], ['pay_award', 2], ['mini_triage', 2], ['survey', 3], ['headline', 4], ['flu_saturday', 5],
+   ['winter_phones', 8], ['qof_yearend', 10], ['contract_new', 11]].forEach(([id, m]) => S.sched.push({ id, m }));
+  S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
+  S.goal = pick(Object.keys(GOALS));
+  startMonth();
+  save();
+}
+
+/* ---------- the Partners' Board: every run you've played, kept in this browser ---------- */
+const BOARD_LOCAL = 'lps-board-v1';
+function loadPlaques() { try { const b = JSON.parse(localStorage.getItem(BOARD_LOCAL) || '[]'); return Array.isArray(b) ? b : []; } catch (e) { return []; } }
+function plaque(how, title, score) {
+  if (!S || !S.runId) return;
+  const st = S.st, weakest = STAT_KEYS.reduce((a, k) => st[k] < st[a] ? k : a, STAT_KEYS[0]);
+  const months = S.end ? S.end.months : (S.yr || 0) * 12 + (S.over ? S.over.month + 1 : S.month + 1);
+  const row = { id: S.runId, n: S.name, look: S.look || { s: 0, c: 0 }, p: S.practiceKey, months, how, t: title, weak: weakest, wv: Math.round(st[weakest]), score: Math.max(score || 0, S.bestYear || 0), w: S.week || null, d: new Date().toISOString().slice(0, 10) };
+  const b = loadPlaques().filter(x => x.id !== row.id);
+  b.push(row);
+  b.sort((a, c) => c.months - a.months || c.score - a.score);
+  try { localStorage.setItem(BOARD_LOCAL, JSON.stringify(b.slice(0, 40))); } catch (e) { }
+}
+const bestMonths = () => loadPlaques().reduce((a, x) => Math.max(a, x.months || 0), 0);
 function archetype(shareK, others) {
   const st = S.st, place = prac().place;
   const min = Math.min(st.patients, st.team, st.you, st.safety);
@@ -124,7 +172,7 @@ function archetype(shareK, others) {
 /* ---------- storage ---------- */
 function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { } }
 function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) { } }
-function loadSave() { try { const t = localStorage.getItem(SAVE_KEY); if (!t) return null; const s = JSON.parse(t); return s && s.v === 2 && s.phase !== 'end' && s.phase !== 'over' ? s : null; } catch (e) { return null; } }
+function loadSave() { try { const t = localStorage.getItem(SAVE_KEY); if (!t) return null; const s = JSON.parse(t); return s && s.v === 2 && s.phase !== 'over' && !(s.phase === 'end' && s.end && s.end.exit) ? s : null; } catch (e) { return null; } }
 function loadBest() { try { const b = JSON.parse(localStorage.getItem(BEST_KEY) || '[]'); return Array.isArray(b) ? b : []; } catch (e) { return []; } }
 function recordBest(end) {
   const entry = end

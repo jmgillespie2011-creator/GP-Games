@@ -15,7 +15,7 @@ function renderReport() {
   const avgH = Math.round((S.hoursTotal || 0) / (WEEKS * (R.month + 1)));
   const driftTxt = STAT_KEYS.map(k => `${STAT_LABEL[k]} ${R.drift[k] > 0 ? '+' : ''}${R.drift[k]}`).join(' · ');
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap report">
-    <div class="clip"><div class="masthead"><span>${esc(prac().paper)}</span><span>${MONTHS[R.month]} ${CAL_YEAR[R.month]}</span></div>
+    <div class="clip"><div class="masthead"><span>${esc(prac().paper)}</span><span>${MONTHS[R.month]} ${calY(R.month)}</span></div>
       <h2>${esc(R.headline)}</h2><p>${c.cap} appointments offered a week against ${c.demand} requested (${pct(c.ratio)}).</p></div>
     ${(() => { const all = []; STAT_KEYS.forEach(k => c.T[k].why.forEach(([d, l]) => all.push([d, l, k]))); const top = all.filter(x => Math.abs(x[0]) >= 3).sort((a, b) => Math.abs(b[0]) - Math.abs(a[0])).slice(0, 3); return top.length ? `<section class="panel"><h3>What's driving the practice <small>the biggest pulls on your meters right now</small></h3><ul class="why">${top.map(([d, l, k]) => `<li><span class="${d > 0 ? 'good-t' : 'bad-t'}">${d > 0 ? '+' : '−'}${Math.abs(d)}</span> ${STAT_LABEL[k]}: ${esc(l)}</li>`).join('')}</ul></section>` : ''; })()}
     ${R.consq.length ? `<section class="panel consq"><h3>What came of it <small>consequences of earlier decisions and of the state you're in</small></h3><ul class="notes">${R.consq.map(n => `<li>${esc(n)}</li>`).join('')}</ul></section>` : ''}
@@ -104,19 +104,22 @@ function renderEnd() {
           <dt>One-off costs and income</dt><dd>${signK(yr.oneoff)}</dd>
           <dt>QOF: ${Math.round(S.qof)}% achieved, worth ${fmtK(E.qofV)}</dt><dd>&nbsp;</dd>
           <dt>…less aspiration already paid</dt><dd>−${fmtK(S.aspPaid)}</dd>
-          <dt>QOF balance, due by 30 June 2027</dt><dd class="${E.qofBal < 0 ? 'bad-t' : 'good-t'}">${signK(E.qofBal)}</dd>
+          <dt>QOF balance, due by 30 June ${2027 + (S.yr || 0)}</dt><dd class="${E.qofBal < 0 ? 'bad-t' : 'good-t'}">${signK(E.qofBal)}</dd>
           <dt class="sum">Your share of the profit (÷${E.partnersN})</dt><dd class="sum">${fmtK(E.shareK)}</dd>
           <dt>Drawings you took</dt><dd>−${fmtK(S.drawTotal)}</dd>
           <dt>Pension paid for you</dt><dd>−${fmtK(S.penTotal)}</dd>
-          <dt>${E.balancing >= 0 ? 'Balancing payment to you, July 2027' : 'You pay back in, July 2027'}</dt><dd class="${E.balancing < 0 ? 'bad-t' : 'good-t'}">${signK(E.balancing)}</dd>
+          <dt>${E.balancing >= 0 ? `Balancing payment to you, July ${2027 + (S.yr || 0)}` : `You pay back in, July ${2027 + (S.yr || 0)}`}</dt><dd class="${E.balancing < 0 ? 'bad-t' : 'good-t'}">${signK(E.balancing)}</dd>
         </dl>`;
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap ending">
-    <section class="verdict"><div class="eyebrow">${E.exit ? MONTHS[S.month] + ' ' + CAL_YEAR[S.month] : '31st March 2027'} · ${esc(prac().surgery)}</div><span class="bigstamp">${esc(E.arche.s)}</span>
+    <section class="front front-end" aria-label="Your surgery">${facadeSVG(null)}${brassPlate()}</section>
+    <section class="verdict"><div class="eyebrow">${E.exit ? MONTHS[S.month] + ' ' + calY(S.month) : `31st March ${2027 + (S.yr || 0)}`} · ${esc(prac().surgery)}${S.yr ? ` · year ${S.yr + 1}` : ''}</div><span class="bigstamp">${esc(E.arche.s)}</span>
       <h1>${esc(E.arche.t)}</h1><p class="lede">${esc(E.arche.d)}</p>
       ${S.goal && GOALS[S.goal] && !E.exit ? `<p class="goal-line ${E.goalMet ? 'good-t' : 'bad-t'}">${E.goalMet ? `Goal met: ${esc(GOALS[S.goal].t)}. +${GOAL_BONUS} points.` : `Goal missed: ${esc(GOALS[S.goal].t)}.`}</p>` : ''}
       <div class="score"><span>Score <b>${E.score}</b></span><span>Profit share <b>£${Math.round(E.annualK)}k</b></span><span>Take-home <b>${gbp(pers.takeHome)}</b></span><span>Per hour <b>£${Math.round(E.perHour)}</b></span></div>
       ${counterHTML(E.arche)}
     </section>
+    ${briefHTML(E.months || 12)}
+    ${E.exit ? '' : `<section class="carry-on"><div><b>Carry on into year ${(S.yr || 0) + 2}?</b><p>Same practice, same staff, same overdraft. Demand keeps rising, the funding doesn't quite keep up, and the years wear on you. How long can you last?</p></div><button class="btn primary" data-act="nextyear">Carry on: year ${(S.yr || 0) + 2} →</button></section>`}
     <div class="rgrid">
       <section class="panel"><h3>The accounts</h3>${accounts}
         ${explain('When the money actually arrives', `<p>Profit for the year is fixed on 31 March, but the cash comes later. The QOF balance is due by the end of June, and the accountant settles each partner's drawings against their real share once the accounts are signed, typically in the summer.</p>${srcLinks(['S3', 'S23'])}`)}
@@ -132,7 +135,7 @@ function renderEnd() {
           <dt>Take-home per hour</dt><dd>£${E.perHour.toFixed(0)}</dd>
           <dt>A locum's hourly rate, before their tax</dt><dd>£85–£105</dd>
         </dl>
-        ${E.exit ? '' : `<p class="fc-note">Your first Self Assessment bill as a new partner: about <b>${gbp(E.firstTax)}</b> on 31 January 2028. That's a full year's tax and NI plus a 50% payment on account, in one go. Hope you put 40% aside.</p>`}
+        ${E.exit || S.yr ? '' : `<p class="fc-note">Your first Self Assessment bill as a new partner: about <b>${gbp(E.firstTax)}</b> on 31 January 2028. That's a full year's tax and NI plus a 50% payment on account, in one go. Hope you put 40% aside.</p>`}
         ${explain('Why take-home is so much lower than the headline', `<p>Partners pay both halves of their NHS pension: the member rate, up to 12.5%, and the 14.38% employer share. It buys a defined-benefit pension, so it isn't lost, but it isn't spendable either. Income tax follows at 20%, 40% and 45%. The personal allowance tapers away above £100,000, so part of the income is effectively taxed at 60%. Class 4 NI is 6%, then 2%.</p><p>Nationally, partners averaged £164,200 before tax in 2024/25, from £581,800 of income per partner. 71.8% of the money went on staff and running costs.</p>${srcLinks(['S8', 'S21', 'S22', 'S23'])}`)}
       </section>
     </div>
@@ -140,21 +143,25 @@ function renderEnd() {
       ${S.cqc ? `<div class="cqc-card">${Object.keys(S.cqc.rates).map(k => `<div class="row"><span>${k}</span><span class="rate ${S.cqc.rates[k]}">${RATE_NAME[S.cqc.rates[k]]}</span></div>`).join('')}<div class="row overall"><span>Overall</span><span class="rate">${RATE_NAME[S.cqc.overall]}</span></div></div>` : '<p class="fc-note">CQC never came. Enjoy it while it lasts.</p>'}
       ${chartSVG()}</section>
     ${boardPanelHTML()}
-    <div class="end-actions"><button class="btn primary" data-act="again">Another year</button><button class="btn" data-act="share">Copy my result</button><button class="btn ghost" data-act="home">Title screen</button></div>
-    ${best.length ? `<div class="best"><div class="eyebrow">Your best years</div><ol style="margin:6px 0 0;padding-left:1.2em">${best.map(b => `<li>${b.score} · ${esc(b.t)} · ${esc(b.p)}</li>`).join('')}</ol></div>` : ''}
+    ${partnersBoardHTML(8)}
+    <div class="end-actions"><button class="btn" data-act="shareimg">Share a picture</button><button class="btn" data-act="share">Copy my result</button><button class="btn ghost" data-act="again">New partner, same practice</button><button class="btn ghost" data-act="home">Title screen</button></div>
   </div></main>`;
 }
 function renderOver() {
   const O = OVER[S.over.k];
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap ending">
-    <section class="verdict over"><div class="eyebrow">${MONTHS[S.over.month]} ${CAL_YEAR[S.over.month]} · ${esc(prac().surgery)}</div><span class="bigstamp">${esc(O.stamp)}</span>
+    <section class="front front-end" aria-label="Your surgery, closed">${facadeSVG(null, { closed: true })}${brassPlate()}</section>
+    <section class="verdict over"><div class="eyebrow">${MONTHS[S.over.month]} ${calY(S.over.month)} · ${esc(prac().surgery)}${S.yr ? ` · year ${S.yr + 1}` : ''}</div><span class="bigstamp">${esc(O.stamp)}</span>
       <h1>${esc(O.title)}</h1><p class="lede">${esc(O.text())}</p>
-      <div class="score"><span>You lasted <b>${S.over.month + 1}</b> of 12 months</span></div>
+      <div class="score"><span>You lasted <b>${S.over.months || S.over.month + 1}</b> month${(S.over.months || S.over.month + 1) === 1 ? '' : 's'} as a partner</span></div>
       ${counterHTML(O)}</section>
+    ${briefHTML(S.over.months || S.over.month + 1)}
     <section class="panel"><h3>Where it ended</h3>${statLines(null)}<p class="fc-note">Bank ${fmtK(S.cash)} · QOF ${Math.round(S.qof)}% · Inbox ${Math.round(S.inbox)}</p>
       ${explain('What went wrong', `<p>Meters drift toward wherever the practice's situation is taking them. When capacity falls behind demand, the inbox grows or your hours climb, the pull is downward every month until something changes: more staff, fewer sessions, a different project, time off.</p><p>Watch the <b>Where things are heading</b> panel in the month plan. It shows where each meter will settle, and why.</p>`)}</section>
     ${S.history.length > 1 ? `<section class="panel"><h3>How it went</h3>${chartSVG()}</section>` : ''}
-    <div class="end-actions"><button class="btn primary" data-act="again">Try again</button><button class="btn ghost" data-act="home">Title screen</button></div>
+    ${S.yr >= 1 ? boardPanelHTML() : ''}
+    ${partnersBoardHTML(8)}
+    <div class="end-actions"><button class="btn primary" data-act="again">Try again</button><button class="btn" data-act="shareimg">Share a picture</button><button class="btn ghost" data-act="home">Title screen</button></div>
   </div></main>`;
 }
 
@@ -179,7 +186,7 @@ function sourcesHTML() {
 }
 function menuHTML() {
   return `<h2>Menu</h2><p class="muted">Your game saves automatically after every decision, in this browser only.</p>
-  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
+  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="honours">The Partners' Board</button><button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
 }
 function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); }
 
@@ -193,7 +200,7 @@ function render() {
     case 'mini': return renderMini();
     case 'report': return renderReport();
     case 'end': { const first = BD.for !== S.end; if (first) { BD.for = S.end; BD.posted = null; BD.rank = null; BD.tab = 'all'; BD.rows = null; } renderEnd(); if (first) loadBoard(); return; }
-    case 'over': return renderOver();
+    case 'over': { const r = boardRun(), first = r && BD.for !== r; if (first) { BD.for = r; BD.posted = null; BD.rank = null; BD.tab = 'long'; BD.rows = null; } renderOver(); if (first) loadBoard(); return; }
   }
 }
 function go(fn) { fn(); render(); window.scrollTo(0, 0); }
@@ -204,6 +211,17 @@ document.addEventListener('click', ev => {
   const a = b.dataset.act, arg = b.dataset.arg;
   switch (a) {
     case 'pick': UI.pickPractice = arg; keepScroll(renderTitle); break;
+    case 'win': { const c = calc(); const T = targets(c);
+      if (arg === 'cash') openOverlay(`<h2>The office: the bank</h2><p class="lede-s">Bev's office. The practice account is at <b>${fmtK(S.cash)}</b>, with an overdraft limit of ${fmtK(S.overdraft)}. This month it will move by <b>${signK(c.net)}</b>.</p><p class="muted">Income is mostly the global sum, QOF and enhanced services. Staff, locums, running costs and your drawings take it back out. The money panel in the month plan has the details.</p><div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>`);
+      else { const k = arg, now = Math.round(S.st[k]); openOverlay(`<h2>${esc({ patients: 'The waiting room', team: 'The staff room', you: 'Your room', safety: 'The treatment room' }[k])}: ${STAT_LABEL[k]}</h2><p class="lede-s">The ${STAT_LABEL[k]} meter is at <b>${now}</b>. If nothing changes, it settles at <b>${T[k].v}</b>.</p>${whyList(T[k].why)}<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>`); }
+      break; }
+    case 'nextyear': go(continueYear); break;
+    case 'honours': openOverlay(partnersBoardHTML(40) + '<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>'); break;
+    case 'shareimg': openShareImage(); break;
+    case 'shareimg-go': { const f = UI.shareFile; if (f && navigator.share) navigator.share({ files: [f], text: 'How long can you last as a GP partner?', url: 'https://last-partner-standing.vercel.app' }).catch(() => { }); break; }
+    case 'look': UI.look.s = +arg; keepScroll(renderTitle); break;
+    case 'lookc': UI.look.c = +arg; keepScroll(renderTitle); break;
+    case 'dice': { UI.nameDraft = diceName(); keepScroll(renderTitle); break; }
     case 'start': { const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; go(() => newGame(UI.pickPractice, nm)); break; }
     case 'continue': { const s = loadSave(); if (s) { S = s; UI.screen = 'game'; go(() => { }); } break; }
     case 'menu': openOverlay(menuHTML()); break;
@@ -244,7 +262,7 @@ document.addEventListener('click', ev => {
     case 'cont': go(continueOutcome); break;
     case 'next': go(nextMonth); break;
     case 'nextgo': go(() => { nextMonth(); if (S.phase === 'plan') beginMonth(); }); break;
-    case 'again': { const k = S.practiceKey, n = S.name; go(() => newGame(k, n)); break; }
+    case 'again': { const k = S.practiceKey, n = S.name, lk = S.look; go(() => newGame(k, n, { look: lk })); break; }
     case 'home': S = null; UI.screen = 'title'; go(() => { }); break;
     case 'share': {
       const txt = shareText();
@@ -271,6 +289,7 @@ document.addEventListener('mouseover', ev => {
 });
 document.addEventListener('mouseout', ev => { if (ev.target.closest('.choice')) document.querySelectorAll('.meter .hint').forEach(d => d.classList.remove('on', 'big')); });
 document.addEventListener('keydown', ev => {
+  if ((ev.key === 'Enter' || ev.key === ' ') && document.activeElement && document.activeElement.matches && document.activeElement.matches('g[data-act]')) { ev.preventDefault(); document.activeElement.dispatchEvent(new MouseEvent('click', { bubbles: true })); return; }
   if (document.getElementById('overlay')) { if (ev.key === 'Escape') closeOverlay(); return; }
   if (!S || UI.screen === 'title') return;
   if (ev.target && /input|textarea|summary/i.test(ev.target.tagName)) return;

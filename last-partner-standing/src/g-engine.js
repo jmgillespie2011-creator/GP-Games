@@ -30,6 +30,10 @@ const GOALS = {
   happyTeam: { t: 'Finish with Team at 65 or more', ok: () => S.st.team >= 65 }
 };
 const GOAL_BONUS = 40;
+// endless mode: what each extra year adds
+const YEAR_DEMAND = 0.1, YEAR_FUNDING = 0.02, YEAR_STAFF = 0.05, YEAR_RUNNING = 0.03, YEAR_YOU = 5;
+const calY = m => CAL_YEAR[Math.min(m, 11)] + ((S && S.yr) || 0);
+const monthsServed = () => ((S && S.yr) || 0) * 12 + Math.min(S.month, 11) + 1;
 const SAVE_KEY = 'lps-save-v2', BEST_KEY = 'lps-best-v1';
 const clamp = (v, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, v));
 const r1 = v => Math.round(v * 10) / 10;
@@ -131,7 +135,7 @@ function newGame(practiceKey, name, opts) {
   opts = opts || {};
   const p = PRACTICES[practiceKey];
   S = {
-    v: 2, practiceKey, name: name || 'Jones', month: 0, phase: 'plan', rng: opts.seed != null ? opts.seed >>> 0 : null, week: opts.week || null, goal: null,
+    v: 2, practiceKey, name: name || 'Jones', look: { ...(opts.look || (typeof UI !== 'undefined' && UI.look) || { s: 0, c: 0 }) }, runId: Date.now().toString(36) + _rand().toString(36).slice(2, 6), yr: 0, month: 0, phase: 'plan', rng: opts.seed != null ? opts.seed >>> 0 : null, week: opts.week || null, goal: null,
     st: { ...p.st }, cash: p.cash, overdraft: p.overdraft, qof: 0, inbox: 180, list: p.list,
     demandMod: 0, adminMod: 0, rooms: p.rooms, icb: 55, rep: 55,
     aim: { patients: 0, team: 0, you: 0, safety: 0 },
@@ -351,7 +355,8 @@ function calc() {
   if (S.st.team < 30) capMul *= 0.93;
   cap = Math.round(cap * capMul);
   const dm = S.demandMod + mods.reduce((a, x) => a + (x.demand || 0), 0) - 2 * Math.min(S.staff.sp, 2);
-  const demand = Math.round(S.list * p.demandRate * SEASON[m] * (1 + dm / 100));
+  const yr = S.yr || 0; // each extra year as a partner: more demand, funding that lags costs
+  const demand = Math.round(S.list * p.demandRate * SEASON[m] * (1 + dm / 100) * (1 + YEAR_DEMAND * yr));
   const ratio = demand ? cap / demand : 1;
   const inflow = Math.round(S.list * p.inboxRate * (1 + S.adminMod / 100) + pl.locum * 6);
   clear = Math.round(clear);
@@ -370,12 +375,13 @@ function calc() {
     pcn: S.list * PER_PATIENT.pcn / 12 / 1000,
     priv: S.list * p.priv / 12 / 1000
   };
+  ['gs', 'npp', 'vacc', 'es', 'pcn'].forEach(k => { inc[k] *= 1 + YEAR_FUNDING * yr; });
   let modCash = 0; mods.forEach(x => { if (x.fx && x.fx.cash) modCash += x.fx.cash; });
   let roleCost = 0; for (const r of ROLE_ORDER) roleCost += ROLES[r].cost * S.staff[r];
   const cost = {
-    staff: roleCost + S.list * CORE_ADMIN + S.payX + S.tomRaise,
+    staff: (roleCost + S.list * CORE_ADMIN + S.payX + S.tomRaise) * (1 + YEAR_STAFF * yr),
     locum: pl.locum * WEEKS * LOCUM_SESSION + (pl.extra || 0) * WEEKS * OT_SESSION,
-    running: S.list * RUNNING + p.premNet + p.overhead + S.premX + S.loan,
+    running: (S.list * RUNNING + p.premNet + p.overhead) * (1 + YEAR_RUNNING * yr) + S.premX + S.loan,
     // neglect costs money: sickness cover when morale is low, incident handling when care is unsafe
     cover: Math.max(0, 45 - S.st.team) * 0.25 + Math.max(0, 35 - S.st.safety) * 0.2
   };
@@ -434,6 +440,7 @@ function targets(c) {
     [p.key === 'city' ? -3 : 0, 'Abuse at the front desk']
   ]);
   build('you', 80, [
+    [-(S.yr || 0) * YEAR_YOU, `Year ${(S.yr || 0) + 1} as a partner`],
     [-(c.hours - 38) * 2.6, `${Math.round(c.hours)} hours a week`],
     [WINTER.includes(m) ? -3 : 0, 'Winter'],
     [S.plan.draw === 'low' ? -3 : S.plan.draw === 'high' ? 2 : 0, S.plan.draw === 'low' ? 'Lean drawings: the mortgage' : 'Generous drawings'],

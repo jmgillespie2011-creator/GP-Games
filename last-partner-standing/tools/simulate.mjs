@@ -1,5 +1,6 @@
 // Headless balance check for Last Partner Standing.
-// Usage: node tools/simulate.mjs [games per practice and policy, default 200] [suburb|town|city|all] [random|smart|both]
+// Usage: node tools/simulate.mjs [games per practice and policy, default 200] [suburb|town|city|all] [random|smart|both] [endless]
+// With `endless`, each game carries on into later years (up to 10) until it ends, and reports how many months partners last.
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
@@ -8,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const FILES = ['c-data.js', 'c2-minidata.js', 'd-events1.js', 'e-events2.js', 'f-events3.js', 'f2-events4.js', 'f3-events5.js', 'f4-events6.js', 'g-engine.js', 'g2-endings.js'];
 const code = FILES.map(f => readFileSync(path.join(dir, '..', 'src', f), 'utf8')).join('\n') +
-  '\n;globalThis.__lps = { newGame, gpHeadroom, locumMax, beginMonth, currentEvent, resolveChoice, continueOutcome, nextMonth, calc, activeOthers, arrsCount, roomsNeeded, roomsAvail, ROLES, STAT_KEYS, val, S: () => S };';
+  '\n;globalThis.__lps = { newGame, gpHeadroom, locumMax, beginMonth, currentEvent, resolveChoice, continueOutcome, nextMonth, continueYear, calc, activeOthers, arrsCount, roomsNeeded, roomsAvail, ROLES, STAT_KEYS, val, S: () => S };';
 const ctx = vm.createContext({ console, Math, JSON, Date });
 vm.runInContext(code, ctx, { filename: 'lps.js' });
 const L = ctx.__lps;
@@ -16,6 +17,7 @@ const L = ctx.__lps;
 const N = +(process.argv[2] || 200);
 const practices = !process.argv[3] || process.argv[3] === 'all' ? ['suburb', 'town', 'city'] : [process.argv[3]];
 const policies = !process.argv[4] || process.argv[4] === 'both' ? ['random', 'smart'] : [process.argv[4]];
+const ENDLESS = process.argv[5] === 'endless', MAX_YEARS = 10;
 const EXIT_CHOICES = { breach_notice: [2], apex_offer: [0], merger_vote: [0], salaried_offer: [0], emigrate: [0], last_partner: [0], lifeline: [1] };
 
 function options(e) {
@@ -67,8 +69,9 @@ function smartPlan(S) {
 function play(practice, policy) {
   L.newGame(practice, 'Sim');
   let steps = 0;
-  for (let S = L.S(); !['end', 'over'].includes(S.phase) && steps < 2000; S = L.S()) {
-    steps++;
+  for (let S = L.S(); !['end', 'over'].includes(S.phase) || (ENDLESS && S.phase === 'end' && !S.end.exit && (S.yr || 0) < MAX_YEARS - 1); S = L.S()) {
+    if (++steps > 2000 * MAX_YEARS) break;
+    if (S.phase === 'end') { L.continueYear(); continue; }
     if (S.phase === 'plan') { if (policy === 'smart') smartPlan(S); L.beginMonth(); }
     else if (S.phase === 'event') {
       const e = L.currentEvent();
@@ -86,6 +89,26 @@ function play(practice, policy) {
 
 const avg = a => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : NaN);
 const errors = [];
+if (ENDLESS) {
+  for (const practice of practices) for (const policy of policies) {
+    const months = [], ends = {};
+    for (let g = 0; g < N; g++) {
+      let S; try { S = play(practice, policy); } catch (err) { errors.push(`${practice}/${policy}: ${err.message}`); continue; }
+      const m = S.phase === 'over' ? S.over.months : S.end.months;
+      months.push(m);
+      const why = S.phase === 'over' ? S.over.k : S.end.exit ? S.end.exit : 'still going';
+      ends[why] = (ends[why] || 0) + 1;
+    }
+    months.sort((a, b) => a - b);
+    const q = f => months[Math.min(months.length - 1, Math.floor(f * months.length))];
+    const by = y => Math.round(100 * months.filter(m => m > y * 12).length / months.length);
+    console.log(`\n${practice} / ${policy} (endless, up to ${MAX_YEARS} years): median ${q(0.5)} months, quartiles ${q(0.25)}–${q(0.75)}, longest ${months[months.length - 1]}`);
+    console.log(`  reached year 2: ${by(1)}%, year 3: ${by(2)}%, year 5: ${by(4)}%, all ${MAX_YEARS} years: ${by(MAX_YEARS)}%`);
+    console.log(`  how it ended: ${Object.entries(ends).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+  }
+  if (errors.length) { console.log(`\n${errors.length} errors. First:\n${errors[0]}`); process.exitCode = 1; }
+  process.exit();
+}
 for (const practice of practices) for (const policy of policies) {
   const R = { survived: 0, exits: {}, overs: {}, share: [], take: [], perHour: [], qof: [], cqc: {}, st: { patients: [], team: [], you: [], safety: [] }, cash: [], titles: {} };
   for (let g = 0; g < N; g++) {

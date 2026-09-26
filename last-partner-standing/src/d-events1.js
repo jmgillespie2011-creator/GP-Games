@@ -147,7 +147,7 @@ EVENTS.push(
 
 {id:'contract_new',arc:1,who:'dept',title:'Next year\'s contract',tag:'speculative',
  info:'Contract changes for the following April are usually announced between February and March, leaving practices weeks to plan. The details of the 2027/28 contract in this card are invented.',
- text:`The GP contract for 2027/28 has been announced. It was trailed in a Sunday paper, confirmed on breakfast radio, and reached the practice on 28th March. It starts on 1st April. It's 94 pages long.`,
+ text:()=>`The GP contract for ${2027 + (S.yr || 0)}/${28 + (S.yr || 0)} has been announced. It was trailed in a Sunday paper, confirmed on breakfast radio, and reached the practice on 28th March. It starts on 1st April. It's 94 pages long.`,
  choices:[
   {t:'Read all 94 pages tonight',fx:{you:-3,safety:2},o:`Page 61 contains a new requirement. Page 88 contains the funding for it, which is less than the cost of doing it.`},
   {t:'Wait for the LMC summary',fx:{you:2},o:`The LMC summary arrives two days later. It's two pages long and mostly swearing, professionally phrased.`}

@@ -68,4 +68,14 @@ EVENTS.push(
   {t:'Double up and work around it',fx:{team:-4,patients:-2},run(){ addMod({id:'flood',label:'Two rooms out after the flood',months:2,rooms:-2}); },o:`Two months of shared rooms, clashing clinics and a dehumidifier the size of a fridge.`},
   {t:'Move some clinics to the neighbouring practice',fx:{you:-2,icb:1},run(){ addMod({id:'flood',label:'Clinics hosted next door',months:2,rooms:-1,hours:2}); },o:`Parkside lends you two rooms on Tuesdays and Thursdays. You owe Dr Rowe a very large favour.`}
  ]}
+,
+/* ---------- endless mode: the start of each new year ---------- */
+{id:'year_new',arc:1,who:'bev',title:()=>`Year ${(S.yr || 0) + 1}`,tag:'speculative',
+ info:'From year two the game invents the future: demand grows about 5% a year, funding rises about 2% while staff costs rise about 3.5%, and the years wear on you. In real life, practice funding has tended to lag behind rising costs and demand.',
+ text:()=>`1st April ${2026 + (S.yr || 0)}. Year ${(S.yr || 0) + 1} as a partner. Bev has put a cake in the staff room with "${(S.yr || 0) + 1}" piped on it in green icing. The new contract uplift is smaller than the pay award, again, and the list has grown, again. ${activeOthers() === 0 ? 'The brass plate still has only your name on it.' : ''}`,
+ choices:[
+  {t:'An away day to plan the year (£2,000)',fx:{team:5,cash:-2,you:1},o:`A hotel conference room, bad coffee, good ideas. Three of them survive until June.`},
+  {t:'Book all your leave for the year now',fx:{you:4,team:-1},o:`Your leave is in the rota before anyone else's. It's the most senior thing you've done all year.`},
+  {t:'Cut the cake and get on with it',fx:{team:2},o:`The cake lasts eleven minutes. Morning surgery starts at 8:00, as it always will.`}
+ ]}
 );

@@ -5,7 +5,7 @@ const fmtK = v => (v < 0 ? '−£' : '£') + Math.abs(v).toFixed(1) + 'k';
 const signK = v => (v > 0 ? '+' : v < 0 ? '−' : '') + '£' + Math.abs(v).toFixed(1) + 'k';
 const gbp = v => (v < 0 ? '−£' : '£') + Math.round(Math.abs(v)).toLocaleString('en-GB');
 const pct = v => Math.round(v * 100) + '%';
-let UI = { screen: 'title', pickPractice: 'town', nameDraft: '' };
+let UI = { screen: 'title', pickPractice: 'town', nameDraft: '', look: { s: 0, c: 0 } };
 const narrow = () => { try { return matchMedia('(max-width:640px)').matches; } catch (e) { return false; } };
 
 const BRIEF = [
@@ -36,8 +36,9 @@ function srcLinks(ids) {
 function badge(key) {
   const c = CAST[key] || CAST.you;
   const name = key === 'paper' ? prac().paper : c.name;
-  const m = c.m.length > 2 ? `<span style="font-size:${c.m.length > 3 ? 11 : 13}px">${esc(c.m)}</span>` : esc(c.m);
-  return `<div class="who"><div class="mono-badge" style="background:${c.c}" aria-hidden="true">${m}</div><div><b>${esc(name)}</b><small>${esc(c.role)}</small></div>`;
+  const ring = key === 'you' ? playerColour() : c.c;
+  const nm = key === 'you' ? 'Dr ' + S.name : name;
+  return `<div class="who"><div class="portrait" style="--ring:${ring}">${portraitSVG(key, 52)}</div><div><b>${esc(nm)}</b><small>${esc(key === 'you' ? 'You' : c.role)}</small></div>`;
 }
 const relWord = v => v >= 70 ? 'excellent' : v >= 55 ? 'good' : v >= 40 ? 'strained' : v >= 25 ? 'poor' : 'broken';
 
@@ -56,7 +57,7 @@ function hudHTML() {
   return `<header class="hud"><div class="wrap">
     <div class="hud-top">
       <div><div class="hud-name">${esc(prac().surgery)}</div><div class="hud-sub">Dr ${esc(S.name)}, partner · ${esc(prac().place)}</div></div>
-      <div class="month-label">${MONTHS[Math.min(S.month, 11)]} ${CAL_YEAR[Math.min(S.month, 11)]} · month ${Math.min(S.month, 11) + 1} of 12</div>
+      <div class="month-label">${MONTHS[Math.min(S.month, 11)]} ${calY(S.month)} · ${S.yr ? `year ${S.yr + 1}, ` : ''}month ${Math.min(S.month, 11) + 1} of 12</div>
       <div class="months" aria-hidden="true">${months}</div>
       <button class="icon-btn" data-act="menu" aria-label="Menu" title="Menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     </div>
@@ -83,30 +84,37 @@ function renderTitle() {
     <section>
       <div class="eyebrow">A general practice survival game</div>
       <h1 class="logo" style="margin-top:12px">Last<br>Partner<span class="rx">Rx</span><br><span class="under">Standing</span></h1>
-      <p class="tagline">One financial year on England's 2026/27 GP contract. Five things to keep alive, including you.</p>
+      <p class="tagline">A year on England's 2026/27 GP contract, then as many more as you can survive. Five things to keep alive, including you.</p>
       <div class="memo"><b>Your year as a new GP partner</b>
         <ul>
           <li>Each month, set your week, your cover, your team and one project.</li>
           <li>Then deal with what lands on your desk: patients, staff, the ICB, CQC, the roof.</li>
           <li>Meters drift toward wherever your practice's situation is taking them. Decisions come back to you, sometimes months later.</li>
-          <li>Survive to 31st March 2027 and the accountant tells you what it was all worth, after tax.</li>
+          <li>Survive to 31st March 2027 and the accountant tells you what it was all worth, after tax. Then carry on, for as long as you can last.</li>
         </ul>
         ${explain('About the numbers', `<p>The money runs on real 2026/27 figures for England: the £130.07 global sum, QOF at £227.95 a point, 15% employer NI, 14.38% employer pension, locum rates and partner tax. Cards marked <b>Real figures</b> or <b>Real rule</b> show their sources.</p><p>It's a simplified model of a GMS practice, not financial, tax or medical advice. The practices, people and companies are fictional. Not affiliated with the NHS, the BMA or any government body.</p>`)}
         ${explain('Privacy', `<p>Your game is saved only in this browser. Nothing about you is sent anywhere unless you post a score to the leaderboard. That stores the name you choose, your score, your practice and your year's results, publicly, with no email or other details. Use a nickname if you like.</p><p>The page loads its fonts from Google Fonts, and the website's host keeps standard access logs. There are no adverts, analytics or tracking cookies.</p>`)}
       </div>
     </section>
     <section class="setup" aria-label="New game">
-      <label class="field" for="docname">Your name
-        <div class="name-row"><span>Dr</span><input id="docname" maxlength="24" autocomplete="off" placeholder="Surname" value="${esc(UI.nameDraft)}"></div>
-      </label>
+      <div class="field maker-field"><b>You, the new partner</b>
+        <div class="maker">
+          <div class="portrait big" style="--ring:${playerColour()}">${portraitSVG('player', 96)}</div>
+          <div class="maker-picks">
+            <div class="looks" role="group" aria-label="Choose your silhouette">${PLAYER_LOOKS.map((l, i) => `<button class="look" data-act="look" data-arg="${i}" aria-pressed="${UI.look.s === i}" aria-label="Silhouette ${i + 1}"><svg viewBox="0 0 64 64" width="40" height="40"><rect width="64" height="64" rx="10" fill="${SIL_TILE}"/><g transform="translate(3.2 6.4) scale(0.9)">${silLook(l)}</g></svg></button>`).join('')}</div>
+            <div class="swatches" role="group" aria-label="Choose your colour">${PLAYER_COLOURS.map((c, i) => `<button class="swatch" data-act="lookc" data-arg="${i}" aria-pressed="${UI.look.c === i}" aria-label="Colour ${i + 1}" style="--sw:${c}"></button>`).join('')}</div>
+          </div>
+        </div>
+        <label class="name-row" for="docname"><span>Dr</span><input id="docname" maxlength="24" autocomplete="off" placeholder="Surname" value="${esc(UI.nameDraft)}"><button class="dice" data-act="dice" type="button" aria-label="Roll a random name" title="Roll a random name"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor"/></svg></button></label>
+      </div>
       <div class="field" style="display:grid;gap:8px"><b>Choose your practice</b><div class="pcards">${pc}</div></div>
       <div class="setup-actions">
         <button class="btn primary" data-act="start">Sign the partnership deed</button>
         ${boardOn() ? '<button class="btn ghost" data-act="board">Leaderboard</button>' : ''}
-        ${saved ? `<button class="btn" data-act="continue">Continue: ${esc(PRACTICES[saved.practiceKey].surgery)}, ${MONTHS[Math.min(saved.month, 11)]}</button>` : ''}
+        ${saved ? `<button class="btn" data-act="continue">Continue: ${esc(PRACTICES[saved.practiceKey].surgery)}, ${saved.phase === 'end' ? 'year end' : MONTHS[Math.min(saved.month, 11)]}${saved.yr ? `, year ${saved.yr + 1}` : ''}</button>` : ''}
       </div>
       ${(() => { const w = weeklyChallenge(); return `<div class="weekly"><div class="eyebrow">Weekly challenge · ${w.week}</div><p>The brutal one: <b>${esc(PRACTICES[w.practice].surgery)}</b>. Everyone gets the same goal, the same twist and the same luck this week. Compare scores on the leaderboard.</p><button class="btn" data-act="weekly">Play this week's challenge</button></div>`; })()}
-      ${best.length ? `<div class="best"><div class="eyebrow">Your best years</div><ol style="margin:6px 0 0;padding-left:1.2em">${best.map(b => `<li>${b.score} · ${esc(b.t)} · ${esc(b.p)}</li>`).join('')}</ol></div>` : ''}
+      ${loadPlaques().length ? partnersBoardHTML(5) + (loadPlaques().length > 5 ? '<button class="btn ghost" data-act="honours">The whole board</button>' : '') : ''}
     </section>
   </div></main>`;
   const inp = document.getElementById('docname');
@@ -172,7 +180,8 @@ function renderPlan() {
   ];
   const moneyTable = `<dl class="kv small">${moneyRows.map(([l, v, how]) => `<dt>${esc(l)}<small>${esc(how)}</small></dt><dd class="${v < 0 ? '' : 'good-t'}">${v < 0 ? '−' : '+'}${fmtK(Math.abs(v))}</dd>`).join('')}<dt class="sum">Net this month</dt><dd class="sum">${signK(c.net)}</dd></dl>`;
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap">
-    <div class="plan-head"><div><div class="eyebrow">Month plan</div><h1>${MONTHS[S.month]}</h1></div><p class="brief">${esc(BRIEF[S.month])} ${S.queue.length} things will land on your desk this month.${S.month === 0 ? (S.practiceKey === 'city' ? ' Nobody is going to tell you what to do here. Set your clinical sessions and pick a project; everything else can wait.' : ' New here? Set your clinical sessions and pick a project, or let Bev suggest a plan. Everything else can wait.') : ''}</p>${S.practiceKey === 'city' ? '' : '<button class="btn small" data-act="suggest" title="Sets sessions, cover, drawings and project for this month">Suggest a plan</button>'}</div>
+    <div class="plan-top"><section class="front" aria-label="Your surgery">${facadeSVG(c)}${brassPlate()}<p class="front-hint">Each lit window is a meter. Tap one to see what's pulling it.</p></section>
+    <div class="plan-head"><div><div class="eyebrow">Month plan</div><h1>${MONTHS[S.month]}</h1></div><p class="brief">${esc(BRIEF[S.month])} ${S.queue.length} things will land on your desk this month.${S.month === 0 ? (S.practiceKey === 'city' ? ' Nobody is going to tell you what to do here. Set your clinical sessions and pick a project; everything else can wait.' : ' New here? Set your clinical sessions and pick a project, or let Bev suggest a plan. Everything else can wait.') : ''}</p>${S.practiceKey === 'city' ? '' : '<button class="btn small" data-act="suggest" title="Sets sessions, cover, drawings and project for this month">Suggest a plan</button>'}</div></div>
     <div class="plan-grid">
       ${(() => { const Ty = c.T.you.v; const winterAhead = S.month >= 6 && S.month <= 9; if (!(winterAhead && Ty < 42) && !(S.st.you < 30)) return ''; return `<div class="warnbox" role="note"><b>${winterAhead ? 'Winter is coming for you.' : 'You are running on empty.'}</b> ${winterAhead ? 'January and February are when most partners burn out, and' : ''} your You meter is at ${Math.round(S.st.you)} and heading for ${Ty}. Book a week of leave, drop a clinical session, or add cover now, before the winter peak.</div>`; })()}
       <div class="col">
@@ -284,7 +293,7 @@ function renderEvent() {
   const info = e.info ? explain(e.tag === 'speculative' ? 'What\'s invented here?' : 'What\'s real here?', `<p>${esc(fill(e.info))}</p>${srcLinks(e.src)}`, 'real') : '';
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap">
     <article class="card" aria-live="polite">${badge(e.who)}<span class="stampno">${MON3[S.month]} · ${Math.min(n, tot)}/${tot}</span></div>
-      <div class="card-title-row"><h2>${esc(fill(e.title))}</h2>${tagPill(e)}</div>
+      <div class="card-title-row"><h2>${esc(fill(val(e.title)))}</h2>${tagPill(e)}</div>
       <div class="text"><p>${esc(fill(val(e.text)))}</p></div>
       ${info}
       <div class="choices">${choices}</div>
@@ -302,7 +311,7 @@ function renderOutcome() {
   if (S.cur.echoes) notes.push('Something from this decision may come back in a later month.');
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap">
     <article class="card outcome">${badge(e.who || 'you')}<span class="stampno">${S.cur.alt ? 'Gamble lost' : 'Outcome'}</span></div>
-      <div class="card-title-row"><h2>${esc(fill(e.title || ''))}</h2>${tagPill(e)}</div>
+      <div class="card-title-row"><h2>${esc(fill(val(e.title) || ''))}</h2>${tagPill(e)}</div>
       <div class="text"><p>${esc(S.cur.o)}</p></div>
       ${S.cur.html || ''}
       ${deltaChips(S.cur.deltas)}

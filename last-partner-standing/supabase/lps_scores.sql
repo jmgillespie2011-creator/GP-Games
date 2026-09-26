@@ -80,3 +80,7 @@ begin
 end $$;
 
 -- To take a name off the board by hand (in the Supabase SQL editor): delete from public.lps_scores where id = <id>;
+
+-- Endless mode: months served in the run so far when the score was posted (12 after year one).
+alter table public.lps_scores add column if not exists months smallint check (months is null or months between 1 and 600);
+create index if not exists lps_scores_months_idx on public.lps_scores (months desc nulls last, score desc, created_at);

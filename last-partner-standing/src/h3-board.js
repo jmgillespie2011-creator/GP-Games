@@ -4,7 +4,7 @@
  and table constraints reject silly values. Scores are worked out in the browser, so they can be faked.
  If BOARD.url is empty, or the network is blocked (as inside a Claude Artifact), the board says so and the game carries on.
 */
-const BOARD = { url: 'https://rttvlxawjidhneljhglk.supabase.co', key: 'sb_publishable_Zj804D7rgJdWCl2QTNJWGw_RBPYmCWT', table: 'lps_scores', version: 'v5' };
+const BOARD = { url: 'https://rttvlxawjidhneljhglk.supabase.co', key: 'sb_publishable_Zj804D7rgJdWCl2QTNJWGw_RBPYmCWT', table: 'lps_scores', version: 'v6' };
 const BOARD_NAME_KEY = 'lps-board-name-v1';
 const PRAC_SHORT = { suburb: 'Suburb', town: 'Town', city: 'City' };
 let BD = { tab: 'all', rows: null, err: '', loading: false, posting: false, posted: null, rank: null };
@@ -34,23 +34,30 @@ function savedBoardName() { try { return localStorage.getItem(BOARD_NAME_KEY) ||
 function loadBoard() {
   if (!boardOn()) { BD.err = 'off'; return; }
   BD.loading = true; BD.err = '';
-  const q = `${BOARD.table}?select=id,name,practice,title,score,share_k,qof,cqc,exit,week,created_at&order=score.desc,created_at.asc&limit=20` + (BD.tab === 'week' ? `&week=eq.${isoWeek()}&practice=eq.city` : BD.tab !== 'all' ? `&practice=eq.${BD.tab}` : '');
+  const q = `${BOARD.table}?select=id,name,practice,title,score,share_k,qof,cqc,exit,week,months,created_at&order=${BD.tab === 'long' ? 'months.desc.nullslast,score.desc' : 'score.desc'},created_at.asc&limit=20` + (BD.tab === 'long' ? '&months=not.is.null' : BD.tab === 'week' ? `&week=eq.${isoWeek()}&practice=eq.city` : BD.tab !== 'all' ? `&practice=eq.${BD.tab}` : '');
   boardFetch(q, { headers: boardHeaders() })
     .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(rows => { BD.rows = Array.isArray(rows) ? rows : []; })
     .catch(() => { BD.rows = null; BD.err = 'net'; })
     .finally(() => { BD.loading = false; refreshBoard(); });
 }
+// what a post is about: the finished year, or (in endless mode) a run that ended after year one
+function boardRun() {
+  if (!S) return null;
+  if (S.phase === 'end') return S.end;
+  if (S.phase === 'over' && S.yr >= 1) return S.overPost || (S.overPost = { arche: { t: `${OVER[S.over.k].title}, year ${S.yr + 1}` }, score: S.bestYear || 0, annualK: null, exit: null, months: S.over.months, over: 1 });
+  return null;
+}
 function postScore() {
-  if (!boardOn() || !S || !S.end || BD.posting || S.end.posted) return;
+  const E = boardRun();
+  if (!boardOn() || !E || BD.posting || E.posted) return;
   const inp = document.getElementById('board-name');
   const name = cleanName(inp ? inp.value : '');
   if (!name) { toast('Pick a name for the board first.'); return; }
   if (!nameOk(name)) { toast('That name can\'t go on the board. Pick another.'); return; }
   try { localStorage.setItem(BOARD_NAME_KEY, name); } catch (e) { }
-  const E = S.end;
   const row = { name, practice: S.practiceKey, title: String(E.arche.t).slice(0, 48), score: Math.max(0, Math.min(800, E.score)),
-    share_k: Math.round(Math.max(-300, Math.min(500, E.annualK))), qof: Math.round(clamp(S.qof)), cqc: S.cqc ? S.cqc.overall : null, exit: E.exit || null, week: S.week || null, version: BOARD.version };
+    share_k: E.annualK == null ? null : Math.round(Math.max(-300, Math.min(500, E.annualK))), qof: Math.round(clamp(S.qof)), cqc: S.cqc ? S.cqc.overall : null, exit: E.exit || null, week: S.week || null, months: E.months || 12, version: BOARD.version };
   BD.posting = true; refreshBoard();
   boardFetch(BOARD.table, { method: 'POST', headers: boardHeaders({ Prefer: 'return=representation' }), body: JSON.stringify(row) })
     .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
@@ -71,21 +78,21 @@ function boardTableHTML() {
   if (BD.err === 'net') return `<p class="fc-note">The leaderboard can't be reached from here. It works at <a href="https://last-partner-standing.vercel.app" target="_blank" rel="noopener">last-partner-standing.vercel.app</a>.</p>`;
   if (!BD.rows) return '<p class="fc-note">Loading the leaderboard…</p>';
   if (!BD.rows.length) return '<p class="fc-note">No scores yet. Be the first partner on the board.</p>';
-  return `<ol class="board">${BD.rows.map((r, i) => `<li class="${BD.posted && r.id === BD.posted ? 'me' : ''}"><span class="pos">${i + 1}</span><span class="who-b"><b>${esc(r.name)}</b><small>${esc(r.title)} · ${esc(PRAC_SHORT[r.practice] || '')}${r.cqc ? ' · CQC ' + esc(RATE_NAME[r.cqc] || '') : ''}${r.share_k != null ? ' · £' + r.share_k + 'k' : ''}${r.week ? ' · weekly' : ''}</small></span><span class="sc">${r.score}</span></li>`).join('')}</ol>`;
+  return `<ol class="board">${BD.rows.map((r, i) => `<li class="${BD.posted && r.id === BD.posted ? 'me' : ''}"><span class="pos">${i + 1}</span><span class="who-b"><b>${esc(r.name)}</b><small>${esc(r.title)} · ${esc(PRAC_SHORT[r.practice] || '')}${r.cqc ? ' · CQC ' + esc(RATE_NAME[r.cqc] || '') : ''}${r.share_k != null ? ' · £' + r.share_k + 'k' : ''}${r.week ? ' · weekly' : ''}${r.months && BD.tab !== 'long' ? ' · ' + r.months + ' months' : ''}</small></span><span class="sc">${BD.tab === 'long' ? (r.months || '') + '<small> mo</small>' : r.score}</span></li>`).join('')}</ol>`;
 }
 function boardTabsHTML() {
-  return `<div class="seg board-tabs" role="group" aria-label="Filter by practice">${['all', 'week', 'suburb', 'town', 'city'].map(k => `<button data-act="board-tab" data-arg="${k}" aria-pressed="${BD.tab === k}">${k === 'all' ? 'All' : k === 'week' ? 'This week' : PRAC_SHORT[k]}</button>`).join('')}</div>`;
+  return `<div class="seg board-tabs" role="group" aria-label="Filter by practice">${['all', 'long', 'week', 'suburb', 'town', 'city'].map(k => `<button data-act="board-tab" data-arg="${k}" aria-pressed="${BD.tab === k}">${k === 'all' ? 'All' : k === 'long' ? 'Longest serving' : k === 'week' ? 'This week' : PRAC_SHORT[k]}</button>`).join('')}</div>`;
 }
 function boardInner() { return `${boardTabsHTML()}<div id="board-list">${boardTableHTML()}</div>`; }
 
 // the panel on the year-end screen
 function boardPanelHTML() {
-  if (!S || !S.end) return '';
-  const E = S.end;
+  const E = boardRun();
+  if (!E) return '';
   const form = !boardOn() || BD.err === 'net' ? '' : E.posted
     ? `<p class="fc-note good-t">Your year is on the board${BD.rank ? `, at number ${BD.rank}` : ''}.</p>`
     : `<div class="board-form"><label for="board-name">Name on the board</label><div class="name-row"><input id="board-name" maxlength="24" autocomplete="nickname" value="${esc(savedBoardName() || 'Dr ' + S.name)}"></div>
-       <button class="btn primary" data-act="board-post" ${BD.posting ? 'disabled' : ''}>${BD.posting ? 'Posting…' : `Post my score (${E.score})`}</button></div>
+       <button class="btn primary" data-act="board-post" ${BD.posting ? 'disabled' : ''}>${BD.posting ? 'Posting…' : E.over ? `Post my ${E.months} months` : `Post my score (${E.score})`}</button></div>
        <p class="fc-note">Everyone can see the board. Only the name you choose, your score and your year's results are stored, with no other details about you. Use a nickname if you'd rather not use your real name. Offensive names are blocked and removed.</p>`;
   return `<section class="panel" id="board-panel"><h3>Leaderboard <small>top 20 partners</small></h3>${form}${boardInner()}</section>`;
 }
@@ -97,7 +104,7 @@ function refreshBoard() {
   if (list) list.innerHTML = boardTableHTML();
   document.querySelectorAll('.board-tabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.arg === BD.tab)));
   const panel = document.getElementById('board-panel');
-  if (panel && S && S.end) {
+  if (panel && boardRun()) {
     const inp = document.getElementById('board-name'), typed = inp ? inp.value : null, y = window.scrollY;
     panel.outerHTML = boardPanelHTML();
     const again = document.getElementById('board-name'); if (again && typed != null) again.value = typed;

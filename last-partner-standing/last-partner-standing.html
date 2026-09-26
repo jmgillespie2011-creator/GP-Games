@@ -517,8 +517,8 @@ const PRACTICES = {
   city:{
     key:'city',label:'Inner city',diff:'Brutal',surgery:'Canal Street Medical Centre',place:'Hollowbrook',paper:'The Hollowbrook Herald',
     blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold. One GP per 3,000 patients, and nobody is applying.',
-    list:10400,weight:0.96,prev:0.9,lastQof:88,cash:40,overdraft:-110,st:{patients:44,team:50,you:64,safety:50},
-    demandRate:0.097,inboxRate:0.046,qofEase:0.88,hire:0.9,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:3000,locumMax:4,
+    list:10400,weight:0.96,prev:0.9,lastQof:88,cash:25,overdraft:-95,st:{patients:42,team:48,you:62,safety:48},
+    demandRate:0.104,inboxRate:0.046,qofEase:0.88,hire:0.7,turnover:0.14,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:3000,locumMax:4,
     staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0}
   }
 };
@@ -2356,6 +2356,15 @@ function incidents(c) {
   if (S.st.team < 30 && S.staff.salaried > 0 && chance(0.15)) {
     add({ staff: { salaried: -1 } }, 'Because morale is low: a salaried GP left to locum. "At £100 an hour I can choose my days."');
     if (!S.flags.tomGone) S.flags.tomGone = 1;
+  }
+  // high-turnover areas lose staff even when morale is fine
+  const tv = prac().turnover || 0;
+  if (tv && chance(tv)) {
+    const pool = ['recep', 'nurse', 'hca'].filter(r => S.staff[r] > (r === 'recep' ? 2 : 0));
+    if (pool.length) {
+      const r = pick(pool);
+      add({ staff: { [r]: -1 }, team: -2 }, `Because staff turnover is high in ${prac().place}: a ${ROLES[r].name.toLowerCase()} left for a job nearer home that pays a little more.`);
+    }
   }
   if (c.ratio < 0.87 && chance(0.5))
     add({ rep: -3, icb: -2, patients: -2 }, `Because appointments only covered ${pctTxt(c.ratio)} of demand: ${3 + Math.floor(Math.random() * 5)} written complaints about access.`);

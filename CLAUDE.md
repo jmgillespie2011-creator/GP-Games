@@ -99,17 +99,18 @@ These come from the scoping work behind this game.
 
 ### Balance
 
-The last run of `tools/simulate.mjs 300` covered 1,800 years:
+The last run of `tools/simulate.mjs 400` covered 2,400 years:
 
 | Practice | Random play survived | Sensible play survived | Sensible play profit share | Sensible play take-home | Sensible play QOF |
 |---|---|---|---|---|---|
-| Suburb | 65% | 100% | £151k | £73k | 94% |
-| Town | 55% | 100% | £153k | £74k | 93% |
-| City | 48% | 100% | £150k | £73k | 96% |
+| Suburb | 58% | 100% | £148k | £73k | 94% |
+| Town | 54% | 100% | £154k | £74k | 94% |
+| City | 31% | 100% | £149k | £73k | 94% |
 
 - Burnout in January and February is the most common game over.
 - The city was rebalanced in September 2026: it starts with a care coordinator and a social prescriber, £40k in the bank against a £110k overdraft, lower overheads and slightly lower demand. It also carries a small extra drag on You. Sensible play now ends with patients around 39, mostly Good from CQC (about a third Requires improvement) and the bank within its overdraft.
 - Random-play survival moves by about 5 points between runs.
+- The city was made harder again: demand 0.104 contacts per patient a week (deprived areas consult more), £25k in the bank against a £95k overdraft, lower starting meters, recruitment at 0.7 of the town's success rate, and `turnover: 0.14`. That's a 14% monthly chance that a receptionist, nurse or HCA leaves regardless of morale (`incidents()`). Sensible play survives, but most years end "Survived. Technically.", with patients around 18, 80% Requires improvement and 12% Inadequate.
 - The city is under-doctored on purpose. `gpCap: 3000` stops salaried GP recruitment beyond one full-time GP per 3,000 patients (`gpHeadroom()`). That's like the worst-covered parts of Kent; the worst whole ICB, North West London, is about 1 per 2,750. Your own sessions count as one full-time GP, so they never block a hire. The city starts at about 1 per 2,800, already past the cap, so no salaried GP can be recruited even after one leaves, and partnership adverts rarely find anyone. Locums are capped at 4 sessions a week there (`locumMax`). Sensible play still survives, but ends with patients around 27 and mostly Requires improvement from CQC.
 - Staffing is calibrated to the England workforce figures for August 2026 (per 10,000 patients: about 4.6 fully qualified GPs, 2.6 nurses, 2.9 other practice clinical staff and 12.3 admin and reception staff). The Team panel's "How you compare with England" shows the player's practice against these averages (`BENCH` and `benchmark()`). Receptionists are needed at 1 per 1,600 patients.
 - Rooms are booked by the session. Each consulting room gives 9 sessions a week (`ROOM_SESSIONS`). `ROLES[r].room` is the room sessions a role books each week: GPs one per clinical session, nurses 8, pharmacists and paramedics 4. Receptionists, care coordinators, social prescribers and GP assistants book none. Starting rooms: suburb 7, town 7, city 8.

@@ -407,6 +407,15 @@ function incidents(c) {
     add({ staff: { salaried: -1 } }, 'Because morale is low: a salaried GP left to locum. "At £100 an hour I can choose my days."');
     if (!S.flags.tomGone) S.flags.tomGone = 1;
   }
+  // high-turnover areas lose staff even when morale is fine
+  const tv = prac().turnover || 0;
+  if (tv && chance(tv)) {
+    const pool = ['recep', 'nurse', 'hca'].filter(r => S.staff[r] > (r === 'recep' ? 2 : 0));
+    if (pool.length) {
+      const r = pick(pool);
+      add({ staff: { [r]: -1 }, team: -2 }, `Because staff turnover is high in ${prac().place}: a ${ROLES[r].name.toLowerCase()} left for a job nearer home that pays a little more.`);
+    }
+  }
   if (c.ratio < 0.87 && chance(0.5))
     add({ rep: -3, icb: -2, patients: -2 }, `Because appointments only covered ${pctTxt(c.ratio)} of demand: ${3 + Math.floor(Math.random() * 5)} written complaints about access.`);
   if (c.hours > 55 && chance(0.3))

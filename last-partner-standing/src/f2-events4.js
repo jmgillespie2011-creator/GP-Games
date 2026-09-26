@@ -34,7 +34,7 @@ EVENTS.push(
  text:`The Daily Courier: "GP PARTNERS EARN £164,200." It's the 2024/25 average, before tax and pension. The 71.8% of the money that went on staff and bills didn't make the headline.`,
  choices:[
   {t:'Post a rebuttal online',fx:{you:-3},alt:{p:0.5,fx:{you:-3,rep:-3},o:`Your thread goes viral for the wrong reasons. Someone screenshots the bit about your holiday.`},run(){ if(!S._alt) applyFx({rep:3}); },o:`Your thread explaining practice finances gets shared by 400 GPs and one surprisingly supportive journalist.`},
-  {t:'Say nothing. Eat lunch.',fx:{you:2},o:`It's a good sandwich.`}
+  {t:'Say nothing. Eat lunch.',fx:()=>S.rep < 45 ? {you:2,rep:-3,patients:-2} : {you:2},o:()=>S.rep < 45 ? `It's a good sandwich. Locally, where people already think the worst of {surgery}, silence reads as guilt.` : `It's a good sandwich.`}
  ]},
 
 {id:'flu_saturday',arc:1,who:'maureen',title:'Flu Saturday',tag:'real',src:['S27'],
@@ -50,6 +50,7 @@ EVENTS.push(
  text:`December. Flu, norovirus and the Christmas party have taken out three receptionists. The phones light up at 8:00.`,
  choices:[
   {t:'Partners on the phones',fx:{you:-8,patients:4,team:4},o:`You answer 61 calls before 10am. The team sees the partners on the phones. That matters.`},
+  {t:'Bank staff on the phones for a month (£2,000)',fx:{cash:-2,patients:3,team:1},o:`Two experienced bank receptionists and a second phone line. The queue moves. The bank balance moves too.`},
   {t:'Recorded message: "call back tomorrow"',fx:{patients:-10,icb:-6,safety:-5},o:`That isn't allowed under the 2026/27 contract. The ICB hears about it by lunchtime.`}
  ]},
 
@@ -143,8 +144,8 @@ EVENTS.push(
 {id:'thank_you',who:'higgins',title:'A card',rep:1,max:2,w:()=>S.st.you<45?2:0.7,tag:'story',
  text:`A card arrives from a patient you'd almost forgotten: "You noticed what everyone else missed. Thank you for my extra years."`,
  choices:[
-  {t:'Pin it in the staff room',fx:{team:7},o:`Reception reads it at least once a day. It helps more than it should.`},
-  {t:'Keep it in your drawer',fx:{you:9},o:`You read it on the bad days. There are a lot of bad days. It's a good card.`}
+  {t:'Pin it in the staff room',fx:()=>({team:S.st.team < 50 ? 8 : 4}),o:`Reception reads it at least once a day. It helps more than it should.`},
+  {t:'Keep it in your drawer',fx:()=>({you:S.st.you < 45 ? 9 : 4}),o:`You read it on the bad days. There are a lot of bad days. It's a good card.`}
  ]},
 
 {id:'your_bp',who:'maureen',title:'Physician, heal thyself',cond:()=>S.st.you<60,tag:'story',

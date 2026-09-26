@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const FILES = ['c-data.js', 'c2-minidata.js', 'd-events1.js', 'e-events2.js', 'f-events3.js', 'f2-events4.js', 'f3-events5.js', 'f4-events6.js', 'f5-events7.js', 'f6-events8.js', 'f7-events9.js', 'g-engine.js', 'g2-endings.js'];
 const code = FILES.map(f => readFileSync(path.join(dir, '..', 'src', f), 'utf8')).join('\n') +
-  '\n;globalThis.__lps = { newGame, gpHeadroom, locumMax, beginMonth, currentEvent, resolveChoice, continueOutcome, nextMonth, continueYear, calc, arrsLeft, arrsClaimOf, activeOthers, arrsCount, roomsNeeded, roomsAvail, ROLES, STAT_KEYS, val, S: () => S };';
+  '\n;globalThis.__lps = { ctxFx, newGame, gpHeadroom, locumMax, beginMonth, currentEvent, resolveChoice, continueOutcome, nextMonth, continueYear, calc, arrsLeft, arrsClaimOf, activeOthers, arrsCount, roomsNeeded, roomsAvail, ROLES, STAT_KEYS, val, S: () => S };';
 const ctx = vm.createContext({ console, Math, JSON, Date });
 vm.runInContext(code, ctx, { filename: 'lps.js' });
 const L = ctx.__lps;
@@ -27,7 +27,7 @@ function greedy(e, S) {
   let best = -1e9, bi = options(e)[0];
   for (const i of options(e)) {
     const c = e.choices[i];
-    let fx = {}; try { fx = L.val(c.fx) || {}; } catch { }
+    let fx = {}; try { fx = L.ctxFx(L.val(c.fx) || {}).fx; } catch { }
     let s = 0;
     for (const k of L.STAT_KEYS) if (fx[k]) s += fx[k] * (1 + Math.max(0, (50 - S.st[k]) / 12));
     if (fx.cash) s += fx.cash * (S.cash < S.overdraft / 2 ? 1.2 : 0.35);

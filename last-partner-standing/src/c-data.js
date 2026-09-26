@@ -6,6 +6,8 @@ const CAL_YEAR = [2026,2026,2026,2026,2026,2026,2026,2026,2026,2027,2027,2027];
 const SEASON = [0.95,0.95,0.93,0.9,0.86,0.99,1.04,1.1,1.16,1.19,1.1,1.03];
 const FLU_MONTHS = [5,6,7,8,9]; // September to January
 const WINTER = [8,9,10];        // December to February
+// share of capacity left after staff annual leave, by month from April (Easter, school summer holidays, Christmas)
+const LEAVE = [0.99,1,1,0.96,0.95,1,1,1,0.97,1,1,1];
 const WEEKS = 4.33;
 const RESERVE = 25; // £k working capital kept back at year end [S44]
 
@@ -61,8 +63,8 @@ const PRACTICES = {
   city:{
     key:'city',label:'Inner city',diff:'Brutal',surgery:'Canal Street Medical Centre',place:'Hollowbrook',paper:'The Hollowbrook Herald',
     blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold. One GP per 3,000 patients, and nobody is applying.',
-    list:10400,weight:0.96,prev:0.9,lastQof:88,cash:25,overdraft:-95,st:{patients:42,team:48,you:62,safety:48},
-    demandRate:0.104,inboxRate:0.046,qofEase:0.88,hire:0.7,turnover:0.14,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:3000,locumMax:4,accessLine:16,
+    list:10400,weight:0.96,prev:0.9,lastQof:88,cash:25,overdraft:-95,st:{patients:48,team:50,you:66,safety:50},
+    demandRate:0.104,inboxRate:0.046,qofEase:0.88,hire:0.7,turnover:0.14,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:3000,locumMax:4,accessLine:15,
     staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0}
   }
 };

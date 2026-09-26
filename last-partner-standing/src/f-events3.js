@@ -124,7 +124,7 @@ EVENTS.push(
 {id:'rep_lunch',who:'rep',title:'Lunch and learn',tag:'story',
  text:[`Chad would love to buy lunch for Wednesday's clinical meeting and "share some exciting data" on a new inhaler. The sandwiches are from the good deli. The data is from the good marketing department.`, `Chad is back. This time it's a "breakfast briefing" on a new weight-loss injection, with croissants from the good bakery. The slides have more graphs than axes.`],
  choices:[
-  {t:'Accept, and critique the data afterwards',fx:{team:3,you:1},o:`The sandwiches are excellent. Raj takes the trial apart slide by slide. Chad takes notes. Everyone learns something.`},
+  {t:'Accept, and critique the data afterwards',fx:{team:3,you:1},alt:{p:0.25,fx:{team:2,rep:-3},o:`A photo of your team with Chad's branded lanyards ends up in the company's "partner practices" newsletter. The local paper notices.`},o:`The sandwiches are excellent. Raj takes the trial apart slide by slide. Chad takes notes. Everyone learns something.`},
   {t:'Decline. You follow the local formulary.',fx:{team:-1,safety:1},o:`Principled. Hungry.`}
  ]},
 

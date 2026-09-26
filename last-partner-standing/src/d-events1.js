@@ -12,8 +12,8 @@ EVENTS.push(
  info:'New partners usually buy in with a share of the working capital, often around £25,000, and sign a partnership deed. Partners are jointly and severally liable for the practice\'s debts, and drawings are not profits: the real share is settled after the year-end accounts.',
  text:`Your name is on the contract now. Also the lease, the bank mandate and the overdraft. "Partners have unlimited liability," Bev says, handing you a lanyard. "Right. Where do you want to start?"`,
  choices:[
-  {t:'Meet every member of staff, one by one',fx:{team:6,you:-3,aim:{team:1}},o:`Twenty-three conversations. You learn who makes the tea, who does the rota, and that nobody has fixed the back door since 2019. People remember that you asked.`},
-  {t:'Go through the practice accounts line by line',fx:{cash:4,you:-3},o:`You find a direct debit for a photocopier the practice hasn't owned since 2017. Cancelled. You feel like a partner already.`},
+  {t:'Meet every member of staff, one by one',fx:()=>({team:S.st.team < 55 ? 7 : 4,you:-3,aim:{team:1}}),o:`Twenty-three conversations. You learn who makes the tea, who does the rota, and that nobody has fixed the back door since 2019. People remember that you asked.`},
+  {t:'Go through the practice accounts line by line',fx:()=>({cash:S.cash < 35 ? 6 : 3,you:-3}),o:`You find a direct debit for a photocopier the practice hasn't owned since 2017. Cancelled. You feel like a partner already.`},
   {t:'Clear the inbox so you start clean',fx:{inbox:-120,you:-4,safety:2},o:`You file until 9pm. A letter from 2023 asks you to "please arrange" something. You decide it has arranged itself.`}
  ]},
 
@@ -140,8 +140,8 @@ EVENTS.push(
  info:'QOF achievement is measured on 31 March. Points scale between lower and upper thresholds for each indicator. The balance above your aspiration payments is paid by the end of June.',
  text:()=>`"QOF year end is 31st March. We're at ${Math.round(S.qof)}%." Each 1% is worth about £${Math.round(qofValueK(1)*1000).toLocaleString('en-GB')}, paid next June. Bev has printed the list of patients still missing their reviews. It's the thickness of a paperback.`,
  choices:[
-  {t:'Saturday recall clinics for the rest of the year',fx:{qof:9,you:-5,team:-4,cash:-1.5},o:`Four Saturdays of spirometry, foot checks and blood pressures. Maureen does her last one wearing a tiara for reasons nobody explains.`},
-  {t:'Text blast, and exception-report where it\'s genuinely justified',fx:{qof:4,safety:-1},o:`The team sends 1,100 texts. Twelve people reply "STOP". One replies with a photo of their cat.`},
+  {t:'Saturday recall clinics for the rest of the year',fx:()=>({qof:S.qof < 70 ? 13 : 7,you:-5,team:-4,cash:-1.5}),o:`Four Saturdays of spirometry, foot checks and blood pressures. Maureen does her last one wearing a tiara for reasons nobody explains.`},
+  {t:'Text blast, and exception-report where it\'s genuinely justified',fx:()=>({qof:S.qof < 70 ? 3 : 5,safety:-1}),o:`The team sends 1,100 texts. Twelve people reply "STOP". One replies with a photo of their cat.`},
   {t:'Accept fate',fx:{you:2},o:`You decide QOF is a construct. The accountant will tell you in June exactly how expensive this construct is.`}
  ]},
 
@@ -149,7 +149,7 @@ EVENTS.push(
  info:'Contract changes for the following April are usually announced between February and March, leaving practices weeks to plan. The details of the 2027/28 contract in this card are invented.',
  text:()=>`The GP contract for ${2027 + (S.yr || 0)}/${28 + (S.yr || 0)} has been announced. It was trailed in a Sunday paper, confirmed on breakfast radio, and reached the practice on 28th March. It starts on 1st April. It's 94 pages long.`,
  choices:[
-  {t:'Read all 94 pages tonight',fx:{you:-3,safety:2},o:`Page 61 contains a new requirement. Page 88 contains the funding for it, which is less than the cost of doing it.`},
+  {t:'Read all 94 pages tonight',fx:()=>({you:-3,safety:S.st.safety < 45 ? 5 : 2}),o:`Page 61 contains a new requirement. Page 88 contains the funding for it, which is less than the cost of doing it.`},
   {t:'Wait for the LMC summary',fx:{you:2},o:`The LMC summary arrives two days later. It's two pages long and mostly swearing, professionally phrased.`}
  ]},
 

@@ -150,6 +150,8 @@ function continueYear() {
   [['year_new', 0], ['mini_docman', 1], ['pay_award', 2], ['mini_triage', 2], ['survey', 3], ['headline', 4], ['flu_saturday', 5],
    ['winter_phones', 8], ['qof_yearend', 10], ['contract_new', 11]].forEach(([id, m]) => S.sched.push({ id, m }));
   S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
+  // a mid-year crunch for the suburb and town, so good players are at risk before the winter (the city has its turnover)
+  if (S.practiceKey !== 'city') { S.sched.push({ id: 'twist_summer', m: 2 + Math.floor(Math.random() * 3) }); S.flags.summerGP = S.staff.salaried > 0 && Math.random() < 0.5 ? 1 : 0; }
   if (S.yr % 3 === 2) S.sched.push({ id: 'review_3y', m: 5 });
   S.goal = pick(Object.keys(GOALS));
   startMonth();

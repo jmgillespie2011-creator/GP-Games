@@ -296,6 +296,7 @@ function hintFor(c) {
     if (!fx) return;
     try { fx = val(fx); } catch (e) { return; }
     if (!fx) return;
+    const cx = ctxFx(fx); fx = cx.fx; cx.why.forEach(w => (out.why = out.why || []).includes(w) || out.why.push(w));
     for (const k of STAT_KEYS) if (fx[k]) out[k] = Math.max(out[k] || 0, Math.abs(fx[k]));
     if (fx.cash) out.cash = Math.max(out.cash || 0, Math.abs(fx.cash) * 1.2);
     if (fx.qof) out.qof = Math.max(out.qof || 0, Math.abs(fx.qof));
@@ -305,6 +306,11 @@ function hintFor(c) {
   };
   add(c.fx); if (c.alt) add(c.alt.fx);
   if (c.later) out.later = 1;
+  // hidden logic: a roll of the dice or something planted for later
+  const src = c.run ? String(c.run) : '';
+  if (/chance\(/.test(src)) out.gamble = 1;
+  if (/plant\(|schedule\(|later/.test(src)) out.later = 1;
+  if (/addMod\(|payX|premX|S\.loan/.test(src)) out.lasting = 1;
   return out;
 }
 function chipsFor(c) {
@@ -316,7 +322,8 @@ function chipsFor(c) {
   if (h.inbox) parts.push(`<span class="chip">Inbox<span class="dot${h.inbox >= 6 ? ' big' : ''}"></span></span>`);
   if (h.lasting) parts.push(`<span class="chip lasting" title="Changes where a meter settles, not just today">Lasting</span>`);
   if (h.later) parts.push(`<span class="chip later" title="Something from this may come back in a later month">Comes back later</span>`);
-  if (c.alt) parts.push(`<span class="chip risk" title="The outcome is uncertain">Gamble</span>`);
+  if (c.alt || h.gamble) parts.push(`<span class="chip risk" title="The outcome is uncertain">Gamble</span>`);
+  if (h.why && h.why.length) parts.push(`<span class="chip now" title="${esc(h.why.join('. '))}.">Costs more right now</span>`);
   if (!parts.length && c.run) parts.push(`<span class="chip">Consequences to follow</span>`);
   return parts.length ? `<div class="chips">${parts.join('')}</div>` : '';
 }
@@ -337,6 +344,7 @@ function renderEvent() {
       <div class="card-title-row"><h2>${esc(fill(val(e.title)))}</h2>${tagPill(e)}</div>
       <div class="text"><p>${esc(fill(cardText(e)))}</p></div>
       ${info}
+      ${(() => { const w = [...new Set(e.choices.flatMap(c => { if (c.play) return []; const h = hintFor(c); return h.why || []; }))]; return w.length ? `<p class="nownote"><b>Right now:</b> ${esc(w.join('. '))}. Choices marked "Costs more right now" hit harder than usual.</p>` : ''; })()}
       <div class="choices">${choices}</div>
     </article></div></main>`;
   if (UI.settings.timer && e.kind !== 'mini') { const id = S.queue[S.qi], qi = S.qi; UI.tmr = setTimeout(() => timeUp(id, qi), CARD_SECONDS * 1000); }

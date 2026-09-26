@@ -175,6 +175,8 @@ function newGame(practiceKey, name, opts) {
   S.goal = pick(Object.keys(GOALS));
   // one late-year shock, so a good plan still gets tested
   S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
+  // a mid-year crunch for the suburb and town, so good players are at risk before the winter (the city has its turnover)
+  if (S.practiceKey !== 'city') { S.sched.push({ id: 'twist_summer', m: 2 + Math.floor(Math.random() * 3) }); S.flags.summerGP = S.staff.salaried > 0 && Math.random() < 0.5 ? 1 : 0; }
   startMonth();
   save();
 }
@@ -315,6 +317,30 @@ function applyFx(fx) {
   if (fx.later) fx.later.forEach(plant);
 }
 
+// The same choice costs more when the practice is already stretched, so the best answer depends on the moment:
+// a hit to a meter that's already below 30 lands a quarter harder, and so does a hit to You in winter,
+// team costs hurt more in the summer holidays and patient costs in winter, money spent near the overdraft limit costs you sleep, and more inbox on a full inbox costs safety.
+// Gains to a meter that's already high are halved, and gains to one below 30 are worth a third more. Returns the adjusted effects and the reasons.
+const WINTER_MONTHS = [8, 9, 10], SUMMER_MONTHS = [3, 4];
+function ctxFx(fx) {
+  if (!fx || typeof fx !== 'object' || !S || !S.st) return { fx, why: [] };
+  const out = Object.assign({}, fx), why = [];
+  for (const k of STAT_KEYS) {
+    const d = fx[k]; if (!d) continue;
+    if (d < 0) {
+      let m = 1;
+      if (S.st[k] < 30) { m += 0.25; why.push(`${STAT_LABEL[k]} is already low`); }
+      if (k === 'you' && WINTER_MONTHS.includes(S.month)) { m += 0.25; why.push('Winter: everything takes more out of you'); }
+      if (k === 'team' && SUMMER_MONTHS.includes(S.month)) { m += 0.25; why.push('Summer holidays: half the team is on leave'); }
+      if (k === 'patients' && WINTER_MONTHS.includes(S.month)) { m += 0.25; why.push('Winter: patients have nowhere else to go'); }
+      out[k] = Math.round(d * m);
+    } else if (S.st[k] >= 75) { out[k] = Math.max(1, Math.round(d / 2)); }
+    else if (S.st[k] < 30) { out[k] = Math.round(d * 1.3); } // help lands harder where it's needed most
+  }
+  if (fx.cash < 0 && S.cash < S.overdraft / 2) { out.you = (out.you || 0) - Math.min(4, Math.ceil(-fx.cash / 2)); why.push('The bank is deep in the overdraft'); }
+  if (fx.inbox > 0 && S.inbox > 500) { out.safety = (out.safety || 0) - Math.min(4, Math.ceil(fx.inbox / 50)); why.push('The inbox is already over 500'); }
+  return { fx: out, why: [...new Set(why)] };
+}
 function resolveChoice(i, extra) {
   const e = currentEvent(); if (!e) return;
   const c = e.choices[i]; if (!c) return;
@@ -323,7 +349,7 @@ function resolveChoice(i, extra) {
   const schedBefore = S.sched.length + S.queue.length;
   let fx = c.fx, o = c.o;
   if (c.alt && chance(val(c.alt.p))) { S._alt = true; fx = c.alt.fx; o = c.alt.o; }
-  applyFx(val(fx));
+  applyFx(ctxFx(val(fx)).fx);
   if (!S._alt && c.later) c.later.forEach(plant);
   let res = null;
   if (c.run) res = c.run() || null;
@@ -378,6 +404,7 @@ function calc() {
   const roomsOver = Math.max(0, rNeed - rAvail) / ROOM_SESSIONS; // in rooms' worth of sessions
   capMul *= 1 - 0.04 * roomsOver;
   if (S.st.team < 30) capMul *= 0.93;
+  capMul *= LEAVE[m] || 1; // staff annual leave: school holidays in summer, Christmas, Easter
   cap = Math.round(cap * capMul);
   const dm = S.demandMod + mods.reduce((a, x) => a + (x.demand || 0), 0) - 2 * Math.min(S.staff.sp, 2);
   const yr = S.yr || 0; // each extra year as a partner: more demand, funding that lags costs
@@ -455,7 +482,7 @@ function targets(c) {
     [(S.rep - 55) * 0.3, 'Local reputation'],
     [-5 * c.recepShort, 'Reception short: nobody answers the phone'],
     [ib > 700 ? -8 : ib > 400 ? -3 : 0, 'Results and letters waiting too long'],
-    [WINTER.includes(m) ? -4 : 0, 'Winter: everyone is ill at once'],
+    [WINTER.includes(m) ? -3 : 0, 'Winter: everyone is ill at once'],
     [p.key === 'city' ? -3 : 0, 'High need and a transient list']
   ]);
   build('team', 58, [
@@ -465,12 +492,15 @@ function targets(c) {
     [-1.5 * (S.plan.extra || 0), 'Staff doing evening and Saturday overtime'],
     [ib > 700 ? -4 : 0, 'The inbox is everyone\'s problem'],
     [S.st.team < 30 ? -3 : 0, 'Sickness absence'],
-    [p.key === 'city' ? -3 : 0, 'Abuse at the front desk']
+    [p.key === 'city' ? -3 : 0, 'Abuse at the front desk'],
+    [SUMMER_MONTHS.includes(m) ? -3 : 0, 'Summer holidays: the rota has holes']
   ]);
   build('you', 80, [
     [-(S.yr || 0) * YEAR_YOU, `Year ${(S.yr || 0) + 1} as a partner`],
     [-(c.hours - 38) * 2.6, `${Math.round(c.hours)} hours a week`],
-    [WINTER.includes(m) ? -3 : 0, 'Winter'],
+    [WINTER.includes(m) ? -1 : 0, 'Winter'],
+    [SUMMER_MONTHS.includes(m) ? -3 : 0, 'Covering everyone else\'s summer holidays'],
+    [m === 5 || m === 6 || m === 7 ? -2 : 0, 'Flu clinics on top of everything else'],
     [S.plan.draw === 'low' ? -3 : S.plan.draw === 'high' ? 2 : 0, S.plan.draw === 'low' ? 'Lean drawings: the mortgage' : 'Generous drawings'],
     [S.drawBase && S.drawBase < DRAW.std ? -Math.min(8, Math.round((DRAW.std - S.drawBase) * 1.2)) : 0, 'Drawings cut to what the practice earns'],
     [S.plan.leave ? 8 : 0, 'A week off'],

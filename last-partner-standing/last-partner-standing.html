@@ -248,6 +248,8 @@ p{margin:0}
 .chip .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-2)}
 .chip .dot.big{width:10px;height:10px}
 .chip.risk{border-style:dashed;color:var(--stamp);border-color:var(--stamp)}
+.chip.now{color:var(--bad);border-color:var(--bad);font-weight:700}
+.nownote{font-size:13.5px;color:var(--ink-2);margin:10px 0 6px;padding:6px 10px;border-left:3px solid var(--bad);background:color-mix(in srgb,var(--bad) 7%,transparent);border-radius:0 8px 8px 0}
 .outcome .text{font-size:17px}
 .deltas{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 .delta{font-family:var(--mono);font-size:13px;font-weight:600;border-radius:6px;padding:3px 9px;border:1.5px solid}
@@ -559,6 +561,8 @@ const CAL_YEAR = [2026,2026,2026,2026,2026,2026,2026,2026,2026,2027,2027,2027];
 const SEASON = [0.95,0.95,0.93,0.9,0.86,0.99,1.04,1.1,1.16,1.19,1.1,1.03];
 const FLU_MONTHS = [5,6,7,8,9]; // September to January
 const WINTER = [8,9,10];        // December to February
+// share of capacity left after staff annual leave, by month from April (Easter, school summer holidays, Christmas)
+const LEAVE = [0.99,1,1,0.96,0.95,1,1,1,0.97,1,1,1];
 const WEEKS = 4.33;
 const RESERVE = 25; // £k working capital kept back at year end [S44]
 
@@ -614,8 +618,8 @@ const PRACTICES = {
   city:{
     key:'city',label:'Inner city',diff:'Brutal',surgery:'Canal Street Medical Centre',place:'Hollowbrook',paper:'The Hollowbrook Herald',
     blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold. One GP per 3,000 patients, and nobody is applying.',
-    list:10400,weight:0.96,prev:0.9,lastQof:88,cash:25,overdraft:-95,st:{patients:42,team:48,you:62,safety:48},
-    demandRate:0.104,inboxRate:0.046,qofEase:0.88,hire:0.7,turnover:0.14,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:3000,locumMax:4,accessLine:16,
+    list:10400,weight:0.96,prev:0.9,lastQof:88,cash:25,overdraft:-95,st:{patients:48,team:50,you:66,safety:50},
+    demandRate:0.104,inboxRate:0.046,qofEase:0.88,hire:0.7,turnover:0.14,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:3000,locumMax:4,accessLine:15,
     staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0}
   }
 };
@@ -1398,8 +1402,8 @@ EVENTS.push(
  info:'New partners usually buy in with a share of the working capital, often around £25,000, and sign a partnership deed. Partners are jointly and severally liable for the practice\'s debts, and drawings are not profits: the real share is settled after the year-end accounts.',
  text:`Your name is on the contract now. Also the lease, the bank mandate and the overdraft. "Partners have unlimited liability," Bev says, handing you a lanyard. "Right. Where do you want to start?"`,
  choices:[
-  {t:'Meet every member of staff, one by one',fx:{team:6,you:-3,aim:{team:1}},o:`Twenty-three conversations. You learn who makes the tea, who does the rota, and that nobody has fixed the back door since 2019. People remember that you asked.`},
-  {t:'Go through the practice accounts line by line',fx:{cash:4,you:-3},o:`You find a direct debit for a photocopier the practice hasn't owned since 2017. Cancelled. You feel like a partner already.`},
+  {t:'Meet every member of staff, one by one',fx:()=>({team:S.st.team < 55 ? 7 : 4,you:-3,aim:{team:1}}),o:`Twenty-three conversations. You learn who makes the tea, who does the rota, and that nobody has fixed the back door since 2019. People remember that you asked.`},
+  {t:'Go through the practice accounts line by line',fx:()=>({cash:S.cash < 35 ? 6 : 3,you:-3}),o:`You find a direct debit for a photocopier the practice hasn't owned since 2017. Cancelled. You feel like a partner already.`},
   {t:'Clear the inbox so you start clean',fx:{inbox:-120,you:-4,safety:2},o:`You file until 9pm. A letter from 2023 asks you to "please arrange" something. You decide it has arranged itself.`}
  ]},
 
@@ -1526,8 +1530,8 @@ EVENTS.push(
  info:'QOF achievement is measured on 31 March. Points scale between lower and upper thresholds for each indicator. The balance above your aspiration payments is paid by the end of June.',
  text:()=>`"QOF year end is 31st March. We're at ${Math.round(S.qof)}%." Each 1% is worth about £${Math.round(qofValueK(1)*1000).toLocaleString('en-GB')}, paid next June. Bev has printed the list of patients still missing their reviews. It's the thickness of a paperback.`,
  choices:[
-  {t:'Saturday recall clinics for the rest of the year',fx:{qof:9,you:-5,team:-4,cash:-1.5},o:`Four Saturdays of spirometry, foot checks and blood pressures. Maureen does her last one wearing a tiara for reasons nobody explains.`},
-  {t:'Text blast, and exception-report where it\'s genuinely justified',fx:{qof:4,safety:-1},o:`The team sends 1,100 texts. Twelve people reply "STOP". One replies with a photo of their cat.`},
+  {t:'Saturday recall clinics for the rest of the year',fx:()=>({qof:S.qof < 70 ? 13 : 7,you:-5,team:-4,cash:-1.5}),o:`Four Saturdays of spirometry, foot checks and blood pressures. Maureen does her last one wearing a tiara for reasons nobody explains.`},
+  {t:'Text blast, and exception-report where it\'s genuinely justified',fx:()=>({qof:S.qof < 70 ? 3 : 5,safety:-1}),o:`The team sends 1,100 texts. Twelve people reply "STOP". One replies with a photo of their cat.`},
   {t:'Accept fate',fx:{you:2},o:`You decide QOF is a construct. The accountant will tell you in June exactly how expensive this construct is.`}
  ]},
 
@@ -1535,7 +1539,7 @@ EVENTS.push(
  info:'Contract changes for the following April are usually announced between February and March, leaving practices weeks to plan. The details of the 2027/28 contract in this card are invented.',
  text:()=>`The GP contract for ${2027 + (S.yr || 0)}/${28 + (S.yr || 0)} has been announced. It was trailed in a Sunday paper, confirmed on breakfast radio, and reached the practice on 28th March. It starts on 1st April. It's 94 pages long.`,
  choices:[
-  {t:'Read all 94 pages tonight',fx:{you:-3,safety:2},o:`Page 61 contains a new requirement. Page 88 contains the funding for it, which is less than the cost of doing it.`},
+  {t:'Read all 94 pages tonight',fx:()=>({you:-3,safety:S.st.safety < 45 ? 5 : 2}),o:`Page 61 contains a new requirement. Page 88 contains the funding for it, which is less than the cost of doing it.`},
   {t:'Wait for the LMC summary',fx:{you:2},o:`The LMC summary arrives two days later. It's two pages long and mostly swearing, professionally phrased.`}
  ]},
 
@@ -1995,7 +1999,7 @@ EVENTS.push(
 {id:'rep_lunch',who:'rep',title:'Lunch and learn',tag:'story',
  text:[`Chad would love to buy lunch for Wednesday's clinical meeting and "share some exciting data" on a new inhaler. The sandwiches are from the good deli. The data is from the good marketing department.`, `Chad is back. This time it's a "breakfast briefing" on a new weight-loss injection, with croissants from the good bakery. The slides have more graphs than axes.`],
  choices:[
-  {t:'Accept, and critique the data afterwards',fx:{team:3,you:1},o:`The sandwiches are excellent. Raj takes the trial apart slide by slide. Chad takes notes. Everyone learns something.`},
+  {t:'Accept, and critique the data afterwards',fx:{team:3,you:1},alt:{p:0.25,fx:{team:2,rep:-3},o:`A photo of your team with Chad's branded lanyards ends up in the company's "partner practices" newsletter. The local paper notices.`},o:`The sandwiches are excellent. Raj takes the trial apart slide by slide. Chad takes notes. Everyone learns something.`},
   {t:'Decline. You follow the local formulary.',fx:{team:-1,safety:1},o:`Principled. Hungry.`}
  ]},
 
@@ -2135,7 +2139,7 @@ EVENTS.push(
  text:`The Daily Courier: "GP PARTNERS EARN £164,200." It's the 2024/25 average, before tax and pension. The 71.8% of the money that went on staff and bills didn't make the headline.`,
  choices:[
   {t:'Post a rebuttal online',fx:{you:-3},alt:{p:0.5,fx:{you:-3,rep:-3},o:`Your thread goes viral for the wrong reasons. Someone screenshots the bit about your holiday.`},run(){ if(!S._alt) applyFx({rep:3}); },o:`Your thread explaining practice finances gets shared by 400 GPs and one surprisingly supportive journalist.`},
-  {t:'Say nothing. Eat lunch.',fx:{you:2},o:`It's a good sandwich.`}
+  {t:'Say nothing. Eat lunch.',fx:()=>S.rep < 45 ? {you:2,rep:-3,patients:-2} : {you:2},o:()=>S.rep < 45 ? `It's a good sandwich. Locally, where people already think the worst of {surgery}, silence reads as guilt.` : `It's a good sandwich.`}
  ]},
 
 {id:'flu_saturday',arc:1,who:'maureen',title:'Flu Saturday',tag:'real',src:['S27'],
@@ -2151,6 +2155,7 @@ EVENTS.push(
  text:`December. Flu, norovirus and the Christmas party have taken out three receptionists. The phones light up at 8:00.`,
  choices:[
   {t:'Partners on the phones',fx:{you:-8,patients:4,team:4},o:`You answer 61 calls before 10am. The team sees the partners on the phones. That matters.`},
+  {t:'Bank staff on the phones for a month (£2,000)',fx:{cash:-2,patients:3,team:1},o:`Two experienced bank receptionists and a second phone line. The queue moves. The bank balance moves too.`},
   {t:'Recorded message: "call back tomorrow"',fx:{patients:-10,icb:-6,safety:-5},o:`That isn't allowed under the 2026/27 contract. The ICB hears about it by lunchtime.`}
  ]},
 
@@ -2244,8 +2249,8 @@ EVENTS.push(
 {id:'thank_you',who:'higgins',title:'A card',rep:1,max:2,w:()=>S.st.you<45?2:0.7,tag:'story',
  text:`A card arrives from a patient you'd almost forgotten: "You noticed what everyone else missed. Thank you for my extra years."`,
  choices:[
-  {t:'Pin it in the staff room',fx:{team:7},o:`Reception reads it at least once a day. It helps more than it should.`},
-  {t:'Keep it in your drawer',fx:{you:9},o:`You read it on the bad days. There are a lot of bad days. It's a good card.`}
+  {t:'Pin it in the staff room',fx:()=>({team:S.st.team < 50 ? 8 : 4}),o:`Reception reads it at least once a day. It helps more than it should.`},
+  {t:'Keep it in your drawer',fx:()=>({you:S.st.you < 45 ? 9 : 4}),o:`You read it on the bad days. There are a lot of bad days. It's a good card.`}
  ]},
 
 {id:'your_bp',who:'maureen',title:'Physician, heal thyself',cond:()=>S.st.you<60,tag:'story',
@@ -2498,6 +2503,15 @@ EVENTS.push(
 
 /* ---------- late-year shocks: one per game, scheduled in newGame ---------- */
 // (illPartner is defined at the top of this file)
+{id:'twist_summer',arc:1,who:'bev',title:'A letter in the pigeonhole',tag:'real',src:['S58'],
+ info:'Staff turnover in general practice is high, and resignations cluster when other jobs open up. Summer is when annual leave, school holidays and locum shortages meet.',
+ text:()=>`${S.flags.summerGP ? `One of your salaried GPs is leaving for a portfolio job` : `A practice nurse has taken a Band 6 post at St Swithin's`}, with a month's notice, at the start of the summer holidays. Two receptionists are already booked off for the same fortnight. The rota was held together with Post-it notes. Now it's held together with hope.`,
+ after(){ if (S.flags.summerGP && S.staff.salaried) { S.staff.salaried--; S.vac.salaried = (S.vac.salaried || 0) + 1; } else if (S.staff.nurse) { S.staff.nurse--; S.vac.nurse = (S.vac.nurse || 0) + 1; } delete S.flags.summerGP; },
+ choices:[
+  {t:'Agency locums for the summer',fx:{you:-2},run(){ addMod({ id: 'summerloc', label: 'Summer agency cover', months: 2, capAdd: 70, fx: { cash: -3.2 } }); },o:`The agency sends three different GPs in three weeks. Each one asks where the toilets are. It costs about £3,200 a month for two months, and the adverts are out.`},
+  {t:'Cancel leave and cover it ourselves',fx:{team:-5,you:-3},run(){ addMod({ id: 'summerleave', label: 'Summer leave cancelled', months: 2, capAdd: 45, aim: { team: -3, you: -1 } }); },o:`Nobody gets their August week. Everybody gets a very clear view of what the partners think matters. The adverts are out.`},
+  {t:'Cut routine work until September',fx:{patients:-3,safety:-1},run(){ addMod({ id: 'summercut', label: 'Routine work paused for the summer', months: 2, demand: -6, aim: { patients: -3, safety: -1 } }); },o:`Reviews, recalls and routine appointments wait for the autumn. So do the patients. The adverts are out.`}
+ ]},
 {id:'twist_ill',arc:1,who:'bev',title:'A partner off sick',tag:'story',
  text:()=>{ const id=illPartner(); return id ? `${PARTNERS0[id].short} has been signed off for two months after an operation that "won't be a big deal". Their patients, their sessions and their share of the running of the place are now everyone else's.` : `You've been told to take two weeks off after a minor operation. You're the only partner. There isn't anyone to hand to.`; },
  choices:[
@@ -2971,7 +2985,7 @@ EVENTS.push(
  text:`The locum booked for today's clinic has cancelled by text: "unwell, sorry". Eighteen patients are booked from 8:30. The agency has someone else, at a "short-notice rate".`,
  choices:[
   {t:'Do it yourself on top of your list',fx:{you:-4,patients:1},o:`Thirty-six patients. You eat lunch at 4pm, standing up.`},
-  {t:'Pay the short-notice rate',fx:{cash:-1.1},o:`A cheerful locum arrives at 8:40 and asks where the toilets are.`},
+  {t:'Pay the short-notice rate',fx:()=>({cash:WINTER_MONTHS.includes(S.month) ? -1.8 : -1.1}),o:()=>WINTER_MONTHS.includes(S.month) ? `It's winter, so the short-notice rate is eye-watering. A cheerful locum arrives at 8:40 and asks where the toilets are.` : `A cheerful locum arrives at 8:40 and asks where the toilets are.`},
   {t:'Rebook the list',fx:{patients:-4,safety:-1,team:-2},o:`Reception rings eighteen people. Two of them should have been seen today.`}
  ]},
 {id:'wedding',who:'kayleigh',title:'The wedding',months:[1,2,3],tag:'story',
@@ -2990,13 +3004,13 @@ EVENTS.push(
 {id:'parking',who:'landlord',title:'The neighbours',tag:'story',
  text:`Residents on the next street have written to the council about "surgery parking". They have a point: the car park has 14 spaces and 40 staff. They also have a banner.`,
  choices:[
-  {t:'Staff park at the leisure centre and walk',fx:{team:-3,rep:2},o:`Eight minutes each way, in the rain. The banner comes down.`},
+  {t:'Staff park at the leisure centre and walk',fx:()=>({team:WINTER_MONTHS.includes(S.month) ? -6 : -3,rep:2}),o:`Eight minutes each way, in the rain. The banner comes down.`},
   {t:'Point out that it\'s a surgery',fx:{rep:-3,you:1},o:`The council sends a letter. The residents send a petition. The banner gets bigger.`}
  ]},
 {id:'student_nurse',who:'maureen',title:'A student nurse',tag:'story',
  text:`The university needs placements for student nurses. Maureen would supervise. It means slower clinics for ten weeks, and a small placement payment.`,
  choices:[
-  {t:'Take her',fx:{team:-1,cash:0.4},later:[{in:10,p:0.5,fx:{staff:{nurse:1},team:3},note:'The student nurse you hosted has qualified and applied for your vacancy. Maureen interviewed her in five minutes.'}],o:`She's good, and asks the questions everyone else stopped asking.`},
+  {t:'Take her',fx:()=>({team:S.staff.nurse < 2 ? -4 : -1,cash:0.4}),later:[{in:10,p:0.5,fx:{staff:{nurse:1},team:3},note:'The student nurse you hosted has qualified and applied for your vacancy. Maureen interviewed her in five minutes.'}],o:`She's good, and asks the questions everyone else stopped asking.`},
   {t:'Not this term',fx:{},o:`The placement goes to the practice across town. So, eventually, does the nurse.`}
  ]},
 {id:'rx_forgery',who:'chemist',title:'Your signature',tag:'story',
@@ -3257,6 +3271,8 @@ function newGame(practiceKey, name, opts) {
   S.goal = pick(Object.keys(GOALS));
   // one late-year shock, so a good plan still gets tested
   S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
+  // a mid-year crunch for the suburb and town, so good players are at risk before the winter (the city has its turnover)
+  if (S.practiceKey !== 'city') { S.sched.push({ id: 'twist_summer', m: 2 + Math.floor(Math.random() * 3) }); S.flags.summerGP = S.staff.salaried > 0 && Math.random() < 0.5 ? 1 : 0; }
   startMonth();
   save();
 }
@@ -3397,6 +3413,30 @@ function applyFx(fx) {
   if (fx.later) fx.later.forEach(plant);
 }
 
+// The same choice costs more when the practice is already stretched, so the best answer depends on the moment:
+// a hit to a meter that's already below 30 lands a quarter harder, and so does a hit to You in winter,
+// team costs hurt more in the summer holidays and patient costs in winter, money spent near the overdraft limit costs you sleep, and more inbox on a full inbox costs safety.
+// Gains to a meter that's already high are halved, and gains to one below 30 are worth a third more. Returns the adjusted effects and the reasons.
+const WINTER_MONTHS = [8, 9, 10], SUMMER_MONTHS = [3, 4];
+function ctxFx(fx) {
+  if (!fx || typeof fx !== 'object' || !S || !S.st) return { fx, why: [] };
+  const out = Object.assign({}, fx), why = [];
+  for (const k of STAT_KEYS) {
+    const d = fx[k]; if (!d) continue;
+    if (d < 0) {
+      let m = 1;
+      if (S.st[k] < 30) { m += 0.25; why.push(`${STAT_LABEL[k]} is already low`); }
+      if (k === 'you' && WINTER_MONTHS.includes(S.month)) { m += 0.25; why.push('Winter: everything takes more out of you'); }
+      if (k === 'team' && SUMMER_MONTHS.includes(S.month)) { m += 0.25; why.push('Summer holidays: half the team is on leave'); }
+      if (k === 'patients' && WINTER_MONTHS.includes(S.month)) { m += 0.25; why.push('Winter: patients have nowhere else to go'); }
+      out[k] = Math.round(d * m);
+    } else if (S.st[k] >= 75) { out[k] = Math.max(1, Math.round(d / 2)); }
+    else if (S.st[k] < 30) { out[k] = Math.round(d * 1.3); } // help lands harder where it's needed most
+  }
+  if (fx.cash < 0 && S.cash < S.overdraft / 2) { out.you = (out.you || 0) - Math.min(4, Math.ceil(-fx.cash / 2)); why.push('The bank is deep in the overdraft'); }
+  if (fx.inbox > 0 && S.inbox > 500) { out.safety = (out.safety || 0) - Math.min(4, Math.ceil(fx.inbox / 50)); why.push('The inbox is already over 500'); }
+  return { fx: out, why: [...new Set(why)] };
+}
 function resolveChoice(i, extra) {
   const e = currentEvent(); if (!e) return;
   const c = e.choices[i]; if (!c) return;
@@ -3405,7 +3445,7 @@ function resolveChoice(i, extra) {
   const schedBefore = S.sched.length + S.queue.length;
   let fx = c.fx, o = c.o;
   if (c.alt && chance(val(c.alt.p))) { S._alt = true; fx = c.alt.fx; o = c.alt.o; }
-  applyFx(val(fx));
+  applyFx(ctxFx(val(fx)).fx);
   if (!S._alt && c.later) c.later.forEach(plant);
   let res = null;
   if (c.run) res = c.run() || null;
@@ -3460,6 +3500,7 @@ function calc() {
   const roomsOver = Math.max(0, rNeed - rAvail) / ROOM_SESSIONS; // in rooms' worth of sessions
   capMul *= 1 - 0.04 * roomsOver;
   if (S.st.team < 30) capMul *= 0.93;
+  capMul *= LEAVE[m] || 1; // staff annual leave: school holidays in summer, Christmas, Easter
   cap = Math.round(cap * capMul);
   const dm = S.demandMod + mods.reduce((a, x) => a + (x.demand || 0), 0) - 2 * Math.min(S.staff.sp, 2);
   const yr = S.yr || 0; // each extra year as a partner: more demand, funding that lags costs
@@ -3537,7 +3578,7 @@ function targets(c) {
     [(S.rep - 55) * 0.3, 'Local reputation'],
     [-5 * c.recepShort, 'Reception short: nobody answers the phone'],
     [ib > 700 ? -8 : ib > 400 ? -3 : 0, 'Results and letters waiting too long'],
-    [WINTER.includes(m) ? -4 : 0, 'Winter: everyone is ill at once'],
+    [WINTER.includes(m) ? -3 : 0, 'Winter: everyone is ill at once'],
     [p.key === 'city' ? -3 : 0, 'High need and a transient list']
   ]);
   build('team', 58, [
@@ -3547,12 +3588,15 @@ function targets(c) {
     [-1.5 * (S.plan.extra || 0), 'Staff doing evening and Saturday overtime'],
     [ib > 700 ? -4 : 0, 'The inbox is everyone\'s problem'],
     [S.st.team < 30 ? -3 : 0, 'Sickness absence'],
-    [p.key === 'city' ? -3 : 0, 'Abuse at the front desk']
+    [p.key === 'city' ? -3 : 0, 'Abuse at the front desk'],
+    [SUMMER_MONTHS.includes(m) ? -3 : 0, 'Summer holidays: the rota has holes']
   ]);
   build('you', 80, [
     [-(S.yr || 0) * YEAR_YOU, `Year ${(S.yr || 0) + 1} as a partner`],
     [-(c.hours - 38) * 2.6, `${Math.round(c.hours)} hours a week`],
-    [WINTER.includes(m) ? -3 : 0, 'Winter'],
+    [WINTER.includes(m) ? -1 : 0, 'Winter'],
+    [SUMMER_MONTHS.includes(m) ? -3 : 0, 'Covering everyone else\'s summer holidays'],
+    [m === 5 || m === 6 || m === 7 ? -2 : 0, 'Flu clinics on top of everything else'],
     [S.plan.draw === 'low' ? -3 : S.plan.draw === 'high' ? 2 : 0, S.plan.draw === 'low' ? 'Lean drawings: the mortgage' : 'Generous drawings'],
     [S.drawBase && S.drawBase < DRAW.std ? -Math.min(8, Math.round((DRAW.std - S.drawBase) * 1.2)) : 0, 'Drawings cut to what the practice earns'],
     [S.plan.leave ? 8 : 0, 'A week off'],
@@ -3881,6 +3925,8 @@ function continueYear() {
   [['year_new', 0], ['mini_docman', 1], ['pay_award', 2], ['mini_triage', 2], ['survey', 3], ['headline', 4], ['flu_saturday', 5],
    ['winter_phones', 8], ['qof_yearend', 10], ['contract_new', 11]].forEach(([id, m]) => S.sched.push({ id, m }));
   S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
+  // a mid-year crunch for the suburb and town, so good players are at risk before the winter (the city has its turnover)
+  if (S.practiceKey !== 'city') { S.sched.push({ id: 'twist_summer', m: 2 + Math.floor(Math.random() * 3) }); S.flags.summerGP = S.staff.salaried > 0 && Math.random() < 0.5 ? 1 : 0; }
   if (S.yr % 3 === 2) S.sched.push({ id: 'review_3y', m: 5 });
   S.goal = pick(Object.keys(GOALS));
   startMonth();
@@ -4251,6 +4297,7 @@ function hintFor(c) {
     if (!fx) return;
     try { fx = val(fx); } catch (e) { return; }
     if (!fx) return;
+    const cx = ctxFx(fx); fx = cx.fx; cx.why.forEach(w => (out.why = out.why || []).includes(w) || out.why.push(w));
     for (const k of STAT_KEYS) if (fx[k]) out[k] = Math.max(out[k] || 0, Math.abs(fx[k]));
     if (fx.cash) out.cash = Math.max(out.cash || 0, Math.abs(fx.cash) * 1.2);
     if (fx.qof) out.qof = Math.max(out.qof || 0, Math.abs(fx.qof));
@@ -4260,6 +4307,11 @@ function hintFor(c) {
   };
   add(c.fx); if (c.alt) add(c.alt.fx);
   if (c.later) out.later = 1;
+  // hidden logic: a roll of the dice or something planted for later
+  const src = c.run ? String(c.run) : '';
+  if (/chance\(/.test(src)) out.gamble = 1;
+  if (/plant\(|schedule\(|later/.test(src)) out.later = 1;
+  if (/addMod\(|payX|premX|S\.loan/.test(src)) out.lasting = 1;
   return out;
 }
 function chipsFor(c) {
@@ -4271,7 +4323,8 @@ function chipsFor(c) {
   if (h.inbox) parts.push(`<span class="chip">Inbox<span class="dot${h.inbox >= 6 ? ' big' : ''}"></span></span>`);
   if (h.lasting) parts.push(`<span class="chip lasting" title="Changes where a meter settles, not just today">Lasting</span>`);
   if (h.later) parts.push(`<span class="chip later" title="Something from this may come back in a later month">Comes back later</span>`);
-  if (c.alt) parts.push(`<span class="chip risk" title="The outcome is uncertain">Gamble</span>`);
+  if (c.alt || h.gamble) parts.push(`<span class="chip risk" title="The outcome is uncertain">Gamble</span>`);
+  if (h.why && h.why.length) parts.push(`<span class="chip now" title="${esc(h.why.join('. '))}.">Costs more right now</span>`);
   if (!parts.length && c.run) parts.push(`<span class="chip">Consequences to follow</span>`);
   return parts.length ? `<div class="chips">${parts.join('')}</div>` : '';
 }
@@ -4292,6 +4345,7 @@ function renderEvent() {
       <div class="card-title-row"><h2>${esc(fill(val(e.title)))}</h2>${tagPill(e)}</div>
       <div class="text"><p>${esc(fill(cardText(e)))}</p></div>
       ${info}
+      ${(() => { const w = [...new Set(e.choices.flatMap(c => { if (c.play) return []; const h = hintFor(c); return h.why || []; }))]; return w.length ? `<p class="nownote"><b>Right now:</b> ${esc(w.join('. '))}. Choices marked "Costs more right now" hit harder than usual.</p>` : ''; })()}
       <div class="choices">${choices}</div>
     </article></div></main>`;
   if (UI.settings.timer && e.kind !== 'mini') { const id = S.queue[S.qi], qi = S.qi; UI.tmr = setTimeout(() => timeUp(id, qi), CARD_SECONDS * 1000); }

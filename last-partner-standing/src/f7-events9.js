@@ -101,7 +101,7 @@ EVENTS.push(
  text:`The locum booked for today's clinic has cancelled by text: "unwell, sorry". Eighteen patients are booked from 8:30. The agency has someone else, at a "short-notice rate".`,
  choices:[
   {t:'Do it yourself on top of your list',fx:{you:-4,patients:1},o:`Thirty-six patients. You eat lunch at 4pm, standing up.`},
-  {t:'Pay the short-notice rate',fx:{cash:-1.1},o:`A cheerful locum arrives at 8:40 and asks where the toilets are.`},
+  {t:'Pay the short-notice rate',fx:()=>({cash:WINTER_MONTHS.includes(S.month) ? -1.8 : -1.1}),o:()=>WINTER_MONTHS.includes(S.month) ? `It's winter, so the short-notice rate is eye-watering. A cheerful locum arrives at 8:40 and asks where the toilets are.` : `A cheerful locum arrives at 8:40 and asks where the toilets are.`},
   {t:'Rebook the list',fx:{patients:-4,safety:-1,team:-2},o:`Reception rings eighteen people. Two of them should have been seen today.`}
  ]},
 {id:'wedding',who:'kayleigh',title:'The wedding',months:[1,2,3],tag:'story',
@@ -120,13 +120,13 @@ EVENTS.push(
 {id:'parking',who:'landlord',title:'The neighbours',tag:'story',
  text:`Residents on the next street have written to the council about "surgery parking". They have a point: the car park has 14 spaces and 40 staff. They also have a banner.`,
  choices:[
-  {t:'Staff park at the leisure centre and walk',fx:{team:-3,rep:2},o:`Eight minutes each way, in the rain. The banner comes down.`},
+  {t:'Staff park at the leisure centre and walk',fx:()=>({team:WINTER_MONTHS.includes(S.month) ? -6 : -3,rep:2}),o:`Eight minutes each way, in the rain. The banner comes down.`},
   {t:'Point out that it\'s a surgery',fx:{rep:-3,you:1},o:`The council sends a letter. The residents send a petition. The banner gets bigger.`}
  ]},
 {id:'student_nurse',who:'maureen',title:'A student nurse',tag:'story',
  text:`The university needs placements for student nurses. Maureen would supervise. It means slower clinics for ten weeks, and a small placement payment.`,
  choices:[
-  {t:'Take her',fx:{team:-1,cash:0.4},later:[{in:10,p:0.5,fx:{staff:{nurse:1},team:3},note:'The student nurse you hosted has qualified and applied for your vacancy. Maureen interviewed her in five minutes.'}],o:`She's good, and asks the questions everyone else stopped asking.`},
+  {t:'Take her',fx:()=>({team:S.staff.nurse < 2 ? -4 : -1,cash:0.4}),later:[{in:10,p:0.5,fx:{staff:{nurse:1},team:3},note:'The student nurse you hosted has qualified and applied for your vacancy. Maureen interviewed her in five minutes.'}],o:`She's good, and asks the questions everyone else stopped asking.`},
   {t:'Not this term',fx:{},o:`The placement goes to the practice across town. So, eventually, does the nurse.`}
  ]},
 {id:'rx_forgery',who:'chemist',title:'Your signature',tag:'story',

@@ -116,7 +116,7 @@ function renderEnd() {
     <section class="verdict"><div class="eyebrow">${E.exit ? MONTHS[S.month] + ' ' + calY(S.month) : `31st March ${2027 + (S.yr || 0)}`} · ${esc(prac().surgery)}${S.yr ? ` · year ${S.yr + 1}` : ''}</div><span class="bigstamp">${esc(E.arche.s)}</span>
       <h1>${esc(E.arche.t)}</h1><p class="lede">${esc(E.arche.d)}</p>
       ${S.goal && GOALS[S.goal] && !E.exit ? `<p class="goal-line ${E.goalMet ? 'good-t' : 'bad-t'}">${E.goalMet ? `Goal met: ${esc(GOALS[S.goal].t)}. +${GOAL_BONUS} points.` : `Goal missed: ${esc(GOALS[S.goal].t)}.`}</p>` : ''}
-      <div class="score"><span>Score <b>${E.score}</b></span><span>Profit share <b>£${Math.round(E.annualK)}k</b></span><span>Take-home <b>${gbp(pers.takeHome)}</b></span><span>Per hour <b>£${Math.round(E.perHour)}</b></span></div>
+      <div class="score">${(S.yr || 0) >= 1 || (S.gen || 1) > 1 ? `<span>Months as a partner <b>${E.months}</b></span>` : ''}<span>${(S.yr || 0) >= 1 ? `Year ${S.yr + 1} score` : 'Year score'} <b>${E.score}</b></span><span>Profit share <b>£${Math.round(E.annualK)}k</b></span><span>Take-home <b>${gbp(pers.takeHome)}</b></span><span>Per hour <b>£${Math.round(E.perHour)}</b></span></div>
       ${counterHTML(E.arche)}
     </section>
     ${briefHTML(E.months || 12)}
@@ -188,7 +188,14 @@ function sourcesHTML() {
 }
 function menuHTML() {
   return `<h2>Menu</h2><p class="muted">Your game saves automatically after every decision, in this browser only.</p>
-  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="honours">The Partners' Board</button><button class="btn" data-act="timer">${UI.settings.timer ? 'Turn off' : 'Turn on'} the ${CARD_SECONDS}-second timer</button><button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
+  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="honours">The Partners' Board</button><button class="btn" data-act="timer">${UI.settings.timer ? 'Turn off' : 'Turn on'} the ${CARD_SECONDS}-second timer</button><button class="btn" data-act="quick">${UI.settings.quick ? 'Show every month report' : 'Skip quiet month reports'}</button><button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
+}
+// a month with nothing to read: no consequences, hires, departures or endings, small meter moves, nothing near the edge
+function quietMonth(R) {
+  if (!R || R.news || checkOver() || S.month >= 11 || (!(S.yr || 0) && S.month < 2)) return false;
+  if (R.deltas.some(d => STAT_KEYS.includes(d.k) && Math.abs(d.d) >= 6)) return false;
+  if (STAT_KEYS.some(k => S.st[k] < 30) || S.cash < S.overdraft + 20) return false;
+  return true;
 }
 function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); }
 
@@ -201,8 +208,17 @@ function render() {
     case 'event': return renderEvent();
     case 'outcome': return renderOutcome();
     case 'mini': return renderMini();
-    case 'report': return renderReport();
-    case 'end': { const first = BD.for !== S.end; if (first) { BD.for = S.end; BD.posted = null; BD.rank = null; BD.tab = 'all'; BD.rows = null; } renderEnd(); if (first) loadBoard(); return; }
+    case 'report': {
+      // quiet months skip straight to the next plan, with a short "last month" panel there instead
+      if (UI.settings.quick && quietMonth(S.report)) {
+        const R = S.report;
+        S.lastQuiet = { m: R.month, yr: S.yr || 0, headline: R.headline, cap: R.c.cap, demand: R.c.demand, net: R.c.net, cash: S.cash, d: R.deltas.filter(d => STAT_KEYS.includes(d.k)).map(d => [d.k, d.d]) };
+        nextMonth();
+        return render();
+      }
+      return renderReport();
+    }
+    case 'end': { const first = BD.for !== S.end; if (first) { BD.for = S.end; BD.posted = null; BD.rank = null; BD.tab = runTab(); BD.rows = null; } renderEnd(); if (first) loadBoard(); return; }
     case 'over': { const r = boardRun(), first = r && BD.for !== r; if (first) { BD.for = r; BD.posted = null; BD.rank = null; BD.tab = 'long'; BD.rows = null; } renderOver(); if (first) loadBoard(); return; }
   }
 }
@@ -219,13 +235,14 @@ document.addEventListener('click', ev => {
       else { const k = arg, now = Math.round(S.st[k]); openOverlay(`<h2>${esc({ patients: 'The waiting room', team: 'The staff room', you: 'Your room', safety: 'The treatment room' }[k])}: ${STAT_LABEL[k]}</h2><p class="lede-s">The ${STAT_LABEL[k]} meter is at <b>${now}</b>. If nothing changes, it settles at <b>${T[k].v}</b>.</p>${whyList(T[k].why)}<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>`); }
       break; }
     case 'nextyear': go(continueYear); break;
+    case 'quick': { UI.settings.quick = !UI.settings.quick; saveSettings(); if (S && UI.screen !== 'title') { closeOverlay(); render(); } else keepScroll(renderTitle); toast(UI.settings.quick ? 'Quiet months now skip straight to the next plan.' : 'You\'ll see every month report.'); break; }
     case 'timer': { UI.settings.timer = !UI.settings.timer; saveSettings(); if (S && UI.screen !== 'title') { closeOverlay(); render(); } else keepScroll(renderTitle); toast(UI.settings.timer ? `The 8am pace is on: ${CARD_SECONDS} seconds a card.` : 'The 8am pace is off.'); break; }
     case 'takeover': go(takeOver); break;
     case 'honours': openOverlay(partnersBoardHTML(40) + '<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>'); break;
     case 'shareimg': openShareImage(); break;
     case 'shareimg-go': { const f = UI.shareFile; if (f && navigator.share) navigator.share({ files: [f], text: 'How long can you last as a GP partner?', url: 'https://last-partner-standing.vercel.app' }).catch(() => { }); break; }
-    case 'look': UI.look.s = +arg; keepScroll(renderTitle); break;
-    case 'lookc': UI.look.c = +arg; keepScroll(renderTitle); break;
+    case 'look': UI.look.s = +arg; UI.lookOpen = true; keepScroll(renderTitle); break;
+    case 'lookc': UI.look.c = +arg; UI.lookOpen = true; keepScroll(renderTitle); break;
     case 'dice': { UI.nameDraft = diceName(); keepScroll(renderTitle); break; }
     case 'start': { const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; go(() => newGame(UI.pickPractice, nm)); break; }
     case 'continue': { const s = loadSave(); if (s) { S = s; UI.screen = 'game'; go(() => { }); } break; }

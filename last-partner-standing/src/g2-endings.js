@@ -113,6 +113,21 @@ function finishYear(exit) {
 
 /* ---------- endless mode: carry on into another year ---------- */
 function continueYear() {
+  // settle the partners' current accounts: overdrawn partners pay back in from their own pockets (it hurts),
+  // and a surplus is paid out as far as the bank can spare it
+  const E = S.end, partnersN = 1 + activeOthers();
+  S.flags.settle = 0;
+  if (E && !E.exit && E.balancing < 0) {
+    S.cash = r1(S.cash - E.balancing * partnersN);
+    S.st.you = clamp(S.st.you - clamp(Math.round(-E.balancing / 4), 2, 15));
+    S.flags.settle = r1(E.balancing);
+  } else if (E && !E.exit && E.balancing > 0) {
+    const out = Math.min(E.balancing * partnersN, Math.max(0, S.cash));
+    S.cash = r1(S.cash - out);
+    S.flags.settle = r1(out / partnersN);
+  }
+  // drawings follow what the practice actually earned last year
+  if (E && !E.exit) S.drawBase = clamp(r1((E.shareK - S.penTotal) / 12), 3, 13);
   S.yr = (S.yr || 0) + 1;
   S.qofAsp = P.qofAsp * qofValueK(S.qof) / 12;
   S.qof = 0;
@@ -120,8 +135,8 @@ function continueYear() {
   S.year = { inc: {}, exp: {}, oneoff: 0, profit: 0, share: 0 };
   S.drawTotal = 0; S.penTotal = 0; S.aspPaid = 0; S.hoursTotal = 0; S.leaveUsed = 0;
   S.history = []; S.end = null; S.exit = null; S.report = null;
-  // the card pool refreshes; one-off story arcs and last-chance crises stay used
-  const keep = id => (EVMAP[id] && EVMAP[id].arc) || /^crisis_|^last_partner|^lifeline/.test(id);
+  // the card pool refreshes; one-off story arcs, life events (once) and last-chance crises stay used
+  const keep = id => (EVMAP[id] && (EVMAP[id].arc || EVMAP[id].once)) || /^crisis_|^last_partner|^lifeline/.test(id);
   Object.keys(S.seen).forEach(id => { if (!keep(id)) delete S.seen[id]; });
   S.counts = {};
   delete S.flags.cqcDone;

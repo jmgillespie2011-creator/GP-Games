@@ -10,7 +10,7 @@ EVENTS.push(
   {t:'Trial it, with patient consent and a data protection check',fx:{you:3,cash:-0.9,safety:1,team:1},run(){ addMod({id:'scribe',label:'AI scribe',months:99,fx:{cash:-0.45},aim:{you:2}}); },o:`The notes are good, occasionally too good: one records a patient's views on their neighbour's hedge. You spend less time typing and more time looking at people.`},
   {t:'Not until the ICB has a view',fx:{you:-1},o:`The ICB's view is due "in the next financial year".`}
  ]},
-{id:'p_building_sold',who:'landlord',title:'Under new ownership',pmin:1,cond:()=>!!S.flags.soldBuilding,tag:'story',
+{id:'p_building_sold',once:1,who:'landlord',title:'Under new ownership',pmin:1,cond:()=>!!S.flags.soldBuilding,tag:'story',
  text:`Your landlord has sold the building to an investment fund you've never heard of. Their first letter is about the rent review. Their second is about "unlocking the value of the car park".`,
  choices:[
   {t:'Get a surveyor to fight the review (£3,000)',fx:{cash:-3,you:-2},alt:{p:0.4,fx:{you:-2},run(){ S.premX = (S.premX || 0) + 0.8; },o:`The surveyor does their best. The rent still goes up £800 a month.`},o:`The surveyor finds three errors in the fund's valuation. The review is settled at the old rent, for now.`},
@@ -22,7 +22,7 @@ EVENTS.push(
   {t:'Resubmit everything, again',fx:{you:-3,icb:3},o:`Eleven forms, some of them identical to the forms they replace. The new ICB is grateful. It says so in a template.`},
   {t:'Wait for the dust to settle',fx:{icb:-3,you:1},o:`The dust settles in about nine months.`}
  ]},
-{id:'p_sandra_retires',who:'kayleigh',title:'Sandra retires',pmin:1,tag:'story',
+{id:'p_sandra_retires',once:1,who:'kayleigh',title:'Sandra retires',pmin:1,tag:'story',
  text:`Sandra is retiring after twenty years on reception. She knows every patient by voice, which consultant's secretary actually answers, and how to reset the phone system with a paperclip.`,
  choices:[
   {t:'A proper send-off and a paid handover month',fx:{team:5,cash:-2.5},run(){ S.staff.recep = Math.max(1, S.staff.recep - 1); S.vac.recep = (S.vac.recep || 0) + 1; },o:`Sandra trains her replacement for a month and leaves a notebook titled "What Actually Happens". It becomes the most important document in the building.`},
@@ -53,7 +53,7 @@ EVENTS.push(
   {t:'Pay for it yourself',fx:{you:6},o:`The surgery goes well. The £11,000 comes out of your own savings, then spend two weeks on crutches doing telephone triage from the sofa.`},
   {t:'Wait like everyone else',fx:{you:-4},later:[{in:4,p:0.5,fx:{you:-3},note:'Your knee gave way on the practice stairs. The waiting list letter says you are "in the queue".'}],o:`You join the list. You now understand your patients' letters in a new and personal way.`}
  ]},
-{id:'p_trainee_returns',who:'reg',title:'Ellie is back',pmin:1,cond:()=>!!S.flags.training,tag:'story',
+{id:'p_trainee_returns',once:1,who:'reg',title:'Ellie is back',pmin:1,cond:()=>!!S.flags.training,tag:'story',
  text:`Ellie, your old registrar, has finished training. She'd like to come back as a salaried GP, and she's asking about partnership "in a year or two".`,
  choices:[
   {t:'Offer her a job, and a route to partnership',need:()=>gpHeadroom() >= 6,why:'No room for another GP in this area',fx:{team:5,you:3},run(){ S.staff.salaried++; },o:`Ellie starts next month. This is what growing your own GPs was for.`},

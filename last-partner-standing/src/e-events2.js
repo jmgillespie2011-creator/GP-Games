@@ -9,7 +9,7 @@ EVENTS.push(
  ]},
 
 {id:'ai_printout',who:'patient',title:'Dr Chatbot',tag:'story',
- text:`A 34-year-old man brings a 12-page printout. "I put my symptoms into an AI. It says Addison's disease, lupus, or a rare parasite." He's been exhausted since his baby was born four months ago. He looks it.`,
+ text:[`A 34-year-old man brings a 12-page printout. "I put my symptoms into an AI. It says Addison's disease, lupus, or a rare parasite." He's been exhausted since his baby was born four months ago. He looks it.`, `A retired engineer brings his chatbot conversation, printed in 9-point font and stapled. The AI has offered him six diagnoses, ranked by probability, and drafted a letter asking for a scan. His knee has hurt since he took up pickleball.`],
  choices:[
   {t:'Go through the printout together, properly',fx:{patients:4,you:-3,rep:1},o:`It takes 25 minutes. He leaves reassured, with sensible bloods booked and a plan for sleep. He asks if he can give the AI your feedback.`},
   {t:'Order every test on the list to settle it',fx:{patients:3,inbox:35,cash:-0.3},later:[{in:1,p:0.6,fx:{inbox:25,you:-2},note:'Because you ordered everything on the AI\'s list: one borderline result has generated four more tests and two referrals.'}],o:`Seventeen blood tests. Sixteen will be normal.`},
@@ -34,7 +34,7 @@ EVENTS.push(
  ]},
 
 {id:'facebook',who:'paper',title:'The Facebook group',tag:'story',
- text:`The {place} Community Chat group has a post: "ANYONE ELSE UNABLE TO GET THROUGH TO {surgery}??? 🤬". It has 312 comments. Most are about the phones. They're not wrong about the phones.`,
+ text:[`The {place} Community Chat group has a post: "ANYONE ELSE UNABLE TO GET THROUGH TO {surgery}??? 🤬". It has 312 comments. Most are about the phones. They're not wrong about the phones.`, `A new post in the {place} Community Chat group: "Waited three weeks for a phone call from {surgery}. The doctor was LOVELY but why so long???" 187 comments, most of them sharing their own waits. She's not wrong either.`],
  choices:[
   {t:'Post a calm explainer about how to get help',fx:{patients:2,you:-2,rep:3},o:`"Thanks for explaining!!" says one comment. "Typical excuses" says another. Net positive, mostly.`},
   {t:'Ignore it. Never read the comments.',fx:{you:1,rep:-3},o:`You don't read the comments. Bev does, and summarises them for you at length.`},
@@ -120,7 +120,7 @@ EVENTS.push(
 
 {id:'google_review',who:'kayleigh',title:'One star',tag:'real',src:['S34'],
  info:'Nationally, about 57% of patients find it easy to contact their practice by phone. Online reviews mostly reflect that first contact.',
- text:`New review: "⭐ Rang 47 times. Gave up. Staff lovely once you get through." It's the fourth this month about the phones.`,
+ text:[`New review: "⭐ Rang 47 times. Gave up. Staff lovely once you get through." It's the fourth this month about the phones.`, `New review: "⭐ Couldn't get an appointment for my son. The receptionist was kind but there was nothing she could do." It's the third this month, and the third to be nice about reception.`],
  choices:[
   {t:'Reply publicly and explain the new call-back options',fx:{you:-1,rep:1},o:`It's specific and honest. Two people reply that they didn't know about the call-back option.`},
   {t:'Ask happy patients to leave reviews',fx:{team:2,rep:3},o:`Mrs Higgins leaves one. It's 600 words long and mentions the shortbread.`},
@@ -152,7 +152,7 @@ EVENTS.push(
 {id:'med_student',who:'med',title:'A student for the summer',months:[2,3,4,5],tag:'story',
  text:`The medical school asks if Oliver, a third-year student, can sit in for four weeks. He's keen, polite, and has never seen a patient over 30 who wasn't in a hospital bed.`,
  choices:[
-  {t:'Take him. Teaching is why you became a doctor.',fx:{you:2,team:2,cash:0.8},o:`He's brilliant with Mrs Higgins. At the end he says he wants to be a GP. You tell him to think carefully, and to go ahead.`},
+  {t:'Take him. Teaching is why you became a doctor.',fx:{you:2,team:2,cash:0.8,inbox:60},o:`He's brilliant with Mrs Higgins. At the end he says he wants to be a GP. You tell him to think carefully, and to go ahead. Your clinics run slower all month, and the inbox notices.`},
   {t:'Not this year',fx:{you:1},o:`He goes to dermatology. He sends a photo from a conference in Barcelona.`}
  ]},
 
@@ -249,7 +249,7 @@ EVENTS.push(
  ]},
 
 {id:'pcn_meeting',who:'pcn',title:'Neighbourhood transformation',tag:'story',
- text:`The PCN board meets Tuesday 1-5pm: "Integrated Neighbourhood Teams: a transformation journey." There will be sticky notes. Your attendance is "strongly encouraged".`,
+ text:[`The PCN board meets Tuesday 1-5pm: "Integrated Neighbourhood Teams: a transformation journey." There will be sticky notes. Your attendance is "strongly encouraged".`, `The PCN board meets Thursday 1-5pm: "Neighbourhood health: from vision to delivery, part 3." Parts 1 and 2 were never circulated. Your attendance is "strongly encouraged".`],
  choices:[
   {t:'Go. Someone has to represent the practice.',fx:{you:-3,cash:0.6,team:1,icb:2},o:`Four hours of sticky notes. You secure a share of the new frailty funding and eat a surprising number of free biscuits.`},
   {t:'Send Bev',fx:{team:-1},o:`Bev comes back with a new acronym and a quiet fury.`},
@@ -272,7 +272,7 @@ EVENTS.push(
  ]},
 
 {id:'appraisal',who:'you',title:'Appraisal season',tag:'story',
- text:`Your appraisal is due. You need a year of learning reflections, a quality improvement activity, patient feedback and a significant event reflection. You have one reflection, written in 2024. It's about burnout.`,
+ text:[`Your appraisal is due. You need a year of learning reflections, a quality improvement activity, patient feedback and a significant event reflection. You have one reflection, written in 2024. It's about burnout.`, `Appraisal again. You need a year of reflections, a quality improvement project and patient feedback. So far you have a certificate from a webinar you mostly listened to while driving.`],
  choices:[
   {t:'Spend the weekend on the portfolio',fx:{you:-4,safety:2},o:`Your appraiser praises your "rich reflective practice". You reflect on how much you'd like your weekend back.`},
   {t:'Ask to defer it three months',fx:{you:2},later:[{in:3,p:1,fx:{you:-5},note:'Your deferred appraisal arrived, on top of everything else. You wrote reflections until 1am.'}],o:`Deferred. It'll be back.`}

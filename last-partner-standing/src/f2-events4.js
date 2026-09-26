@@ -56,7 +56,7 @@ EVENTS.push(
 /* ---------- real rules, random ---------- */
 {id:'uncapped',who:'patient',title:'Monday, 8:02am',rep:1,max:2,tag:'rule',src:['S1','S26'],
  info:'Since October 2025 online consultation tools must stay open throughout core hours, and from 2026/27 practices can\'t cap online requests. Urgent same day; non-urgent by the end of the next working day.',
- text:`Monday, 8:02am. Online requests can't be capped any more. There are 212 already. One of them just says "hello?"`,
+ text:[`Monday, 8:02am. Online requests can't be capped any more. There are 212 already. One of them just says "hello?"`, `Monday, 8:02am. 187 online requests already, 40 of them sent at 2am by people who couldn't sleep for worrying.`],
  choices:[
   {t:'Triage every one today',fx:{you:-6,patients:4,team:-3},o:`You and the duty doctor get through all 212 by 4pm. Tuesday has 190.`},
   {t:'Non-urgent by the end of tomorrow, as the rules allow',fx:{patients:-2,you:1},o:`Urgent ones today, the rest tomorrow. It's within the rules, and it's still a lot.`}
@@ -155,7 +155,7 @@ EVENTS.push(
  ]},
 
 {id:'weekend_admin',who:'you',title:'Saturday',rep:1,max:3,cond:()=>S.inbox>300,w:()=>S.inbox>500?2.5:1,tag:'story',
- text:`Saturday morning. {inbox} results and letters are waiting. The house is quiet. The laptop is right there.`,
+ text:[`Saturday morning. {inbox} results and letters are waiting. The house is quiet. The laptop is right there.`, `Sunday evening. {inbox} results and letters are waiting, and the week starts in twelve hours. The laptop is on the kitchen table, where you left it on purpose.`],
  choices:[
   {t:'Do them now',fx:{you:-6,inbox:-150,safety:2},o:`By lunchtime you've cleared 150. You find one abnormal result that needed acting on. Glad you looked.`},
   {t:'Monday\'s problem',fx:{you:2,safety:-2},o:`You go to the park. The inbox waits, patiently, like a cat that wants feeding.`}
@@ -163,7 +163,7 @@ EVENTS.push(
 
 {id:'private_reports',who:'bev',title:'Insurance reports',rep:1,max:2,tag:'real',src:['S29'],
  info:'Practices can charge for non-NHS work such as insurance reports, which typically earn £120 to £200 each. Fees vary by practice.',
- text:`Twelve insurance reports are waiting. At about £120 each that's £1,440. Each one is twelve pages.`,
+ text:[`Twelve insurance reports are waiting. At about £120 each that's £1,440. Each one is twelve pages.`, `The insurers have sent reminders for twelve outstanding reports. One of them is a reminder about a reminder.`],
  choices:[
   {t:'Do them at the weekend',fx:{cash:1.44,you:-6},o:`Twelve reports, one Sunday. The insurers are delighted. You are tired.`},
   {t:'Tell them six weeks',fx:{rep:-1,you:1},o:`The insurers chase weekly. The patients chase too.`}
@@ -173,7 +173,7 @@ EVENTS.push(
  info:'The state-backed indemnity scheme covers NHS clinical negligence, but not inquests, GMC cases or complaints. GPs still pay a medical defence organisation for those.',
  text:`The coroner asks you to give evidence at an inquest into the death of a patient you saw twice last year. The state indemnity scheme doesn't cover inquests. Your defence organisation does.`,
  choices:[
-  {t:'Call your defence organisation',fx:{you:-4},o:`They help you write your statement and sit beside you on the day. The coroner finds nothing you could have done differently. It still takes weeks to shake off.`},
+  {t:'Call your defence organisation',fx:{you:-4,inbox:50},o:`They help you write your statement, which takes three evenings and two drafts, and sit beside you on the day. The coroner finds nothing you could have done differently. It still takes weeks to shake off.`},
   {t:'Go on your own',fx:{you:-10},o:`You get through it. You'll call them next time.`}
  ]},
 

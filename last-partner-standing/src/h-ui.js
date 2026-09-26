@@ -8,7 +8,7 @@ const pct = v => Math.round(v * 100) + '%';
 let UI = { screen: 'title', pickPractice: 'town', nameDraft: '', look: { s: 0, c: 0 } };
 // settings kept in this browser; the 45-second card timer is off by default
 const SETTINGS_KEY = 'lps-settings-v1', CARD_SECONDS = 45;
-function loadSettings() { try { return Object.assign({ timer: false }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) { return { timer: false }; } }
+function loadSettings() { try { return Object.assign({ timer: false, quick: true }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) { return { timer: false, quick: true }; } }
 function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(UI.settings)); } catch (e) { } }
 UI.settings = loadSettings();
 function timeUp(id, qi) {
@@ -89,6 +89,8 @@ function hudHTML() {
 function renderTitle() {
   const saved = loadSave();
   const best = loadBest();
+  // first-time players see a shorter title screen: the look picker, options and the weekly challenge fold away
+  const first = !saved && !loadPlaques().length;
   const pc = Object.values(PRACTICES).map(p => `<button class="pcard" data-act="pick" data-arg="${p.key}" aria-pressed="${UI.pickPractice === p.key}">
       <b>${esc(p.surgery)}</b><span class="diff">${p.diff}</span>
       <span class="d">${esc(p.label)}. ${esc(p.blurb)}</span>
@@ -114,21 +116,26 @@ function renderTitle() {
       <div class="field maker-field"><b>You, the new partner</b>
         <div class="maker">
           <div class="portrait big" style="--ring:${playerColour()}">${portraitSVG('player', 96)}</div>
+          ${first ? `<details class="explain maker-more" ${UI.lookOpen ? 'open' : ''}><summary>Change how you look</summary>` : ''}
           <div class="maker-picks">
             <div class="looks" role="group" aria-label="Choose your silhouette">${PLAYER_LOOKS.map((l, i) => `<button class="look" data-act="look" data-arg="${i}" aria-pressed="${UI.look.s === i}" aria-label="Silhouette ${i + 1}"><svg viewBox="0 0 64 64" width="40" height="40"><rect width="64" height="64" rx="10" fill="${SIL_TILE}"/><g transform="translate(3.2 6.4) scale(0.9)">${silLook(l)}</g></svg></button>`).join('')}</div>
             <div class="swatches" role="group" aria-label="Choose your colour">${PLAYER_COLOURS.map((c, i) => `<button class="swatch" data-act="lookc" data-arg="${i}" aria-pressed="${UI.look.c === i}" aria-label="Colour ${i + 1}" style="--sw:${c}"></button>`).join('')}</div>
           </div>
+          ${first ? '</details>' : ''}
         </div>
         <label class="name-row" for="docname"><span>Dr</span><input id="docname" maxlength="24" autocomplete="off" placeholder="Surname" value="${esc(UI.nameDraft)}"><button class="dice" data-act="dice" type="button" aria-label="Roll a random name" title="Roll a random name"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor"/></svg></button></label>
       </div>
       <div class="field" style="display:grid;gap:8px"><b>Choose your practice</b><div class="pcards">${pc}</div></div>
-      <label class="toggle"><input type="checkbox" data-act="timer" ${UI.settings.timer ? 'checked' : ''}> <span><b>The 8am pace</b>: ${CARD_SECONDS} seconds to decide each card, or it gets decided for you. Off by default.</span></label>
+      <details class="explain opts"><summary>Options${UI.settings.timer ? ': the 8am pace is on' : ''}</summary>
+        <label class="toggle"><input type="checkbox" data-act="timer" ${UI.settings.timer ? 'checked' : ''}> <span><b>The 8am pace</b>: ${CARD_SECONDS} seconds to decide each card, or it gets decided for you. Off by default.</span></label>
+        <label class="toggle"><input type="checkbox" data-act="quick" ${UI.settings.quick ? 'checked' : ''}> <span><b>Skip quiet months</b>: when nothing new happened, go straight to the next plan and show last month in a short panel. On by default.</span></label>
+      </details>
       <div class="setup-actions">
         <button class="btn primary" data-act="start">Sign the partnership deed</button>
         ${boardOn() ? '<button class="btn ghost" data-act="board">Leaderboard</button>' : ''}
         ${saved ? `<button class="btn" data-act="continue">Continue: ${esc(PRACTICES[saved.practiceKey].surgery)}, ${saved.phase === 'end' ? 'year end' : MONTHS[Math.min(saved.month, 11)]}${saved.yr ? `, year ${saved.yr + 1}` : ''}</button>` : ''}
       </div>
-      ${(() => { const w = weeklyChallenge(); return `<div class="weekly"><div class="eyebrow">Weekly challenge · ${w.week}</div><p>The brutal one: <b>${esc(PRACTICES[w.practice].surgery)}</b>. Everyone gets the same goal, the same twist and the same luck this week. Compare scores on the leaderboard.</p><button class="btn" data-act="weekly">Play this week's challenge</button></div>`; })()}
+      ${(() => { const w = weeklyChallenge(); return `${first ? '<details class="explain"><summary>Weekly challenge</summary>' : ''}<div class="weekly"><div class="eyebrow">Weekly challenge · ${w.week}</div><p>The brutal one: <b>${esc(PRACTICES[w.practice].surgery)}</b>. Everyone gets the same goal, the same twist and the same luck this week. Compare scores on the leaderboard.</p><button class="btn" data-act="weekly">Play this week's challenge</button></div>${first ? '</details>' : ''}`; })()}
       ${loadPlaques().length ? partnersBoardHTML(5) + (loadPlaques().length > 5 ? '<button class="btn ghost" data-act="honours">The whole board</button>' : '') : ''}
     </section>
   </div></main>`;
@@ -193,13 +200,14 @@ function renderPlan() {
     ...(c.cost.cover ? [['Sickness cover and incidents', -c.cost.cover, 'Low morale means sickness and cover. Unsafe care means incidents to investigate.']] : []),
     ...(c.cost.arrs ? [['Additional roles over the PCN budget', -c.cost.arrs, `ARRS staff cost about £${Math.round(arrsSpend(false))}k a year against a budget of £${Math.round(arrsBudget())}k; the practice pays the difference`]] : []),
     ['Running costs and premises', -c.cost.running, 'Office, IT, insurance, CQC fee, supplies, unreimbursed premises costs'],
-    ['Partners\' drawings', -c.out.draw, `${c.partnersN} × £${DRAW[pl.draw]}k`],
+    ['Partners\' drawings', -c.out.draw, `${c.partnersN} × £${drawOf(pl.draw)}k`],
     ['Partners\' pension contributions', -c.out.pension, `${Math.round(pensionRate(c.estShare * 0.95) * 1000) / 10}% of pensionable profit, paid monthly`]
   ];
   const moneyTable = `<dl class="kv small">${moneyRows.map(([l, v, how]) => `<dt>${esc(l)}<small>${esc(how)}</small></dt><dd class="${v < 0 ? '' : 'good-t'}">${v < 0 ? '−' : '+'}${fmtK(Math.abs(v))}</dd>`).join('')}<dt class="sum">Net this month</dt><dd class="sum">${signK(c.net)}</dd></dl>`;
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap">
     <div class="plan-top"><section class="front" aria-label="Your surgery">${facadeSVG(c)}${brassPlate()}<p class="front-hint">Each lit window is a meter. Tap one to see what's pulling it.</p></section>
-    <div class="plan-head"><div><div class="eyebrow">Month plan</div><h1>${MONTHS[S.month]}</h1></div><p class="brief">${esc(BRIEF[S.month])} ${S.queue.length} things will land on your desk this month.${S.month === 0 ? (S.practiceKey === 'city' ? ' Nobody is going to tell you what to do here. Set your clinical sessions and pick a project; everything else can wait.' : ' New here? Set your clinical sessions and pick a project, or let Bev suggest a plan. Everything else can wait.') : ''}</p>${S.practiceKey === 'city' ? '' : '<button class="btn small" data-act="suggest" title="Sets sessions, cover, drawings and project for this month">Suggest a plan</button>'}</div></div>
+    <div class="plan-head"><div><div class="eyebrow">Month plan</div><h1>${MONTHS[S.month]}</h1></div><p class="brief">${esc(BRIEF[S.month])} ${S.queue.length} things will land on your desk this month.${S.month === 0 && !S.yr && (S.gen || 1) === 1 ? (S.practiceKey === 'city' ? ' Nobody is going to tell you what to do here. Set your clinical sessions and pick a project; everything else can wait.' : ' New here? Set your clinical sessions and pick a project, or let Bev suggest a plan. Everything else can wait.') : ''}</p>${S.practiceKey === 'city' ? '' : '<button class="btn small" data-act="suggest" title="Sets sessions, cover, drawings and project for this month">Suggest a plan</button>'}</div></div>
+    ${(() => { const q = S.lastQuiet; if (!q || q.yr !== (S.yr || 0) || q.m !== S.month - 1) return ''; return `<section class="panel lastq" aria-label="Last month"><h3>${MONTHS[q.m]}: a quiet month <small>nothing new landed, so the report was skipped</small></h3><p>“${esc(q.headline)}” ${q.cap} appointments a week offered against ${q.demand} requested. The bank ${q.net >= 0 ? 'rose' : 'fell'} ${fmtK(Math.abs(q.net))} to ${fmtK(q.cash)}.</p>${q.d.length ? `<p class="lastq-d">${q.d.map(([k, d]) => `<span class="${d > 0 ? 'good-t' : 'bad-t'}">${STAT_LABEL[k]} ${d > 0 ? '+' : '−'}${Math.abs(d)}</span>`).join(' ')}</p>` : ''}<p class="fc-note">Prefer every report? Switch it in the menu.</p></section>`; })()}
     <div class="plan-grid">
       ${(() => { const Ty = c.T.you.v; const winterAhead = S.month >= 6 && S.month <= 9; if (!(winterAhead && Ty < 42) && !(S.st.you < 30)) return ''; return `<div class="warnbox" role="note"><b>${winterAhead ? 'Winter is coming for you.' : 'You are running on empty.'}</b> ${winterAhead ? 'January and February are when most partners burn out, and' : ''} your You meter is at ${Math.round(S.st.you)} and heading for ${Ty}. Book a week of leave, drop a clinical session, or add cover now, before the winter peak.</div>`; })()}
       <div class="col">
@@ -215,7 +223,7 @@ function renderPlan() {
           <label class="toggle" for="leave"><input type="checkbox" id="leave" ${pl.leave ? 'checked' : ''} ${leaveLeft <= 0 && !pl.leave ? 'disabled' : ''}> Take a week of annual leave this month <span class="muted">(${leaveLeft} of 6 weeks left)</span></label>
           ${explain('What a session really costs you', `<p>A session is nominally 4 hours 10 minutes. Once the results, letters and phone calls that spill over are counted, partners work about ${P.realHours} hours per session: seven or eight sessions is roughly a 46-hour week.</p><p>Your total hours set where the <b>You</b> meter settles. Evening inbox work, demand running ahead of capacity, supervising ARRS clinicians and being short of partners all add hours.</p><p>BMA safe-working guidance suggests 25 patient contacts per GP per day.</p>${srcLinks(['S36', 'S38'])}`)}
           <div class="step" style="border:0"><div class="l"><b>Partners' drawings</b><small>What each partner takes home each month, on account.</small></div>
-            <div class="seg" role="group" aria-label="Drawings">${['low', 'std', 'high'].map(k => `<button data-act="draw" data-arg="${k}" aria-pressed="${pl.draw === k}">${k === 'low' ? 'Lean' : k === 'std' ? 'Standard' : 'Generous'} £${DRAW[k]}k</button>`).join('')}</div></div>
+            <div class="seg" role="group" aria-label="Drawings">${['low', 'std', 'high'].map(k => `<button data-act="draw" data-arg="${k}" aria-pressed="${pl.draw === k}">${k === 'low' ? 'Lean' : k === 'std' ? 'Standard' : 'Generous'} £${drawOf(k)}k</button>`).join('')}</div></div>
           ${explain('Drawings, pension and the tax bill', `<p>Drawings are payments on account of profit. On top, the practice pays each partner's NHS pension contributions: the member rate, up to 12.5%, plus the 14.38% employer share. Drawings aren't profits. At year end the accountant works out each partner's real share, and if drawings ran ahead, partners pay the difference back.</p><p>Income tax and Class 4 NI come later, through Self Assessment on 31 January and 31 July. A new partner's first bill can arrive about 22 months after joining, all at once.</p><p>Lean drawings protect the bank but weigh on you and on Nadia.</p>${srcLinks(['S21', 'S22', 'S23'])}`)}
         </section>
         <section class="panel" aria-labelledby="h-proj">
@@ -313,7 +321,7 @@ function renderEvent() {
     ${UI.settings.timer && e.kind !== 'mini' ? `<div class="cardtimer" role="timer" aria-label="${CARD_SECONDS} seconds to decide"><b style="animation-duration:${CARD_SECONDS}s"></b></div>` : ''}
     <article class="card" aria-live="polite">${badge(e.who)}<span class="stampno">${MON3[S.month]} · ${Math.min(n, tot)}/${tot}</span></div>
       <div class="card-title-row"><h2>${esc(fill(val(e.title)))}</h2>${tagPill(e)}</div>
-      <div class="text"><p>${esc(fill(val(e.text)))}</p></div>
+      <div class="text"><p>${esc(fill(cardText(e)))}</p></div>
       ${info}
       <div class="choices">${choices}</div>
     </article></div></main>`;

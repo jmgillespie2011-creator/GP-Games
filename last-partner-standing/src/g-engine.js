@@ -31,12 +31,14 @@ const GOALS = {
 };
 const GOAL_BONUS = 40;
 // endless mode: what each extra year adds
-const YEAR_DEMAND = 0.1, YEAR_FUNDING = 0.02, YEAR_STAFF = 0.05, YEAR_RUNNING = 0.03, YEAR_YOU = 5;
+const YEAR_DEMAND = 0.1, YEAR_FUNDING = 0.02, YEAR_STAFF = 0.05, YEAR_RUNNING = 0.03, YEAR_YOU = 7;
 const calY = m => CAL_YEAR[Math.min(m, 11)] + ((S && S.yr) || 0);
 const monthsServed = () => ((S && S.yr) || 0) * 12 + Math.min(S.month, 11) + 1 - ((S && S.startAt) || 0);
 const SAVE_KEY = 'lps-save-v2', BEST_KEY = 'lps-best-v1';
 const clamp = (v, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, v));
 const r1 = v => Math.round(v * 10) / 10;
+// drawings a month, £k: fixed in year one, then rebased each year on last year's profit share (S.drawBase)
+const drawOf = k => S && S.drawBase ? r1(S.drawBase * DRAW[k] / DRAW.std) : DRAW[k];
 const chance = p => Math.random() < p;
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const val = v => (typeof v === 'function' ? v() : v);
@@ -52,7 +54,10 @@ const arrsCount = () => ROLE_ORDER.filter(r => ROLES[r].arrs).reduce((n, r) => n
 // the PCN's additional-roles budget, as the practice's share (£k a year); pay grows faster than the budget in later years
 const arrsBudget = () => weightedList() * P.arrs / 1000 * (1 + YEAR_FUNDING * ((S && S.yr) || 0));
 const arrsClaimOf = r => (ROLES[r].claim || 0) * (1 + YEAR_STAFF * ((S && S.yr) || 0));
-const arrsSpend = withAdverts => ROLE_ORDER.filter(r => ROLES[r].arrs).reduce((a, r) => a + arrsClaimOf(r) * (S.staff[r] + (withAdverts ? (S.vac[r] || 0) : 0)), 0);
+// from 2026/27 a PCN can claim a GP from the same budget: up to £152,900 a year full time; our salaried GP works six sessions
+const ARRS_GP_CLAIM = 152.9 * 6 / 9;
+const arrsGPs = () => Math.min(S.arrsGP || 0, S.staff.salaried);
+const arrsSpend = withAdverts => ROLE_ORDER.filter(r => ROLES[r].arrs).reduce((a, r) => a + arrsClaimOf(r) * (S.staff[r] + (withAdverts ? (S.vac[r] || 0) : 0)), 0) + arrsGPs() * ARRS_GP_CLAIM * (1 + YEAR_STAFF * ((S && S.yr) || 0));
 const arrsLeft = () => arrsBudget() - arrsSpend(true);
 const EVMAP = {};
 EVENTS.forEach(e => { EVMAP[e.id] = e; });
@@ -128,6 +133,8 @@ function qofValueK(pctAchieved) {
 }
 function pensionRate(pensionable) { return P.tiers.find(t => pensionable <= t[0])[1] + P.erPen; }
 
+// a card's text can be a list of variants; each replay of the card (across years) shows the next one
+function cardText(e) { const t = e.text; if (!Array.isArray(t)) return val(t); return val(t[((S.ever && S.ever[e.id]) || 0) % t.length]); }
 function fill(t) {
   if (!t) return '';
   return String(t)
@@ -233,9 +240,10 @@ function startMonth() {
   while (need > 0) {
     const pool = EVENTS.filter(e => eligible(e, q.concat(drawn)));
     if (!pool.length) break;
-    const tot = pool.reduce((a, e) => a + (val(e.w) || 1), 0);
+    const wt = e => (val(e.w) || 1) * (S.ever && S.ever[e.id] ? 0.25 : 1);
+    const tot = pool.reduce((a, e) => a + wt(e), 0);
     let r = Math.random() * tot, chosen = pool[0];
-    for (const e of pool) { r -= (val(e.w) || 1); if (r <= 0) { chosen = e; break; } }
+    for (const e of pool) { r -= wt(e); if (r <= 0) { chosen = e; break; } }
     drawn.push(chosen.id); need--;
   }
   S.queue = q.concat(drawn);
@@ -315,6 +323,7 @@ function resolveChoice(i, extra) {
   if (extra) applyFx(extra.fx);
   if (e.after) e.after();
   S.seen[e.id] = 1; S.counts[e.id] = (S.counts[e.id] || 0) + 1;
+  (S.ever = S.ever || {})[e.id] = (S.ever[e.id] || 0) + 1;
   if (e.kind === 'mini') S.lastMini = e.game;
   const deltas = diffSnap(before, snap());
   const echoes = S._planted || S.sched.length + S.queue.length > schedBefore;
@@ -386,6 +395,7 @@ function calc() {
   ['gs', 'npp', 'vacc', 'es', 'pcn'].forEach(k => { inc[k] *= 1 + YEAR_FUNDING * yr; });
   let modCash = 0; mods.forEach(x => { if (x.fx && x.fx.cash) modCash += x.fx.cash; });
   let roleCost = 0; for (const r of ROLE_ORDER) roleCost += ROLES[r].cost * S.staff[r];
+  roleCost -= arrsGPs() * ROLES.salaried.cost; // a GP claimed through the PCN is paid from the ARRS budget instead
   const cost = {
     staff: (roleCost + S.list * CORE_ADMIN + S.payX + S.tomRaise) * (1 + YEAR_STAFF * yr),
     locum: pl.locum * WEEKS * LOCUM_SESSION + (pl.extra || 0) * WEEKS * OT_SESSION,
@@ -400,7 +410,7 @@ function calc() {
   const profit = incTot + modCash - costTot;
   const estShare = Math.max(0, profit * 12 / partnersN * 1000);
   const penEach = estShare * 0.95 * pensionRate(estShare * 0.95) / 12 / 1000;
-  const out = { draw: DRAW[pl.draw] * partnersN, pension: penEach * partnersN };
+  const out = { draw: drawOf(pl.draw) * partnersN, pension: penEach * partnersN };
   const net = profit - out.draw - out.pension;
   // your week
   const sessions = pl.clin + pl.admin + pl.mgmt;
@@ -454,6 +464,7 @@ function targets(c) {
     [-(c.hours - 38) * 2.6, `${Math.round(c.hours)} hours a week`],
     [WINTER.includes(m) ? -3 : 0, 'Winter'],
     [S.plan.draw === 'low' ? -3 : S.plan.draw === 'high' ? 2 : 0, S.plan.draw === 'low' ? 'Lean drawings: the mortgage' : 'Generous drawings'],
+    [S.drawBase && S.drawBase < DRAW.std ? -Math.min(8, Math.round((DRAW.std - S.drawBase) * 1.2)) : 0, 'Drawings cut to what the practice earns'],
     [S.plan.leave ? 8 : 0, 'A week off'],
     [activeOthers() === 0 ? -4 : 0, 'Carrying it alone'],
     [p.key === 'city' ? -2 : 0, 'Interpreter line on hold, again']
@@ -534,7 +545,7 @@ function monthEnd() {
   S.cash = r1(S.cash + c.net);
   if (S.cash < S.overdraft / 2) S.flags.deepOD = 1;
   S.aspPaid += c.inc.qof;
-  S.drawTotal += DRAW[pl.draw];
+  S.drawTotal += drawOf(pl.draw);
   S.penTotal += c.penEach;
   S.hoursTotal += c.hours * WEEKS;
   for (const k in c.inc) S.year.inc[k] = (S.year.inc[k] || 0) + c.inc[k];
@@ -596,6 +607,7 @@ function monthEnd() {
   const ended = S.mods.filter(x => x.months <= 0).map(x => x.label);
   S.mods = S.mods.filter(x => x.months > 0);
   ended.forEach(l => { if (l) notes.push(`Ended: ${l}.`); });
+  const logged = S.log.length;
   S.log.forEach(l => notes.push(l)); S.log = [];
   if (c.recepShort) notes.push(`Reception is ${c.recepShort} short for a list this size.`);
   if (c.roomsOver) notes.push(`${c.rNeed - c.rAvail} clinic sessions a week had no room. Someone is consulting in the baby-change.`);
@@ -603,7 +615,7 @@ function monthEnd() {
   const pool = c.ratio < 0.87 ? HEADLINES.bad : c.ratio >= 1.02 ? HEADLINES.good : HEADLINES.ok;
   const headline = fill(pick(chance(0.25) ? HEADLINES.filler : pool));
   S.lastRatio = c.ratio;
-  S.report = { month: S.month, c, drift, inboxStart, inboxEnd: S.inbox, headline, notes, consq, hires, project: proj.name, deltas: diffSnap(before, snap()), cashEnd: S.cash };
+  S.report = { month: S.month, c, drift, inboxStart, inboxEnd: S.inbox, headline, notes, consq, hires, project: proj.name, news: consq.length + ended.length + logged + hires.filter(h => / hired\.$/.test(h)).length, deltas: diffSnap(before, snap()), cashEnd: S.cash };
   S.history.push({ m: S.month, patients: S.st.patients, team: S.st.team, you: S.st.you, safety: S.st.safety, cash: S.cash, qof: S.qof, ratio: c.ratio });
   S.phase = 'report';
   save();

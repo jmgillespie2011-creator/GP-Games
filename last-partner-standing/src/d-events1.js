@@ -72,7 +72,7 @@ EVENTS.push(
 {id:'okoye_staying',arc:1,who:'okoye',title:'Chat history',cond:()=>isActive('okoye')&&S.okoye<60,tag:'story',
  text:`Nadia calls you into her room and turns the screen round. She's deleting a chat called "Moving to Perth as a GP". "This place is mad," she says, "but it's our mad."`,
  choices:[
-  {t:'Hug her (awkwardly)',fx:{team:3,you:3},o:`It's exactly as awkward as expected. Word gets round. Morale improves.`},
+  {t:'Hug her (awkwardly)',fx:{team:3,you:3},alt:{p:0.35,fx:{team:-1,you:-1},o:`She goes for a handshake at the same moment. It becomes a sort of high five. Neither of you will ever mention it again.`},o:`It's exactly as awkward as expected. Word gets round. Morale improves.`},
   {t:'Buy her a proper coffee',fx:{you:2,team:1},o:`Flat white, oat milk, from the good place. Twenty minutes of actual conversation. Neither of you mentions work.`}
  ]},
 

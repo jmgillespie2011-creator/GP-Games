@@ -304,12 +304,16 @@ function shareSVG() {
   const months = over ? S.over.months : E.months;
   const title = over ? OVER[S.over.k].title : E.arche.t;
   const col = playerColour();
+  // the surgery front as it stands (closed after a game over), drawn into the picture
+  let facade = ''; try { facade = facadeSVG(calc(), { closed: over }).replace(/^<svg class="facade"/, '<svg x="48" y="60" width="480" height="375" preserveAspectRatio="xMidYMid slice"').replace(/ data-act="win"[^>]*?tabindex="0"/g, ''); } catch (e) { }
   const head = over ? `lasted ${months} month${months === 1 ? '' : 's'} at` : S.yr ? `survived ${months} months at` : `survived a year at`;
   const bars = STAT_KEYS.map((k, i) => { const v = Math.round(S.st[k]); const y = 412 + i * 40; return `<text x="560" y="${y + 17}" font-family="Helvetica, Arial, sans-serif" font-size="22" fill="#C9CFDA">${STAT_LABEL[k]}</text><rect x="690" y="${y}" width="360" height="20" rx="10" fill="#2F3A4C"/><rect x="690" y="${y}" width="${3.6 * v}" height="20" rx="10" fill="${v <= 20 ? '#E0604E' : v <= 35 ? '#E3A43E' : '#5CBF90'}"/><text x="1070" y="${y + 18}" font-family="Menlo, Consolas, monospace" font-size="22" font-weight="700" fill="#EFE7D0">${v}</text>`; }).join('');
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
     <rect width="1200" height="675" fill="#1B2433"/>
-    <rect x="60" y="80" width="440" height="440" rx="44" fill="${col}"/>
-    <g transform="translate(72 92) scale(6.5)"><rect width="64" height="64" rx="8" fill="${SIL_TILE}"/><g transform="translate(3.2 6.4) scale(0.9)">${silLook(playerLook())}</g></g>
+    <rect x="48" y="60" width="480" height="375" rx="18" fill="#0F1622"/>
+    ${facade}
+    <rect x="398" y="396" width="136" height="136" rx="20" fill="${col}"/>
+    <g transform="translate(405 403) scale(1.9063)"><rect width="64" height="64" rx="8" fill="${SIL_TILE}"/><g transform="translate(3.2 6.4) scale(0.9)">${silLook(playerLook())}</g></g>
     <text x="560" y="130" font-family="Menlo, Consolas, monospace" font-size="22" letter-spacing="4" fill="#C9A24B">LAST PARTNER STANDING</text>
     <text x="560" y="210" font-family="Georgia, 'Times New Roman', serif" font-size="64" font-weight="700" fill="#F4EEDD">Dr ${esc(S.name)}</text>
     <text x="560" y="262" font-family="Georgia, 'Times New Roman', serif" font-size="30" fill="#C9CFDA">${esc(head)}</text>

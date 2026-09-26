@@ -93,7 +93,7 @@ EVENTS.push(
  ]},
 
 {id:'roof',who:'bev',title:'Drip',tag:'story',
- text:`There's water coming through the ceiling of Room 3. It's landing, with some precision, on the examination couch. The flat roof has been "fine for years".`,
+ text:[`There's water coming through the ceiling of Room 3. It's landing, with some precision, on the examination couch. The flat roof has been "fine for years".`, `The leak in Room 3 is back, in a new place. It's dripping on the computer this time. The roofer who "sorted it" last year has stopped answering his phone.`],
  choices:[
   {t:'Emergency roofer, today',fx:(()=>S.flags.soldBuilding?{team:1}:{cash:-6,team:1}),o:()=>S.flags.soldBuilding?`It's the landlord's problem now. The roofer arrives in three days. You rediscover the upside of renting.`:`£6,000. The roofer sucks air through his teeth for a full minute before quoting.`},
   {t:'Buckets and a cone',fx:{safety:-3},run(){ addMod({id:'roof',label:'Room 3 out of action',months:2,rooms:-1}); },later:[{in:2,p:0.5,fx:{cash:-9},note:'The leak you patched with buckets spread into the ceiling void. The repair now costs £9,000.'}],o:`Room 3 becomes a storage room with a bucket. You lose a room for two months.`}
@@ -122,7 +122,7 @@ EVENTS.push(
  ]},
 
 {id:'rep_lunch',who:'rep',title:'Lunch and learn',tag:'story',
- text:`Chad would love to buy lunch for Wednesday's clinical meeting and "share some exciting data" on a new inhaler. The sandwiches are from the good deli. The data is from the good marketing department.`,
+ text:[`Chad would love to buy lunch for Wednesday's clinical meeting and "share some exciting data" on a new inhaler. The sandwiches are from the good deli. The data is from the good marketing department.`, `Chad is back. This time it's a "breakfast briefing" on a new weight-loss injection, with croissants from the good bakery. The slides have more graphs than axes.`],
  choices:[
   {t:'Accept, and critique the data afterwards',fx:{team:3,you:1},o:`The sandwiches are excellent. Raj takes the trial apart slide by slide. Chad takes notes. Everyone learns something.`},
   {t:'Decline. You follow the local formulary.',fx:{team:-1,safety:1},o:`Principled. Hungry.`}
@@ -144,7 +144,7 @@ EVENTS.push(
  ]},
 
 {id:'icb_plan',who:'icb',title:'An access improvement plan',tag:'story',
- text:`Jonathan from the ICB needs your "access improvement plan" by Friday. There's a 14-page template. Completing it unlocks a payment. Not completing it "will be noted".`,
+ text:[`Jonathan from the ICB needs your "access improvement plan" by Friday. There's a 14-page template. Completing it unlocks a payment. Not completing it "will be noted".`, `Jonathan from the ICB needs your "winter resilience plan" by Friday. There's a 16-page template, and last year's is in a folder called FINAL_v7_actualFINAL. Completing it unlocks a payment. Not completing it "will be noted".`],
  choices:[
   {t:'Write it (Friday night)',fx:{you:-3,cash:4.5,icb:4},o:`You write "we will continue to improve access" in eleven different ways. The payment arrives two months later.`},
   {t:'Bev adapts last year\'s',fx:{team:-2,cash:4.5},alt:{p:0.3,fx:{team:-2,icb:-4},o:`Bev's version still mentions Dr Hartley and a phone system you replaced. The ICB notices.`},o:`It's accepted without comment.`},

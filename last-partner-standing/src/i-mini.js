@@ -20,18 +20,21 @@ const MINI = {
   }
 };
 let MG = null;
+// later years are harder: less time (down to two thirds) and a bigger penalty for wrong answers
+const miniDur = game => Math.round(MINI[game].dur * Math.max(0.66, 1 - 0.08 * ((S && S.yr) || 0)) / 1000) * 1000;
+const miniPen = () => 2000 + 500 * Math.min(4, (S && S.yr) || 0);
 function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
 function startMini(game, choiceIdx) {
   S.phase = 'mini';
-  MG = { game, choiceIdx, stage: 'intro', items: shuffle(MINI[game].items), idx: 0, score: 0, correct: 0, wrong: 0, danger: 0, streak: 0, best: 0, t0: 0, penalty: 0, left: MINI[game].dur, timer: null, last: null };
+  MG = { game, choiceIdx, stage: 'intro', items: shuffle(MINI[game].items), idx: 0, score: 0, correct: 0, wrong: 0, danger: 0, streak: 0, best: 0, t0: 0, penalty: 0, left: miniDur(game), timer: null, last: null };
   save(); render(); window.scrollTo(0, 0);
 }
 function ensureMG() {
   if (MG) return true;
   const e = currentEvent();
   if (!e || e.kind !== 'mini') { S.phase = 'event'; return false; }
-  MG = { game: e.game, choiceIdx: e.choices.findIndex(c => c.play), stage: 'intro', items: shuffle(MINI[e.game].items), idx: 0, score: 0, correct: 0, wrong: 0, danger: 0, streak: 0, best: 0, t0: 0, penalty: 0, left: MINI[e.game].dur, timer: null, last: null };
+  MG = { game: e.game, choiceIdx: e.choices.findIndex(c => c.play), stage: 'intro', items: shuffle(MINI[e.game].items), idx: 0, score: 0, correct: 0, wrong: 0, danger: 0, streak: 0, best: 0, t0: 0, penalty: 0, left: miniDur(e.game), timer: null, last: null };
   return true;
 }
 function renderMini() {
@@ -39,7 +42,7 @@ function renderMini() {
   const G = MINI[MG.game];
   let body = '';
   if (MG.stage === 'intro') {
-    body = `<div class="card mini-intro"><div class="eyebrow">Mini-game · 45 seconds</div><h2>${G.name}</h2><p class="text">${G.blurb}</p><ul>${G.rules.map(r => `<li>${r}</li>`).join('')}</ul>
+    body = `<div class="card mini-intro"><div class="eyebrow">Mini-game · ${miniDur(MG.game) / 1000} seconds</div><h2>${G.name}</h2><p class="text">${G.blurb.replace('two seconds', miniPen() === 2000 ? 'two seconds' : `${miniPen() / 1000} seconds`)}${(S.yr || 0) ? ` Year ${S.yr + 1}: the clock is shorter and mistakes cost more.` : ''}</p><ul>${G.rules.map(r => `<li>${r}</li>`).join('')}</ul>
       <p class="muted" style="font-size:14px">Use the buttons, or number keys 1 to ${G.bins.length}. Simplified for a game: not ${MG.game === 'walkround' ? 'regulatory' : 'clinical'} guidance.</p>
       <div class="card-foot"><button class="btn primary" data-act="mini-start" autofocus>Start the clock</button></div></div>`;
   } else if (MG.stage === 'play') {
@@ -47,7 +50,7 @@ function renderMini() {
     const docHead = it.k ? `<div class="kind"><span>${esc(it.k)}</span><span>${esc(it.f)}</span></div>` : `<div class="kind"><span>Online request</span><span>#${4100 + MG.idx}</span></div>`;
     const fb = MG.last ? (MG.last.ok ? `<b class="ok">Right.</b> ${esc(MG.last.w)}` : `<b class="no">Not quite: ${esc(MG.last.ans)}.</b> ${esc(MG.last.w)}`) : '&nbsp;';
     body = `<div class="mini-top"><h2>${G.name}</h2><div class="mini-score"><span>Sorted <b>${MG.correct}</b></span><span>Streak <b>${MG.streak}</b></span><span id="mg-secs">${Math.ceil(MG.left / 1000)}s</span></div></div>
-      <div class="timer" id="mg-timer"><b style="width:${(MG.left / G.dur) * 100}%"></b></div>
+      <div class="timer" id="mg-timer"><b style="width:${(MG.left / miniDur(MG.game)) * 100}%"></b></div>
       <div class="doc ${MG.game === 'triage' ? 'sms' : ''}" id="mg-doc">${docHead}<div class="body">${esc(it.b)}</div></div>
       <div class="bins ${G.bins.length === 5 ? 'five' : ''}" style="--n:${G.bins.length}">${G.bins.map((b, i) => `<button class="bin" data-act="bin" data-arg="${b.k}" id="bin-${b.k}"><span class="kbd">${i + 1}</span>${esc(b.l)}<small>${esc(b.s)}</small></button>`).join('')}</div>
       <p class="lastfb" aria-live="polite">${fb}</p>`;
@@ -82,7 +85,7 @@ function miniResult() {
   return { acc, grade, fx, text };
 }
 function miniStart() {
-  MG.stage = 'play'; MG.t0 = performance.now(); MG.penalty = 0; MG.left = MINI[MG.game].dur;
+  MG.stage = 'play'; MG.t0 = performance.now(); MG.penalty = 0; MG.left = miniDur(MG.game);
   clearInterval(MG.timer);
   MG.timer = setInterval(miniTick, 100);
   renderMini();
@@ -90,9 +93,9 @@ function miniStart() {
 function miniTick() {
   if (!MG || MG.stage !== 'play') return;
   const G = MINI[MG.game];
-  MG.left = Math.max(0, G.dur - (performance.now() - MG.t0) - MG.penalty);
+  MG.left = Math.max(0, miniDur(MG.game) - (performance.now() - MG.t0) - MG.penalty);
   const tb = document.querySelector('#mg-timer b'), tt = document.getElementById('mg-timer'), secs = document.getElementById('mg-secs');
-  if (tb) tb.style.width = (MG.left / G.dur * 100) + '%';
+  if (tb) tb.style.width = (MG.left / miniDur(MG.game) * 100) + '%';
   if (tt) tt.classList.toggle('hurry', MG.left < 10000);
   if (secs) secs.textContent = Math.ceil(MG.left / 1000) + 's';
   if (MG.left <= 0) { clearInterval(MG.timer); MG.stage = 'result'; renderMini(); }
@@ -105,7 +108,7 @@ function miniAnswer(k) {
   const label = kk => (G.bins.find(b => b.k === kk) || {}).l || kk;
   if (ok) { MG.correct++; MG.streak++; MG.best = Math.max(MG.best, MG.streak); }
   else {
-    MG.wrong++; MG.streak = 0; MG.penalty += 2000;
+    MG.wrong++; MG.streak = 0; MG.penalty += miniPen();
     if (MG.game === 'docman' && it.a[0] === 'urgent') MG.danger++;
     if (MG.game === 'walkround' && it.a[0] === 'fix' && k !== 'fix') MG.danger++;
     if (MG.game === 'triage' && (it.a.includes('999') || it.a[0] === 'gp') && ['pharm', 'physio', 'routine'].includes(k)) MG.danger++;

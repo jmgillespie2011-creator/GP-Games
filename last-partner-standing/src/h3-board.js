@@ -7,6 +7,7 @@
 const BOARD = { url: 'https://rttvlxawjidhneljhglk.supabase.co', key: 'sb_publishable_Zj804D7rgJdWCl2QTNJWGw_RBPYmCWT', table: 'lps_scores', version: 'v6' };
 const BOARD_NAME_KEY = 'lps-board-name-v1';
 const PRAC_SHORT = { suburb: 'Suburb', town: 'Town', city: 'City' };
+// runs are ranked by months served first ('long'); the best single year ('all') is the tie-break and its own tab
 let BD = { tab: 'all', rows: null, err: '', loading: false, posting: false, posted: null, rank: null };
 
 const boardOn = () => !!(BOARD.url && BOARD.key);
@@ -78,11 +79,11 @@ function postScore() {
     .then(res => {
       const id = res && res[0] && res[0].id;
       E.posted = id || true; BD.posted = id || null;
-      return boardFetch(`${BOARD.table}?select=id&score=gt.${row.score}`, { method: 'HEAD', headers: boardHeaders({ Prefer: 'count=exact' }) })
+      return boardFetch(`${BOARD.table}?select=id&${runTab() === 'long' ? `months=gt.${row.months}` : `score=gt.${row.score}`}`, { method: 'HEAD', headers: boardHeaders({ Prefer: 'count=exact' }) })
         .then(r => { const m = /\/(\d+)$/.exec(r.headers.get('content-range') || ''); BD.rank = m ? +m[1] + 1 : null; })
         .catch(() => { });
     })
-    .then(() => { toast(BD.rank ? `Posted. You're number ${BD.rank} on the board.` : 'Posted to the leaderboard.'); BD.tab = 'all'; loadBoard(); })
+    .then(() => { toast(BD.rank ? `Posted. You're number ${BD.rank} on the board.` : 'Posted to the leaderboard.'); BD.tab = runTab(); loadBoard(); })
     .catch(() => { toast('Couldn\'t reach the leaderboard. Try again in a moment.'); })
     .finally(() => { BD.posting = false; refreshBoard(); });
 }
@@ -95,8 +96,10 @@ function boardTableHTML() {
   return `<ol class="board">${BD.rows.map((r, i) => `<li class="${BD.posted && r.id === BD.posted ? 'me' : ''}"><span class="pos">${i + 1}</span><span class="who-b"><b>${esc(r.name)}</b><small>${esc(r.title)} · ${esc(PRAC_SHORT[r.practice] || '')}${r.cqc ? ' · CQC ' + esc(RATE_NAME[r.cqc] || '') : ''}${r.share_k != null ? ' · £' + r.share_k + 'k' : ''}${r.week ? ' · weekly' : ''}${r.months && BD.tab !== 'long' ? ' · ' + r.months + ' months' : ''}</small></span><span class="sc">${BD.tab === 'long' ? (r.months || '') + '<small> mo</small>' : r.score}</span></li>`).join('')}</ol>`;
 }
 function boardTabsHTML() {
-  return `<div class="seg board-tabs" role="group" aria-label="Filter by practice">${['all', 'long', 'week', 'suburb', 'town', 'city'].map(k => `<button data-act="board-tab" data-arg="${k}" aria-pressed="${BD.tab === k}">${k === 'all' ? 'All' : k === 'long' ? 'Longest serving' : k === 'week' ? 'This week' : PRAC_SHORT[k]}</button>`).join('')}</div>`;
+  return `<div class="seg board-tabs" role="group" aria-label="Filter by practice">${['long', 'all', 'week', 'suburb', 'town', 'city'].map(k => `<button data-act="board-tab" data-arg="${k}" aria-pressed="${BD.tab === k}">${k === 'all' ? 'Best year' : k === 'long' ? 'Longest serving' : k === 'week' ? 'This week' : PRAC_SHORT[k]}</button>`).join('')}</div>`;
 }
+// the tab to open on: longest serving once a run has gone past one year, otherwise the best single year
+function runTab() { return S && ((S.yr || 0) >= 1 || (S.gen || 1) > 1) ? 'long' : 'all'; }
 function boardInner() { return `${boardTabsHTML()}<div id="board-list">${boardTableHTML()}</div>`; }
 
 // the panel on the year-end screen
@@ -111,7 +114,7 @@ function boardPanelHTML() {
   return `<section class="panel" id="board-panel"><h3>Leaderboard <small>top 20 partners</small></h3>${form}${boardInner()}</section>`;
 }
 function boardOverlayHTML() {
-  return `<h2>Leaderboard</h2><p class="muted">The best years anyone has finished. Finish a year to post yours.</p>${boardInner()}<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>`;
+  return `<h2>Leaderboard</h2><p class="muted">Longest serving ranks partners by months survived, with the best single year as the tie-break. Best year ranks single years by score. Finish a year to post yours.</p>${boardInner()}<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>`;
 }
 function refreshBoard() {
   const list = document.getElementById('board-list');
@@ -126,7 +129,7 @@ function refreshBoard() {
   }
 }
 function boardAction(a, arg) {
-  if (a === 'board') { BD.tab = 'all'; openOverlay(boardOverlayHTML()); loadBoard(); return true; }
+  if (a === 'board') { BD.tab = runTab(); openOverlay(boardOverlayHTML()); loadBoard(); return true; }
   if (a === 'board-tab') { BD.tab = arg; BD.rows = null; refreshBoard(); loadBoard(); return true; }
   if (a === 'board-post') { postScore(); return true; }
   return false;

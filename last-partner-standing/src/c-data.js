@@ -245,6 +245,16 @@ const SOURCES = {
   S65:['House of Commons Library: medicines shortages','https://commonslibrary.parliament.uk/research-briefings/cbp-9997/','A'],
   S66:['Healthcare Leader: no ICB meets the "gold standard" GP-to-patient ratio','https://healthcareleadernews.com/news/no-icb-meeting-gold-standard-gp-to-patient-ratio/','B'],
   S67:['KentOnline: Kent and Medway have the highest patient-to-GP ratio','https://www.kentonline.co.uk/medway/news/reasons-why-kent-has-uks-worst-gp-numbers-272523/','C'],
+  S68:['ITV News: NHS to review prostate cancer guidance after Sir Chris Hoy appeal','https://www.itv.com/news/2024-11-05/nhs-to-review-prostate-cancer-guidance-after-sir-chris-hoy-appeal','B'],
+  S69:['BikeRadar: how Sir Chris Hoy\'s diagnosis sparked a conversation about screening','https://www.bikeradar.com/advice/health/sir-chris-hoys-devastating-prostate-cancer-diagnosis','C'],
+  S70:['The Pharmaceutical Journal: testosterone in menopause, evidence and prescribing','https://pharmaceutical-journal.com/article/research/testosterone-in-menopause-a-review-of-the-evidence-and-prescribing-practice','A'],
+  S71:['BBC Science Focus: the Davina McCall effect and testosterone','https://www.sciencefocus.com/news/ignore-davina-mccall-effect-testosterone-menopause','B'],
+  S72:['NHS Surrey and Sussex ICB: suspension of community dermatology services in East Sussex','https://www.surreysussex.icb.nhs.uk/news-centre/suspension-of-community-dermatology-locally-commissioned-services-in-east-sussex-4213','A'],
+  S73:['Parliament written question: dermatology waiting lists','https://www.parallelparliament.co.uk/question/113907/dermatology-waiting-lists','B'],
+  S74:['BMA: NHS backlog data analysis','https://www.bma.org.uk/advice-and-support/nhs-delivery-and-workforce/pressures/nhs-backlog-data-analysis','B'],
+  S75:['The King\'s Fund: waiting times for elective treatment','https://www.kingsfund.org.uk/insight-and-analysis/data-and-charts/waiting-times-non-urgent-treatment','B'],
+  S76:['NHS England: interim commissioning guidance, tirzepatide (NICE TA1026)','https://www.england.nhs.uk/long-read/interim-commissioning-guidance-nice-ta1026-tirzepatide/','A'],
+  S77:['NHS Somerset ICB: weight management and tirzepatide for clinicians','https://nhssomerset.nhs.uk/for-clinicians/weight-management-mounjaro/','B'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
   S46:['CQC: GP mythbuster 1, emergency care in general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-1-emergency-care-general-practice','A'],
@@ -292,5 +302,6 @@ const GLOSSARY = [
   ['Factual accuracy check','Before a CQC report is published the practice gets a draft and can challenge factual errors, with evidence.',['S53']],
   ['EPS and FP10','The Electronic Prescription Service sends prescriptions straight to the patient\'s chosen pharmacy. When it or the clinical system is down, prescriptions go on paper FP10 forms, signed in ink.',['S61']],
   ['Medicine shortages','The Department of Health issues Medicine Supply Notifications with advice on alternatives, and for serious shortages a Serious Shortage Protocol, which lets pharmacists supply a set alternative without a new prescription.',['S63','S64']],
+  ['LCS','A locally commissioned service: extra work an ICB pays practices to do, such as community dermatology or weight management. Where there isn\'t one, the work often arrives anyway, unfunded.',[]],
   ['Suspected cancer referral','An urgent referral when cancer is a possibility. It used to be called the two-week wait.',[]]
 ];

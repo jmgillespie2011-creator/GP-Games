@@ -99,12 +99,14 @@ EVENTS.push(
   {t:'Apply to close the list',fx:{team:2,icb:-8,rep:-3},alt:{p:0.5,fx:{team:-3,you:-2,icb:-5},run(){ S.list+=520; S.newRegs.push({n:520,until:S.month+12}); },o:`The ICB refuses. The patients come anyway.`},run(){ if(!S._alt){ S.list+=180; S.newRegs.push({n:180,until:S.month+12}); } },o:`The ICB agrees to a short closure. Some patients come anyway, through exceptions Bev has never heard of.`}
  ]},
 
-{id:'mounjaro',who:'patient',title:'New year, new jab',months:[8,9,10],tag:'story',
- text:`It's January. Forty-one online requests this week ask about weight-loss injections. The phased NHS eligibility criteria fit on one page. The demand does not.`,
+{id:'mounjaro',who:'patient',title:'"Offered by GPs"',months:[3,4,5,6,7,8,9,10],tag:'real',src:['S76','S77'],
+ info:'NICE approved tirzepatide (Mounjaro) for obesity, and since 23 June 2025 ICBs have had to fund it in primary care, phased in over several years. The first people eligible have a BMI of 40 or more and at least four of five weight-related conditions. Practices aren\'t obliged to prescribe it. Whether there is a locally commissioned service (LCS) paying for the diet and activity support, the monitoring and the staff time depends on the ICB, and many practices have had none.',
+ text:`New NHS guidance on weight-loss jabs led last night's news: "Mounjaro to be offered by GPs". Forty-one online requests since, most starting "I saw on the news". In this first phase, the NHS criteria are a BMI of 40 or more and four of five weight-related conditions: about a dozen of your patients qualify. Your ICB hasn't commissioned a local service, so there's no money for the support and monitoring that's meant to go with it.`,
  choices:[
-  {t:'Set up a structured weight clinic',fx:{demand:1.5,team:-2,patients:3},run(){ addMod({id:'weight',label:'Weight management clinic',months:3,fx:{cash:0.8}}); },o:`Maureen runs it: criteria, counselling and follow-up. It's genuinely good care. It's also a lot of it.`},
-  {t:'Apply the criteria strictly and explain why',fx:{patients:-3,safety:1},o:`Most people understand. A few are very upset, and you understand why.`},
-  {t:'Point people to private providers',fx:{patients:-1,you:1,inbox:25},later:[{in:1,p:1,fx:{inbox:30},note:'Private weight-loss prescribers have sent 30 letters asking you to "please monitor".'}],o:`Private prescribing surges.`}
+  {t:'Prescribe for the eligible few and build the support yourselves, unfunded',fx:{patients:3,team:-2,you:-2,qof:1},run(){ addMod({id:'weight',label:'Unfunded weight management clinic',months:3,demand:1.5,hours:1}); },o:`Maureen runs the checks and follow-ups on top of her diabetes clinics. It's good care. Nobody is paying for it, and the other 29 requests still need a reply.`},
+  {t:'Apply the criteria, and wait for a funded local service',fx:{patients:-3,safety:1},later:[{in:2,p:0.5,fx:{rep:-2,patients:-2},note:'The Facebook group is convinced a practice two towns over prescribes Mounjaro to anyone who asks. It doesn\'t.'}],o:`Reception sends a clear message about the criteria. Most people understand. Some are very upset, and you understand why.`},
+  {t:'Point people to private providers',fx:{patients:-1,you:1,inbox:25},later:[{in:1,p:1,fx:{inbox:30},note:'Private weight-loss prescribers have sent 30 letters asking you to "please monitor".'}],o:`Private prescribing surges, and so do the letters about it.`},
+  {t:'Press the ICB, with the PCN, to commission a proper service',fx:{you:-1,icb:-1},later:[{in:3,p:0.5,fx:{cash:2,team:1},note:'The ICB has commissioned a weight management LCS. Funding and a shared dietitian arrive.'}],o:`The PCN writes to the ICB with the numbers. The reply says a service is "being scoped".`}
  ]},
 
 {id:'shared_care',who:'raj',title:'Please could the GP...',tag:'real',src:['S25'],

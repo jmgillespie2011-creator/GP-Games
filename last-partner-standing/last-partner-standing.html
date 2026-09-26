@@ -705,6 +705,16 @@ const SOURCES = {
   S65:['House of Commons Library: medicines shortages','https://commonslibrary.parliament.uk/research-briefings/cbp-9997/','A'],
   S66:['Healthcare Leader: no ICB meets the "gold standard" GP-to-patient ratio','https://healthcareleadernews.com/news/no-icb-meeting-gold-standard-gp-to-patient-ratio/','B'],
   S67:['KentOnline: Kent and Medway have the highest patient-to-GP ratio','https://www.kentonline.co.uk/medway/news/reasons-why-kent-has-uks-worst-gp-numbers-272523/','C'],
+  S68:['ITV News: NHS to review prostate cancer guidance after Sir Chris Hoy appeal','https://www.itv.com/news/2024-11-05/nhs-to-review-prostate-cancer-guidance-after-sir-chris-hoy-appeal','B'],
+  S69:['BikeRadar: how Sir Chris Hoy\'s diagnosis sparked a conversation about screening','https://www.bikeradar.com/advice/health/sir-chris-hoys-devastating-prostate-cancer-diagnosis','C'],
+  S70:['The Pharmaceutical Journal: testosterone in menopause, evidence and prescribing','https://pharmaceutical-journal.com/article/research/testosterone-in-menopause-a-review-of-the-evidence-and-prescribing-practice','A'],
+  S71:['BBC Science Focus: the Davina McCall effect and testosterone','https://www.sciencefocus.com/news/ignore-davina-mccall-effect-testosterone-menopause','B'],
+  S72:['NHS Surrey and Sussex ICB: suspension of community dermatology services in East Sussex','https://www.surreysussex.icb.nhs.uk/news-centre/suspension-of-community-dermatology-locally-commissioned-services-in-east-sussex-4213','A'],
+  S73:['Parliament written question: dermatology waiting lists','https://www.parallelparliament.co.uk/question/113907/dermatology-waiting-lists','B'],
+  S74:['BMA: NHS backlog data analysis','https://www.bma.org.uk/advice-and-support/nhs-delivery-and-workforce/pressures/nhs-backlog-data-analysis','B'],
+  S75:['The King\'s Fund: waiting times for elective treatment','https://www.kingsfund.org.uk/insight-and-analysis/data-and-charts/waiting-times-non-urgent-treatment','B'],
+  S76:['NHS England: interim commissioning guidance, tirzepatide (NICE TA1026)','https://www.england.nhs.uk/long-read/interim-commissioning-guidance-nice-ta1026-tirzepatide/','A'],
+  S77:['NHS Somerset ICB: weight management and tirzepatide for clinicians','https://nhssomerset.nhs.uk/for-clinicians/weight-management-mounjaro/','B'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
   S46:['CQC: GP mythbuster 1, emergency care in general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-1-emergency-care-general-practice','A'],
@@ -752,6 +762,7 @@ const GLOSSARY = [
   ['Factual accuracy check','Before a CQC report is published the practice gets a draft and can challenge factual errors, with evidence.',['S53']],
   ['EPS and FP10','The Electronic Prescription Service sends prescriptions straight to the patient\'s chosen pharmacy. When it or the clinical system is down, prescriptions go on paper FP10 forms, signed in ink.',['S61']],
   ['Medicine shortages','The Department of Health issues Medicine Supply Notifications with advice on alternatives, and for serious shortages a Serious Shortage Protocol, which lets pharmacists supply a set alternative without a new prescription.',['S63','S64']],
+  ['LCS','A locally commissioned service: extra work an ICB pays practices to do, such as community dermatology or weight management. Where there isn\'t one, the work often arrives anyway, unfunded.',[]],
   ['Suspected cancer referral','An urgent referral when cancer is a possibility. It used to be called the two-week wait.',[]]
 ];
 /* ---------------- Docman Dash items ---------------- */
@@ -1127,12 +1138,14 @@ EVENTS.push(
   {t:'Apply to close the list',fx:{team:2,icb:-8,rep:-3},alt:{p:0.5,fx:{team:-3,you:-2,icb:-5},run(){ S.list+=520; S.newRegs.push({n:520,until:S.month+12}); },o:`The ICB refuses. The patients come anyway.`},run(){ if(!S._alt){ S.list+=180; S.newRegs.push({n:180,until:S.month+12}); } },o:`The ICB agrees to a short closure. Some patients come anyway, through exceptions Bev has never heard of.`}
  ]},
 
-{id:'mounjaro',who:'patient',title:'New year, new jab',months:[8,9,10],tag:'story',
- text:`It's January. Forty-one online requests this week ask about weight-loss injections. The phased NHS eligibility criteria fit on one page. The demand does not.`,
+{id:'mounjaro',who:'patient',title:'"Offered by GPs"',months:[3,4,5,6,7,8,9,10],tag:'real',src:['S76','S77'],
+ info:'NICE approved tirzepatide (Mounjaro) for obesity, and since 23 June 2025 ICBs have had to fund it in primary care, phased in over several years. The first people eligible have a BMI of 40 or more and at least four of five weight-related conditions. Practices aren\'t obliged to prescribe it. Whether there is a locally commissioned service (LCS) paying for the diet and activity support, the monitoring and the staff time depends on the ICB, and many practices have had none.',
+ text:`New NHS guidance on weight-loss jabs led last night's news: "Mounjaro to be offered by GPs". Forty-one online requests since, most starting "I saw on the news". In this first phase, the NHS criteria are a BMI of 40 or more and four of five weight-related conditions: about a dozen of your patients qualify. Your ICB hasn't commissioned a local service, so there's no money for the support and monitoring that's meant to go with it.`,
  choices:[
-  {t:'Set up a structured weight clinic',fx:{demand:1.5,team:-2,patients:3},run(){ addMod({id:'weight',label:'Weight management clinic',months:3,fx:{cash:0.8}}); },o:`Maureen runs it: criteria, counselling and follow-up. It's genuinely good care. It's also a lot of it.`},
-  {t:'Apply the criteria strictly and explain why',fx:{patients:-3,safety:1},o:`Most people understand. A few are very upset, and you understand why.`},
-  {t:'Point people to private providers',fx:{patients:-1,you:1,inbox:25},later:[{in:1,p:1,fx:{inbox:30},note:'Private weight-loss prescribers have sent 30 letters asking you to "please monitor".'}],o:`Private prescribing surges.`}
+  {t:'Prescribe for the eligible few and build the support yourselves, unfunded',fx:{patients:3,team:-2,you:-2,qof:1},run(){ addMod({id:'weight',label:'Unfunded weight management clinic',months:3,demand:1.5,hours:1}); },o:`Maureen runs the checks and follow-ups on top of her diabetes clinics. It's good care. Nobody is paying for it, and the other 29 requests still need a reply.`},
+  {t:'Apply the criteria, and wait for a funded local service',fx:{patients:-3,safety:1},later:[{in:2,p:0.5,fx:{rep:-2,patients:-2},note:'The Facebook group is convinced a practice two towns over prescribes Mounjaro to anyone who asks. It doesn\'t.'}],o:`Reception sends a clear message about the criteria. Most people understand. Some are very upset, and you understand why.`},
+  {t:'Point people to private providers',fx:{patients:-1,you:1,inbox:25},later:[{in:1,p:1,fx:{inbox:30},note:'Private weight-loss prescribers have sent 30 letters asking you to "please monitor".'}],o:`Private prescribing surges, and so do the letters about it.`},
+  {t:'Press the ICB, with the PCN, to commission a proper service',fx:{you:-1,icb:-1},later:[{in:3,p:0.5,fx:{cash:2,team:1},note:'The ICB has commissioned a weight management LCS. Funding and a shared dietitian arrive.'}],o:`The PCN writes to the ICB with the numbers. The reply says a service is "being scoped".`}
  ]},
 
 {id:'shared_care',who:'raj',title:'Please could the GP...',tag:'real',src:['S25'],
@@ -1889,6 +1902,47 @@ EVENTS.push(
  choices:[
   {t:'Grab the clipboard (45-second game)',play:1},
   {t:'Leave it to Gavin\'s checklist (£1,500)',fx:{cash:-1.5,safety:2,team:-1},o:`Gavin does the walkround. He finds the blind cord, the adrenaline and eleven things that aren't rules. The team fixes all of them.`}
+ ]}
+);
+/* ===================== EVENTS 6: demand from outside the building =====================
+ Things that change what patients ask for: celebrity diagnoses and documentaries, services the ICB closes,
+ and the hospital waiting list landing back on the practice.
+*/
+EVENTS.push(
+{id:'psa_surge',who:'kayleigh',title:'The PSA rush',tag:'real',src:['S68','S69'],
+ info:'England has no national prostate screening programme. Men over 50 can ask their GP for a PSA test after talking through its benefits and harms: false positives, and finding slow cancers that would never have caused trouble. Black men and men with a family history may be advised to start at 45. After Sir Chris Hoy spoke publicly about his advanced prostate cancer in 2024, demand for PSA tests and online risk checks surged, and the NHS was asked to review the guidance.',
+ text:`A famous sportsman has talked on breakfast TV about his advanced prostate cancer. By 10am there are 64 online requests for a PSA test, from men aged 29 to 91. "One of them says his wife made him," says Kayleigh. "That's most of them, to be fair."`,
+ choices:[
+  {t:'Test everyone who wants one, after a proper conversation',fx:{patients:3,you:-2,inbox:60,safety:1},run(){ addMod({id:'psa',label:'PSA test surge',months:2,demand:3}); },later:[{in:2,p:0.5,fx:{safety:2,inbox:20},note:'The PSA surge found three men with raised results who needed urgent referral. One had no symptoms at all.'}],o:`Two months of PSA conversations, blood tests and follow-ups. Most results are normal. Some aren't, and those men are glad they asked.`},
+  {t:'Run an HCA-led PSA clinic with a clear leaflet on pros and cons',need:()=>S.staff.hca>0,why:'You need a healthcare assistant',fx:{patients:3,team:-1,inbox:45,cash:-0.3},run(){ addMod({id:'psa',label:'PSA clinic',months:2,demand:1.5}); },o:`The leaflet does the counselling. The HCA does the bloods. Men who still want the test get it; a surprising number decide they'd rather not, and that's fine too.`},
+  {t:'Test those the guidance covers: over 50, or 45 with risk factors',fx:{patients:-2,safety:1,rep:-1},run(){ addMod({id:'psa',label:'PSA questions',months:1,demand:1}); },later:[{in:1,p:0.6,fx:{inbox:20,you:-1},note:'Private PSA results from men you didn\'t test have arrived for you to interpret.'}],o:`Most of the younger men understand. Some pay for a private test online and send you the result anyway.`}
+ ]},
+
+{id:'meno_testosterone',who:'patient',title:'After the documentary',tag:'real',src:['S70','S71'],
+ info:'NICE\'s menopause guideline says to consider testosterone for menopausal women with low sexual desire if HRT alone isn\'t effective. It isn\'t licensed for women in the UK, so it\'s prescribed off-label. NHS prescriptions of testosterone for women rose about tenfold between 2015 and 2022, with spikes after each of Davina McCall\'s menopause documentaries in 2021 and 2022. Experts point out the evidence is for libido, not energy or brain fog.',
+ text:`A new menopause documentary aired last night. This morning, 23 requests mention testosterone. Some women are already on HRT and still have low libido. Some haven't started HRT at all. Three want it "for brain fog and energy, like on the programme".`,
+ choices:[
+  {t:'Set up a menopause clinic: get HRT right first, testosterone where it fits',fx:{patients:4,you:-2,safety:1,rep:2},run(){ addMod({id:'meno',label:'Menopause review clinic',months:2,demand:1.5}); },o:`You and Maureen run a Thursday menopause clinic. Most women are best helped by getting their HRT right. A few with low libido despite HRT start testosterone, off-label, with a follow-up plan and blood tests.`},
+  {t:'Refer them all to the specialist menopause service',fx:{patients:-1,inbox:20},later:[{in:2,p:0.6,fx:{patients:-2,inbox:15},note:'The specialist menopause clinic has a 40-week wait. Women are coming back asking what to do in the meantime.'}],o:`Twenty-three referrals. The service acknowledges them all, and says it will be in touch.`},
+  {t:'Explain it\'s for low libido after HRT, and decline the rest',fx:{patients:-3,safety:1,rep:-1,you:1},o:`It's what the guidance says. Several women are disappointed, and two of them are right that nobody had ever reviewed their HRT properly.`}
+ ]},
+
+{id:'derm_closure',who:'icb',title:'A pathway review',tag:'real',src:['S72','S73'],
+ info:'ICBs commission community dermatology services locally, and some have been paused or closed. In 2026, for example, services delivered by GP practices in East Sussex were suspended. When a service goes, its patients come back to general practice, and more are referred to hospital dermatology, where waits are already long.',
+ text:`Jonathan from the ICB writes: the community dermatology service will close at the end of the month "as part of a pathway review". Its patients now come back to you: eczema that needs a plan, moles that need a look, and anything the hospital won't take.`,
+ choices:[
+  {t:'Absorb the work',fx:{demand:2,inbox:30,you:-1},o:`The skin appointments start the following Monday. So do the photos of moles, sent in by online form, some of them in focus.`},
+  {t:'Train a GP in dermoscopy and run your own skin clinic (£2,500)',fx:{demand:2,cash:-2.5,you:-2,safety:2},run(){ addMod({id:'derm',label:'In-house skin clinic',months:99,demand:-1.5,hours:1}); },o:`A dermoscope, a two-day course and a Tuesday skin clinic. You catch a melanoma in the second month, and send far fewer "just in case" referrals.`},
+  {t:'Push back with the LMC and neighbouring practices',fx:{icb:-2,you:-1},alt:{p:0.6,fx:{demand:2,icb:-3,you:-2},o:`The ICB "notes your concerns". The service closes on schedule.`},o:`Three practices and the LMC write together. The ICB agrees to keep the service going for another year while it "reviews options".`}
+ ]},
+
+{id:'hospital_waits',who:'bev',title:'Waiting well',rep:1,max:2,tag:'real',src:['S74','S75'],
+ info:'In July 2026 about 7.3 million cases were on the hospital waiting list in England, and only around six in ten had waited less than the 18-week standard. Hospitals are meant to handle their own waiting-list questions, but in practice many patients come back to their GP for pain relief, sick notes, and letters asking for their care to be expedited. Those letters work best when something has changed clinically.',
+ text:`This week 38 patients have asked you to "chase" or "expedite" their hospital care. A hip replacement 18 months overdue. A man whose painkillers have stopped working. A woman who can't go back to work until her gallbladder comes out. The hospital's letters all say "you will be contacted in due course".`,
+ choices:[
+  {t:'Write an expedite letter for everyone who asks',fx:{inbox:40,you:-3,patients:2},later:[{in:2,p:0.7,fx:{patients:-2,you:-1},note:'Most of the expedite letters got the same reply: "Your patient remains on the waiting list."'}],o:`Thirty-eight letters. Every patient feels heard, for now.`},
+  {t:'Expedite where things have changed, and help everyone else wait well',fx:{you:-2,patients:3,safety:2},run(){ addMod({id:'waitwell',label:'Supporting patients on hospital waiting lists',months:3,demand:2}); },o:`Clinical change gets a letter with the details the hospital needs. Everyone else gets a review: pain relief, physio, a fit note if they need one, and the hospital's own number for waiting-list questions.`},
+  {t:'Give them the hospital\'s waiting-list number and a template letter',fx:{patients:-3,rep:-2,you:1},later:[{in:1,p:0.5,fx:{safety:-3,you:-2},note:'A man waiting for a cardiology appointment got worse while he was redirected to the hospital helpline. He was admitted through A&E.'}],o:`It's the hospital's list, and technically their job. Patients ring the number. Then they ring you.`}
  ]}
 );
 /* ===================== ENGINE: state, month flow, simulation ===================== */

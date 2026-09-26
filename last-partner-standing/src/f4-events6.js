@@ -1,0 +1,41 @@
+/* ===================== EVENTS 6: demand from outside the building =====================
+ Things that change what patients ask for: celebrity diagnoses and documentaries, services the ICB closes,
+ and the hospital waiting list landing back on the practice.
+*/
+EVENTS.push(
+{id:'psa_surge',who:'kayleigh',title:'The PSA rush',tag:'real',src:['S68','S69'],
+ info:'England has no national prostate screening programme. Men over 50 can ask their GP for a PSA test after talking through its benefits and harms: false positives, and finding slow cancers that would never have caused trouble. Black men and men with a family history may be advised to start at 45. After Sir Chris Hoy spoke publicly about his advanced prostate cancer in 2024, demand for PSA tests and online risk checks surged, and the NHS was asked to review the guidance.',
+ text:`A famous sportsman has talked on breakfast TV about his advanced prostate cancer. By 10am there are 64 online requests for a PSA test, from men aged 29 to 91. "One of them says his wife made him," says Kayleigh. "That's most of them, to be fair."`,
+ choices:[
+  {t:'Test everyone who wants one, after a proper conversation',fx:{patients:3,you:-2,inbox:60,safety:1},run(){ addMod({id:'psa',label:'PSA test surge',months:2,demand:3}); },later:[{in:2,p:0.5,fx:{safety:2,inbox:20},note:'The PSA surge found three men with raised results who needed urgent referral. One had no symptoms at all.'}],o:`Two months of PSA conversations, blood tests and follow-ups. Most results are normal. Some aren't, and those men are glad they asked.`},
+  {t:'Run an HCA-led PSA clinic with a clear leaflet on pros and cons',need:()=>S.staff.hca>0,why:'You need a healthcare assistant',fx:{patients:3,team:-1,inbox:45,cash:-0.3},run(){ addMod({id:'psa',label:'PSA clinic',months:2,demand:1.5}); },o:`The leaflet does the counselling. The HCA does the bloods. Men who still want the test get it; a surprising number decide they'd rather not, and that's fine too.`},
+  {t:'Test those the guidance covers: over 50, or 45 with risk factors',fx:{patients:-2,safety:1,rep:-1},run(){ addMod({id:'psa',label:'PSA questions',months:1,demand:1}); },later:[{in:1,p:0.6,fx:{inbox:20,you:-1},note:'Private PSA results from men you didn\'t test have arrived for you to interpret.'}],o:`Most of the younger men understand. Some pay for a private test online and send you the result anyway.`}
+ ]},
+
+{id:'meno_testosterone',who:'patient',title:'After the documentary',tag:'real',src:['S70','S71'],
+ info:'NICE\'s menopause guideline says to consider testosterone for menopausal women with low sexual desire if HRT alone isn\'t effective. It isn\'t licensed for women in the UK, so it\'s prescribed off-label. NHS prescriptions of testosterone for women rose about tenfold between 2015 and 2022, with spikes after each of Davina McCall\'s menopause documentaries in 2021 and 2022. Experts point out the evidence is for libido, not energy or brain fog.',
+ text:`A new menopause documentary aired last night. This morning, 23 requests mention testosterone. Some women are already on HRT and still have low libido. Some haven't started HRT at all. Three want it "for brain fog and energy, like on the programme".`,
+ choices:[
+  {t:'Set up a menopause clinic: get HRT right first, testosterone where it fits',fx:{patients:4,you:-2,safety:1,rep:2},run(){ addMod({id:'meno',label:'Menopause review clinic',months:2,demand:1.5}); },o:`You and Maureen run a Thursday menopause clinic. Most women are best helped by getting their HRT right. A few with low libido despite HRT start testosterone, off-label, with a follow-up plan and blood tests.`},
+  {t:'Refer them all to the specialist menopause service',fx:{patients:-1,inbox:20},later:[{in:2,p:0.6,fx:{patients:-2,inbox:15},note:'The specialist menopause clinic has a 40-week wait. Women are coming back asking what to do in the meantime.'}],o:`Twenty-three referrals. The service acknowledges them all, and says it will be in touch.`},
+  {t:'Explain it\'s for low libido after HRT, and decline the rest',fx:{patients:-3,safety:1,rep:-1,you:1},o:`It's what the guidance says. Several women are disappointed, and two of them are right that nobody had ever reviewed their HRT properly.`}
+ ]},
+
+{id:'derm_closure',who:'icb',title:'A pathway review',tag:'real',src:['S72','S73'],
+ info:'ICBs commission community dermatology services locally, and some have been paused or closed. In 2026, for example, services delivered by GP practices in East Sussex were suspended. When a service goes, its patients come back to general practice, and more are referred to hospital dermatology, where waits are already long.',
+ text:`Jonathan from the ICB writes: the community dermatology service will close at the end of the month "as part of a pathway review". Its patients now come back to you: eczema that needs a plan, moles that need a look, and anything the hospital won't take.`,
+ choices:[
+  {t:'Absorb the work',fx:{demand:2,inbox:30,you:-1},o:`The skin appointments start the following Monday. So do the photos of moles, sent in by online form, some of them in focus.`},
+  {t:'Train a GP in dermoscopy and run your own skin clinic (£2,500)',fx:{demand:2,cash:-2.5,you:-2,safety:2},run(){ addMod({id:'derm',label:'In-house skin clinic',months:99,demand:-1.5,hours:1}); },o:`A dermoscope, a two-day course and a Tuesday skin clinic. You catch a melanoma in the second month, and send far fewer "just in case" referrals.`},
+  {t:'Push back with the LMC and neighbouring practices',fx:{icb:-2,you:-1},alt:{p:0.6,fx:{demand:2,icb:-3,you:-2},o:`The ICB "notes your concerns". The service closes on schedule.`},o:`Three practices and the LMC write together. The ICB agrees to keep the service going for another year while it "reviews options".`}
+ ]},
+
+{id:'hospital_waits',who:'bev',title:'Waiting well',rep:1,max:2,tag:'real',src:['S74','S75'],
+ info:'In July 2026 about 7.3 million cases were on the hospital waiting list in England, and only around six in ten had waited less than the 18-week standard. Hospitals are meant to handle their own waiting-list questions, but in practice many patients come back to their GP for pain relief, sick notes, and letters asking for their care to be expedited. Those letters work best when something has changed clinically.',
+ text:`This week 38 patients have asked you to "chase" or "expedite" their hospital care. A hip replacement 18 months overdue. A man whose painkillers have stopped working. A woman who can't go back to work until her gallbladder comes out. The hospital's letters all say "you will be contacted in due course".`,
+ choices:[
+  {t:'Write an expedite letter for everyone who asks',fx:{inbox:40,you:-3,patients:2},later:[{in:2,p:0.7,fx:{patients:-2,you:-1},note:'Most of the expedite letters got the same reply: "Your patient remains on the waiting list."'}],o:`Thirty-eight letters. Every patient feels heard, for now.`},
+  {t:'Expedite where things have changed, and help everyone else wait well',fx:{you:-2,patients:3,safety:2},run(){ addMod({id:'waitwell',label:'Supporting patients on hospital waiting lists',months:3,demand:2}); },o:`Clinical change gets a letter with the details the hospital needs. Everyone else gets a review: pain relief, physio, a fit note if they need one, and the hospital's own number for waiting-list questions.`},
+  {t:'Give them the hospital\'s waiting-list number and a template letter',fx:{patients:-3,rep:-2,you:1},later:[{in:1,p:0.5,fx:{safety:-3,you:-2},note:'A man waiting for a cardiology appointment got worse while he was redirected to the hospital helpline. He was admitted through A&E.'}],o:`It's the hospital's list, and technically their job. Patients ring the number. Then they ring you.`}
+ ]}
+);

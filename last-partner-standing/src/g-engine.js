@@ -456,6 +456,8 @@ function calc() {
   addH(Math.min(10, Math.max(0, inboxEnd - 400) / 60), 'Results and letters in the evenings');
   addH(Math.min(8, Math.max(0, 1 - ratio) * 30), 'Extras squeezed in when demand outruns capacity');
   addH(Math.max(0, supN - 2) * 1.2, `Supervising ${supN} ARRS clinicians`);
+  // advanced practitioners need a named GP supervisor and regular debriefs from day one
+  addH((S.staff.anp || 0) * 2, `Supervising ${S.staff.anp === 1 ? 'your advanced nurse practitioner' : `${S.staff.anp} advanced nurse practitioners`}`);
   addH(activeOthers() === 0 ? 8 : activeOthers() === 1 ? 3 : 0, activeOthers() === 0 ? 'Doing every partner job yourself' : 'Only two partners to share the running of it');
   mods.forEach(x => { if (x.hours) addH(x.hours, x.label); });
   const qofGain = (1.5 + S.staff.nurse * 1.1 + S.staff.hca * 0.7 + S.staff.pharm * 0.7 + S.staff.cc * 1.8 + pl.mgmt * 1.1) * p.qofEase;

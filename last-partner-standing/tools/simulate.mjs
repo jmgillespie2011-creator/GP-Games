@@ -53,6 +53,8 @@ function smartPlan(S) {
     if (roomFree) for (const r of ['physio', 'para', 'mhp']) if (!S.staff[r] && !S.vac[r] && (L.arrsLeft() >= L.arrsClaimOf(r) || S.cash > S.overdraft + 60)) { S.vac[r] = 1; break; }
     if (c.ratio < 1.02 && L.gpHeadroom() >= 6 && !S.vac.salaried && S.staff.salaried < 3 && S.cash > S.overdraft + 50) { S.vac.salaried = 1; S.cash -= 1.5; }
     if (c.recepShort && !S.vac.recep) S.vac.recep = 1;
+    // one advanced nurse practitioner when appointments are short, within the PCN budget or when the bank can stand it
+    if (c.ratio < 1.0 && !S.vac.anp && !S.staff.anp && (L.arrsLeft() >= L.arrsClaimOf('anp') || S.cash > S.overdraft + 60)) S.vac.anp = 1;
   }
   if (L.activeOthers() <= 1 && L.arrsLeft() >= L.arrsClaimOf('gpa') && !S.staff.gpa && !S.vac.gpa) S.vac.gpa = 1;
   c = L.calc();

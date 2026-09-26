@@ -79,7 +79,7 @@ const ROLES = {
   nurse:{name:'Practice nurse',cost:empCostK(35884,0.85),cap:104,qof:1.2,room:8,hire:0.4,desc:'Chronic disease reviews, smears, imms. Your QOF engine.'},
   hca:{name:'Healthcare assistant',cost:empCostK(24500,0.7),cap:120,qof:0.8,room:9,hire:0.6,desc:'Bloods, blood pressures, ECGs, health checks.'},
   salaried:{name:'Salaried GP',cost:empCostK(P.salaried*6/9,1),cap:84,clear:50,room:6,hire:0.4,desc:'Six sessions a week. Doesn\'t have to think about the overdraft.'},
-  anp:{name:'Advanced nurse practitioner',arrs:1,claim:78.5,band:'Band 8a',sup:1,cost:0.35,cap:100,clear:15,room:9,hire:0.45,desc:'Sees same-day problems start to finish, examines, diagnoses and prescribes. Not a GP, but the nearest thing you can hire when no GP will come.'},
+  anp:{name:'Advanced nurse practitioner',arrs:1,claim:78.5,band:'Band 8a',cost:0.35,cap:80,clear:15,room:9,hire:0.35,desc:'Sees same-day problems start to finish, examines, diagnoses and prescribes. Needs a GP supervisor: a daily debrief, about two hours a week of yours. Experienced ones are scarce. Not a GP, but the nearest thing you can hire when no GP will come.'},
   pharm:{name:'Clinical pharmacist',arrs:1,claim:78,band:'Band 7 to 8a',sup:1,cost:0.35,cap:60,clear:40,qof:0.8,room:4,hire:0.65,desc:'Med reviews, scripts, and queries about the queries.'},
   physio:{name:'First contact physio',arrs:1,claim:78,band:'Band 7 to 8a',sup:1,cost:0.35,cap:80,room:9,hire:0.6,desc:'Backs, knees and shoulders, straight to the right person.'},
   para:{name:'Paramedic',arrs:1,claim:78,band:'Band 7 to 8a',sup:1,cost:0.35,cap:55,room:4,hire:0.5,desc:'Home visits and same-day minor illness.'},

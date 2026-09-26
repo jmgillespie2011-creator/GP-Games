@@ -190,8 +190,8 @@ function renderPlan() {
     const costTxt = (R.arrs ? `About £${Math.round(arrsClaimOf(r))}k a year (${R.band}), claimed from the PCN budget` : `£${(R.cost * 12).toFixed(1)}k a year each, all in`) + (R.room ? `, ${R.room} room sessions a week` : r === 'recep' ? ', no clinic room' : '');
     return `<div class="role"><div class="l"><b>${esc(R.name)}</b>${R.arrs ? '<span class="tag arrs">ARRS</span>' : ''}${vac ? `<span class="tag vac">${vac} advertised</span>` : ''}<small>${esc(R.desc)} ${costTxt}.</small></div>
       <span class="n" aria-label="${n} in post">${n}</span>
-      <div class="acts">${vac ? `<button data-act="unvac" data-arg="${r}">Withdraw ad</button>` : ''}<button data-act="hire" data-arg="${r}" ${arrsFull ? `disabled aria-describedby="off-${r}"` : ''}>Recruit</button><button data-act="fire" data-arg="${r}" ${n ? '' : 'disabled'}>Let go</button></div>
-      ${arrsFull ? `<p class="role-off" id="off-${r}">No GP will apply: ${esc(prac().place)} already has more GPs than local applicants will fill.</p>` : over > 0.5 ? `<p class="role-off">Over the PCN budget: about <b>£${Math.round(over)}k a year</b> of another one would come from the practice.</p>` : ''}</div>`;
+      <div class="acts">${vac ? `<button data-act="unvac" data-arg="${r}">Withdraw ad</button>` : ''}<button data-act="hire" data-arg="${r}" ${arrsFull ? `aria-describedby="off-${r}"` : ''}>Recruit</button><button data-act="fire" data-arg="${r}" ${n ? '' : 'disabled'}>Let go</button></div>
+      ${arrsFull ? `<p class="role-off" id="off-${r}">You can advertise, but don't expect anyone: ${esc(prac().place)} already has more GPs than local applicants will fill.</p>` : over > 0.5 ? `<p class="role-off">Over the PCN budget: about <b>£${Math.round(over)}k a year</b> of another one would come from the practice.</p>` : ''}</div>`;
   }).join('');
   const ratio = c.ratio;
   const gcls = ratio >= 0.94 ? '' : ratio >= 0.85 ? 'warn' : 'bad';

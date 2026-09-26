@@ -83,6 +83,12 @@ function gpHiredSessions() {
   if (hasMod('scheme')) n += 2;
   return n;
 }
+const NO_GP_REPLIES = [
+  'Salaried GP advert: no applicants. The only enquiry was from a recruitment agency offering to "partner with you on your GP challenge".',
+  'Salaried GP advert: no applicants. The job board says it has had 212 views.',
+  'Salaried GP advert: one application, from a GP who wanted to know if the job could be done entirely from Portugal.',
+  'Salaried GP advert: no applicants. Every GP within 20 miles already has three job offers.'
+];
 function gpHeadroom() { const cap = prac().gpCap; return cap ? S.list / cap * GP_FTE_SESSIONS - gpHiredSessions() : Infinity; }
 const locumMax = () => prac().locumMax || 8;
 // a sensible plan for this month, explained. Used by "Suggest a plan" (hiring stays the player's call).
@@ -596,6 +602,8 @@ function monthEnd() {
   for (const r in S.vac) {
     let n = S.vac[r];
     while (n > 0) {
+      // in an under-doctored area a salaried GP advert can run, but nobody applies
+      if (r === 'salaried' && gpHeadroom() < 0) { hires.push(pick(NO_GP_REPLIES)); n--; continue; }
       const pr = Math.min(0.95, ROLES[r].hire * p.hire * (1 + (proj.hireBoost || 0)) * (0.8 + S.rep / 250) * (S.st.team < 35 ? 0.7 : 1));
       if (chance(pr)) { S.staff[r]++; S.vac[r]--; hires.push(`${ROLES[r].name} hired.`); }
       else hires.push(`${ROLES[r].name}: no suitable applicants yet.`);

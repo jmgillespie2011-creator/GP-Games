@@ -3165,6 +3165,12 @@ function gpHiredSessions() {
   if (hasMod('scheme')) n += 2;
   return n;
 }
+const NO_GP_REPLIES = [
+  'Salaried GP advert: no applicants. The only enquiry was from a recruitment agency offering to "partner with you on your GP challenge".',
+  'Salaried GP advert: no applicants. The job board says it has had 212 views.',
+  'Salaried GP advert: one application, from a GP who wanted to know if the job could be done entirely from Portugal.',
+  'Salaried GP advert: no applicants. Every GP within 20 miles already has three job offers.'
+];
 function gpHeadroom() { const cap = prac().gpCap; return cap ? S.list / cap * GP_FTE_SESSIONS - gpHiredSessions() : Infinity; }
 const locumMax = () => prac().locumMax || 8;
 // a sensible plan for this month, explained. Used by "Suggest a plan" (hiring stays the player's call).
@@ -3678,6 +3684,8 @@ function monthEnd() {
   for (const r in S.vac) {
     let n = S.vac[r];
     while (n > 0) {
+      // in an under-doctored area a salaried GP advert can run, but nobody applies
+      if (r === 'salaried' && gpHeadroom() < 0) { hires.push(pick(NO_GP_REPLIES)); n--; continue; }
       const pr = Math.min(0.95, ROLES[r].hire * p.hire * (1 + (proj.hireBoost || 0)) * (0.8 + S.rep / 250) * (S.st.team < 35 ? 0.7 : 1));
       if (chance(pr)) { S.staff[r]++; S.vac[r]--; hires.push(`${ROLES[r].name} hired.`); }
       else hires.push(`${ROLES[r].name}: no suitable applicants yet.`);
@@ -4128,8 +4136,8 @@ function renderPlan() {
     const costTxt = (R.arrs ? `About £${Math.round(arrsClaimOf(r))}k a year (${R.band}), claimed from the PCN budget` : `£${(R.cost * 12).toFixed(1)}k a year each, all in`) + (R.room ? `, ${R.room} room sessions a week` : r === 'recep' ? ', no clinic room' : '');
     return `<div class="role"><div class="l"><b>${esc(R.name)}</b>${R.arrs ? '<span class="tag arrs">ARRS</span>' : ''}${vac ? `<span class="tag vac">${vac} advertised</span>` : ''}<small>${esc(R.desc)} ${costTxt}.</small></div>
       <span class="n" aria-label="${n} in post">${n}</span>
-      <div class="acts">${vac ? `<button data-act="unvac" data-arg="${r}">Withdraw ad</button>` : ''}<button data-act="hire" data-arg="${r}" ${arrsFull ? `disabled aria-describedby="off-${r}"` : ''}>Recruit</button><button data-act="fire" data-arg="${r}" ${n ? '' : 'disabled'}>Let go</button></div>
-      ${arrsFull ? `<p class="role-off" id="off-${r}">No GP will apply: ${esc(prac().place)} already has more GPs than local applicants will fill.</p>` : over > 0.5 ? `<p class="role-off">Over the PCN budget: about <b>£${Math.round(over)}k a year</b> of another one would come from the practice.</p>` : ''}</div>`;
+      <div class="acts">${vac ? `<button data-act="unvac" data-arg="${r}">Withdraw ad</button>` : ''}<button data-act="hire" data-arg="${r}" ${arrsFull ? `aria-describedby="off-${r}"` : ''}>Recruit</button><button data-act="fire" data-arg="${r}" ${n ? '' : 'disabled'}>Let go</button></div>
+      ${arrsFull ? `<p class="role-off" id="off-${r}">You can advertise, but don't expect anyone: ${esc(prac().place)} already has more GPs than local applicants will fill.</p>` : over > 0.5 ? `<p class="role-off">Over the PCN budget: about <b>£${Math.round(over)}k a year</b> of another one would come from the practice.</p>` : ''}</div>`;
   }).join('');
   const ratio = c.ratio;
   const gcls = ratio >= 0.94 ? '' : ratio >= 0.85 ? 'warn' : 'bad';
@@ -4572,10 +4580,9 @@ document.addEventListener('click', ev => {
     case 'proj': S.plan.project = arg; save(); keepScroll(renderPlan); break;
     case 'hire': {
       const R = ROLES[arg]; const overK = R.arrs ? Math.max(0, Math.min(arrsClaimOf(arg), arrsClaimOf(arg) - arrsLeft())) : 0;
-      if (arg === 'salaried' && gpHeadroom() < 6) { toast(`No GP will apply. ${prac().place} already has one GP per ${prac().gpCap.toLocaleString('en-GB')} patients and the local GPs are all taken.`); break; }
       const cost = arg === 'salaried' ? 1.5 : arg === 'nurse' ? 0.8 : R.arrs ? 0 : 0.4;
       S.vac[arg] = (S.vac[arg] || 0) + 1; S.cash = r1(S.cash - cost); save(); keepScroll(renderPlan);
-      toast(`${R.name} advertised${cost ? ` (${fmtK(cost)})` : ''}. Results at month end.${overK > 0.5 ? ` Over the PCN budget: about £${Math.round(overK)}k a year from the practice.` : ''}`); break;
+      toast(`${R.name} advertised${cost ? ` (${fmtK(cost)})` : ''}.${arg === 'salaried' && gpHeadroom() < 0 ? ` Don't hold your breath: ${prac().place} already has one GP per ${prac().gpCap.toLocaleString('en-GB')} patients, and the local GPs are all taken.` : ' Results at month end.'}${overK > 0.5 ? ` Over the PCN budget: about £${Math.round(overK)}k a year from the practice.` : ''}`); break;
     }
     case 'unvac': if (S.vac[arg]) { S.vac[arg]--; if (!S.vac[arg]) delete S.vac[arg]; save(); keepScroll(renderPlan); } break;
     case 'fire': {

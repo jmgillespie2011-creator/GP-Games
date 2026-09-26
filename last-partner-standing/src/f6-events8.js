@@ -191,19 +191,6 @@ EVENTS.push(
   {t:'An open afternoon and cake',fx:{team:4,patients:3,rep:3,cash:-0.8},o:`The local paper sends a photographer. The plant is in every picture.`},
   {t:'A card for the staff room',fx:{team:1},o:`It's signed by everyone. The plant gets watered.`}
  ]},
-{id:'p_list_cleanse',who:'pcse',title:'Ghost patients',pmin:1,tag:'real',src:['S4'],
- info:'Practices are paid the global sum per registered patient, and NHS England and its support services periodically check lists for people who have moved away or died.',
- text:`A list-cleaning exercise has found 380 "ghost patients": people who moved away years ago and never deregistered. They'll come off the list, and the money comes off with them, unless each one replies to a letter.`,
- choices:[
-  {t:'Let it run',fx:{list:-380,you:-1},o:`380 people you've never seen stop paying for themselves. The waiting room is exactly as full.`},
-  {t:'Check every one by hand first',fx:{list:-260,team:-3},o:`Reception rings round. 120 are very much alive and very much still here, and slightly offended.`}
- ]},
-{id:'p_lab_outage',who:'hospital',title:'The lab is down',pmin:2,tag:'story',
- text:`A cyber attack has taken out the hospital pathology service. Blood tests are limited to "urgent only" for six weeks. Every routine monitoring test you'd booked is now a phone call to cancel and a list to rebook.`,
- choices:[
-  {t:'Keep a proper list and rebook in order',fx:{team:-3,inbox:120,safety:2},o:`Maureen's spreadsheet becomes the most important document in the building.`},
-  {t:'Tell patients to rebook themselves when it\'s back',fx:{patients:-3,safety:-3},later:[{in:3,p:0.4,fx:{safety:-3},note:'A patient on a monitored drug went three months without bloods after the lab outage, because nobody rebooked them.'}],o:`Some do. Some don't.`}
- ]},
 {id:'p_back_office',who:'pcn',title:'Share the back office?',pmin:1,cond:()=>!hasMod('backoffice'),tag:'story',
  text:`The practice across the ring road suggests sharing a back office: one finance team, one HR person, one set of policies. Nobody merges, nobody loses their name on the door. It saves money, and there'll be a year of arguing about whose spreadsheet wins.`,
  choices:[

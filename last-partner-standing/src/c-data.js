@@ -47,15 +47,15 @@ const PRACTICES = {
   suburb:{
     key:'suburb',label:'Leafy suburb',diff:'Gentle',surgery:'Oakfield Surgery',place:'Little Oakfield',paper:'The Oakfield Courier',
     blurb:'Healthy, wealthy and well-informed. The easiest list in the county, on paper. The building is older than the NHS.',
-    list:7200,weight:1.02,prev:0.95,lastQof:96,cash:70,overdraft:-70,st:{patients:58,team:64,you:72,safety:62},
-    demandRate:0.089,inboxRate:0.05,qofEase:1.08,hire:1.1,rooms:7,premNet:1.5,overhead:0,priv:4.1,
+    list:7200,weight:1.02,prev:0.95,lastQof:96,cash:50,overdraft:-65,st:{patients:54,team:60,you:68,safety:58},
+    demandRate:0.097,inboxRate:0.05,qofEase:1.08,hire:1.0,turnover:0.04,youDrag:4,youDragWhy:'Patients who read the guidelines before you do',rooms:7,premNet:1.5,overhead:0,priv:4.1,
     staff:{recep:5,nurse:2,hca:1,salaried:1,pharm:0,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0}
   },
   town:{
     key:'town',label:'Market town',diff:'Standard',surgery:'Riverside Surgery',place:'Bramleigh',paper:'The Bramleigh Bugle',
     blurb:'A proper mix: farms, a new estate, a care home and one very active local Facebook group.',
-    list:8200,weight:1.0,prev:1.0,lastQof:94,cash:45,overdraft:-80,st:{patients:52,team:56,you:68,safety:55},
-    demandRate:0.093,inboxRate:0.048,qofEase:1.0,hire:1.0,rooms:7,premNet:2.5,overhead:0,priv:2.9,
+    list:8200,weight:1.0,prev:1.0,lastQof:94,cash:30,overdraft:-75,st:{patients:48,team:52,you:64,safety:52},
+    demandRate:0.102,inboxRate:0.048,qofEase:1.0,hire:0.9,turnover:0.07,youDrag:6,youDragWhy:'The care home, the new estate and the Facebook group',rooms:7,premNet:2.5,overhead:0,priv:2.9,
     staff:{recep:5,nurse:2,hca:1,salaried:1,pharm:1,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0}
   },
   city:{
@@ -270,6 +270,14 @@ const SOURCES = {
   S84:['THC Primary Care: What has changed in the PCN DES 2026/27?','https://www.thcprimarycare.co.uk/post/whats-changed-in-the-pcn-des-2026-27','B'],
   S85:['NHS England: National shared care protocols (including hydroxychloroquine for adults, 2022)','https://www.england.nhs.uk/medicines-2/regional-medicines-optimisation-committees-advice/shared-care-protocols/','A'],
   S86:['Royal College of Ophthalmologists: Hydroxychloroquine and chloroquine retinopathy, recommendations on monitoring','https://www.rcophth.ac.uk/news-views/hydroxychloroquine-and-chloroquine-retinopathy/','A'],
+  S87:['ICO: a guide to subject access','https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/subject-access-requests/a-guide-to-subject-access/','A'],
+  S88:['DVLA: Assessing fitness to drive, a guide for medical professionals','https://www.gov.uk/government/publications/assessing-fitness-to-drive-a-guide-for-medical-professionals','A'],
+  S89:['GMC: Confidentiality, patients\' fitness to drive and reporting concerns to the DVLA or DVA','https://www.gmc-uk.org/professional-standards/the-professional-standards/confidentiality---patients-fitness-to-drive-and-reporting-concerns-to-the-dvla-or-dva','A'],
+  S90:['Home Office: Firearms licensing, statutory guidance for police','https://www.gov.uk/government/publications/statutory-guidance-for-police-on-firearms-licensing','A'],
+  S91:['CQC: GP mythbuster 32, duty of candour and general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-32-duty-candour-general-practice-regulation-20','A'],
+  S92:['GOV.UK: Awaab\'s Law, guidance for social landlords','https://www.gov.uk/government/publications/awaabs-law-guidance-for-social-landlords/awaabs-law-guidance-for-social-landlords-timeframes-for-repairs-in-the-social-rented-sector','A'],
+  S93:['NHS England: Freedom to Speak Up policy and access to a guardian for primary care workers','https://www.england.nhs.uk/long-read/adoption-of-the-national-freedom-to-speak-up-policy-and-access-to-a-guardian-for-primary-care-workers/','A'],
+  S94:['NHS England Digital: Appointments in General Practice','https://digital.nhs.uk/data-and-information/publications/statistical/appointments-in-general-practice','A'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
   S46:['CQC: GP mythbuster 1, emergency care in general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-1-emergency-care-general-practice','A'],

@@ -467,7 +467,8 @@ function targets(c) {
     [S.drawBase && S.drawBase < DRAW.std ? -Math.min(8, Math.round((DRAW.std - S.drawBase) * 1.2)) : 0, 'Drawings cut to what the practice earns'],
     [S.plan.leave ? 8 : 0, 'A week off'],
     [activeOthers() === 0 ? -4 : 0, 'Carrying it alone'],
-    [p.key === 'city' ? -2 : 0, 'Interpreter line on hold, again']
+    [p.key === 'city' ? -2 : 0, 'Interpreter line on hold, again'],
+    [-(p.youDrag || 0), p.youDragWhy || '']
   ]);
   build('safety', 56, [
     [Math.min(S.plan.mgmt, 3) * 4, 'Management time for governance'],

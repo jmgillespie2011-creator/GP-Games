@@ -28,12 +28,15 @@ create policy "Anyone can read the board" on public.lps_scores for select to ano
 drop policy if exists "Anyone can post a score" on public.lps_scores;
 create policy "Anyone can post a score" on public.lps_scores for insert to anon, authenticated with check (true);
 
+grant select, insert on public.lps_scores to anon, authenticated;
 revoke update, delete, truncate on public.lps_scores from anon, authenticated;
 
--- A simple brake on floods: at most 30 new scores a minute across everyone.
+-- The server sets the time, so nobody can backdate a score. Then a simple brake on floods:
+-- at most 30 new scores a minute across everyone.
 create or replace function public.lps_scores_rate_limit() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
+  new.created_at := now();
   if (select count(*) from public.lps_scores where created_at > now() - interval '1 minute') >= 30 then
     raise exception 'Too many scores at once. Try again in a minute.';
   end if;

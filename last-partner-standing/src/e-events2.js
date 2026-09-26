@@ -243,6 +243,7 @@ EVENTS.push(
  text:`Every consulting room is double booked on Tuesdays. The physio is working in the baby-changing room. "We need more space," Bev says, "or fewer people. And we need the people."`,
  choices:[
   {t:'Convert the staff room into a clinic room',fx:{rooms:1,team:-5,aim:{team:-2}},o:`The staff room is now a clinic room. Lunch is eaten in the corridor. Morale takes it personally.`},
+  {t:'Turn the meeting room into a clinic room (£4,000)',need:()=>!S.flags.proj_meetingroom,why:'You\'ve already converted it',fx:{rooms:1,cash:-4,team:-2,flags:{proj_meetingroom:1}},o:`A sink, a couch, wipe-clean flooring and a blind. Practice meetings now happen in the staff room, standing up, which makes them shorter.`},
   {t:'Hire a portakabin for the car park (£14,000)',fx:{rooms:2,cash:-14},o:`It arrives on a lorry. It has air conditioning and a ramp. It's the nicest room in the building.`},
   {t:'Bid for improvement funding (£3,000 for the architect)',fx:{cash:-3},run(){ const ok=chance(0.45+(S.icb-55)/150); plant({in:5,fx:ok?{rooms:2,team:5}:{team:-2},note:ok?'The premises improvement bid was approved. Two new consulting rooms by spring.':'The premises improvement bid was rejected: "insufficient strategic priority".'}); },o:`The architect draws two extra rooms. The decision will take about five months, and the ICB's opinion of you matters.`}
  ]},

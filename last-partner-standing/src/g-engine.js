@@ -82,7 +82,7 @@ function newGame(practiceKey, name) {
     st: { ...p.st }, cash: p.cash, overdraft: p.overdraft, qof: 0, inbox: 180, list: p.list,
     demandMod: 0, adminMod: 0, rooms: p.rooms, icb: 55, rep: 55,
     aim: { patients: 0, team: 0, you: 0, safety: 0 },
-    plan: { clin: 6, admin: 1, mgmt: 1, locum: 0, draw: 'std', project: 'none', leave: false },
+    plan: { clin: 6, admin: 1, mgmt: 1, locum: 0, extra: 0, draw: 'std', project: 'none', leave: false },
     staff: { ...p.staff }, vac: {},
     partners: { hartley: { status: 'active', clin: 6 }, okoye: { status: 'active', clin: 5 }, tom: { status: 'salaried', clin: 6 }, priya: { status: 'none', clin: 6 } },
     okoye: 40, flags: {}, mods: [], sched: [], later: [], seen: {}, counts: {}, queue: [], qi: 0, front: [],
@@ -277,7 +277,7 @@ function calc() {
     if (R.cap) cap += R.cap * n;
     if (R.clear) clear += R.clear * n;
   }
-  cap += pl.locum * 14;
+  cap += pl.locum * 14 + (pl.extra || 0) * OT_APPTS;
   clear += 80; // the admin team's workflow coding
   mods.forEach(x => { if (x.capAdd) cap += x.capAdd; });
   let capMul = 1;
@@ -312,7 +312,7 @@ function calc() {
   let roleCost = 0; for (const r of ROLE_ORDER) roleCost += ROLES[r].cost * S.staff[r];
   const cost = {
     staff: roleCost + S.list * CORE_ADMIN + S.payX + S.tomRaise,
-    locum: pl.locum * WEEKS * LOCUM_SESSION,
+    locum: pl.locum * WEEKS * LOCUM_SESSION + (pl.extra || 0) * WEEKS * OT_SESSION,
     running: S.list * RUNNING + p.premNet + p.overhead + S.premX + S.loan
   };
   const incTot = Object.values(inc).reduce((a, b) => a + b, 0);
@@ -364,6 +364,7 @@ function targets(c) {
     [-clamp(90 * (0.97 - r), 0, 30), 'Short of appointments: everyone is firefighting'],
     [-4 * c.recepShort, 'Reception understaffed'],
     [-4 * c.roomsOver, 'Not enough rooms'],
+    [-1.5 * (S.plan.extra || 0), 'Staff doing evening and Saturday overtime'],
     [ib > 700 ? -4 : 0, 'The inbox is everyone\'s problem'],
     [S.st.team < 30 ? -3 : 0, 'Sickness absence'],
     [p.key === 'city' ? -3 : 0, 'Abuse at the front desk']

@@ -36,6 +36,9 @@ const P = {
   tax: { pa: 12570, basicTop: 50270, addl: 125140, taper: 100000 }, // income tax 2026/27 [S21]
   c4: { lpl: 12570, upl: 50270, main: 0.06, upper: 0.02 }            // Class 4 NI [S21]
 };
+// an evening or Saturday clinic run by your own staff on overtime: a salaried GP or nurse session at sessional rates,
+// with employer NI and pension, plus a receptionist. Outside core hours, so it needs no core room session.
+const OT_SESSION = 0.32, OT_APPTS = 12, OT_MAX = 4;
 const LOCUM_SESSION = (P.locumHour * P.sessionHours * (1 + P.erPen)) / 1000; // £k, including employer pension on NHS locum work
 const empCostK = (pay, penShare) => (pay + P.niRate * Math.max(0, pay - P.niT) + pay * P.erPen * penShare) / 12 / 1000;
 
@@ -108,6 +111,7 @@ const PROJECTS = [
   {id:'ppg',name:'Patient participation group',desc:'Tea, biscuits and feedback. Reputation improves.',fx:{patients:3,you:-1,rep:4}},
   {id:'claims',name:'Chase unclaimed income',desc:'Audit the enhanced service claims. Money is hiding in there, less each time you look.',fx:{cash:6}},
   {id:'recruit',name:'Recruitment drive',desc:'Adverts, socials, a stall at the training scheme. Better odds for every vacancy.',fx:{cash:-1},hireBoost:0.3},
+  {id:'meetingroom',once:1,name:'Turn the meeting room into a clinic room',desc:'A sink, a couch, wipe-clean flooring and a blind (£4,000). One more clinic room for good. Meetings move to the staff room.',fx:{rooms:1,cash:-4,team:-2}},
   {id:'digital',once:1,name:'Tidy the online front door',desc:'Better request forms, fewer "cough (3 years)". Demand eases a little for good.',fx:{demand:-1.5,team:-1,cash:-0.8}},
   {id:'telephony',once:1,name:'Cloud telephony go-live',desc:'Queue position, call-backs, no more engaged tone. Patients stay happier for good.',fx:{patients:4,team:3,cash:-9,demand:-1,aim:{patients:4}},need:'telephony'}
 ];

@@ -39,7 +39,7 @@ function renderReport() {
           <dt>Private fees</dt><dd>${fmtK(c.inc.priv)}</dd>
           ${c.modCash ? `<dt>Schemes, leases and extras</dt><dd>${signK(c.modCash)}</dd>` : ''}
           <dt>Staff</dt><dd>−${fmtK(c.cost.staff)}</dd>
-          ${c.cost.locum ? `<dt>Locums</dt><dd>−${fmtK(c.cost.locum)}</dd>` : ''}
+          ${c.cost.locum ? `<dt>Locums and overtime</dt><dd>−${fmtK(c.cost.locum)}</dd>` : ''}
           <dt>Running costs and premises</dt><dd>−${fmtK(c.cost.running)}</dd>
           <dt class="sum">Profit this month</dt><dd class="sum">${signK(c.profit)}</dd>
           <dt>Partners' drawings (${c.partnersN})</dt><dd>−${fmtK(c.out.draw)}</dd>
@@ -214,6 +214,7 @@ document.addEventListener('click', ev => {
       pl[a] += d; save(); keepScroll(renderPlan); break;
     }
     case 'locum': S.plan.locum = clamp(S.plan.locum + +arg, 0, locumMax()); save(); keepScroll(renderPlan); break;
+    case 'extra': S.plan.extra = clamp((S.plan.extra || 0) + +arg, 0, OT_MAX); save(); keepScroll(renderPlan); break;
     case 'draw': S.plan.draw = arg; save(); keepScroll(renderPlan); break;
     case 'proj': S.plan.project = arg; save(); keepScroll(renderPlan); break;
     case 'hire': {

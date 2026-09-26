@@ -54,9 +54,12 @@ function smartPlan(S) {
   if (L.activeOthers() <= 1 && L.arrsCount() < 6 && !S.staff.gpa && !S.vac.gpa) S.vac.gpa = 1;
   c = L.calc();
   while (c.inboxEnd > 380 && pl.admin < 3) { pl.admin++; c = L.calc(); }
+  pl.extra = 0;
+  while (c.ratio < 0.97 && pl.extra < 2 && S.st.team >= 50) { pl.extra++; c = L.calc(); }
   while (c.ratio < 0.95 && pl.locum < Math.min(5, L.locumMax()) && S.cash > S.overdraft + 25) { pl.locum++; c = L.calc(); }
   if (S.st.you < 50 && S.leaveUsed < 6) pl.leave = true;
   pl.project = S.flags.telephony && !S.flags.proj_telephony ? 'telephony'
+    : !S.flags.proj_meetingroom && L.roomsNeeded() + 4 > L.roomsAvail() && S.cash > S.overdraft + 30 ? 'meetingroom'
     : S.st.team < 45 ? 'wellbeing' : S.st.safety < 45 ? 'cqc' : S.inbox > 450 ? 'inbox' : S.st.patients < 40 ? 'ppg'
     : (S.month >= 6 && S.qof < 85) ? 'qof' : S.cash < 0 ? 'claims' : 'qof';
 }

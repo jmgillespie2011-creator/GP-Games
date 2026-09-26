@@ -19,7 +19,7 @@ function isoWeek(d) {
   return y + '-W' + String(Math.ceil(((t - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7)).padStart(2, '0');
 }
 function weekSeed(key) { let h = 2166136261; for (const ch of key) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0; return h; }
-function weeklyChallenge() { const week = isoWeek(), seed = weekSeed(week); return { week, seed, practice: ['suburb', 'town', 'city'][seed % 3] }; }
+function weeklyChallenge() { const week = isoWeek(), seed = weekSeed(week); return { week, seed, practice: 'city' }; }  // always the brutal practice
 // a goal for the year, worth a score bonus
 const GOALS = {
   keepNadia: { t: 'Keep Nadia in the partnership', ok: () => isActive('okoye') },

@@ -23,7 +23,7 @@ function savedBoardName() { try { return localStorage.getItem(BOARD_NAME_KEY) ||
 function loadBoard() {
   if (!boardOn()) { BD.err = 'off'; return; }
   BD.loading = true; BD.err = '';
-  const q = `${BOARD.table}?select=id,name,practice,title,score,share_k,qof,cqc,exit,week,created_at&order=score.desc,created_at.asc&limit=20` + (BD.tab === 'week' ? `&week=eq.${isoWeek()}` : BD.tab !== 'all' ? `&practice=eq.${BD.tab}` : '');
+  const q = `${BOARD.table}?select=id,name,practice,title,score,share_k,qof,cqc,exit,week,created_at&order=score.desc,created_at.asc&limit=20` + (BD.tab === 'week' ? `&week=eq.${isoWeek()}&practice=eq.city` : BD.tab !== 'all' ? `&practice=eq.${BD.tab}` : '');
   boardFetch(q, { headers: boardHeaders() })
     .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(rows => { BD.rows = Array.isArray(rows) ? rows : []; })

@@ -104,7 +104,7 @@ function renderTitle() {
         ${boardOn() ? '<button class="btn ghost" data-act="board">Leaderboard</button>' : ''}
         ${saved ? `<button class="btn" data-act="continue">Continue: ${esc(PRACTICES[saved.practiceKey].surgery)}, ${MONTHS[Math.min(saved.month, 11)]}</button>` : ''}
       </div>
-      ${(() => { const w = weeklyChallenge(); return `<div class="weekly"><div class="eyebrow">Weekly challenge · ${w.week}</div><p>Everyone gets the same practice (<b>${esc(PRACTICES[w.practice].surgery)}</b>), the same goal and the same luck this week. Compare scores on the leaderboard.</p><button class="btn" data-act="weekly">Play this week's challenge</button></div>`; })()}
+      ${(() => { const w = weeklyChallenge(); return `<div class="weekly"><div class="eyebrow">Weekly challenge · ${w.week}</div><p>The brutal one: <b>${esc(PRACTICES[w.practice].surgery)}</b>. Everyone gets the same goal, the same twist and the same luck this week. Compare scores on the leaderboard.</p><button class="btn" data-act="weekly">Play this week's challenge</button></div>`; })()}
       ${best.length ? `<div class="best"><div class="eyebrow">Your best years</div><ol style="margin:6px 0 0;padding-left:1.2em">${best.map(b => `<li>${b.score} · ${esc(b.t)} · ${esc(b.p)}</li>`).join('')}</ol></div>` : ''}
     </section>
   </div></main>`;

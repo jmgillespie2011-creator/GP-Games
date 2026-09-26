@@ -2073,7 +2073,7 @@ function isoWeek(d) {
   return y + '-W' + String(Math.ceil(((t - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7)).padStart(2, '0');
 }
 function weekSeed(key) { let h = 2166136261; for (const ch of key) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0; return h; }
-function weeklyChallenge() { const week = isoWeek(), seed = weekSeed(week); return { week, seed, practice: ['suburb', 'town', 'city'][seed % 3] }; }
+function weeklyChallenge() { const week = isoWeek(), seed = weekSeed(week); return { week, seed, practice: 'city' }; }  // always the brutal practice
 // a goal for the year, worth a score bonus
 const GOALS = {
   keepNadia: { t: 'Keep Nadia in the partnership', ok: () => isActive('okoye') },
@@ -2895,7 +2895,7 @@ function renderTitle() {
         ${boardOn() ? '<button class="btn ghost" data-act="board">Leaderboard</button>' : ''}
         ${saved ? `<button class="btn" data-act="continue">Continue: ${esc(PRACTICES[saved.practiceKey].surgery)}, ${MONTHS[Math.min(saved.month, 11)]}</button>` : ''}
       </div>
-      ${(() => { const w = weeklyChallenge(); return `<div class="weekly"><div class="eyebrow">Weekly challenge · ${w.week}</div><p>Everyone gets the same practice (<b>${esc(PRACTICES[w.practice].surgery)}</b>), the same goal and the same luck this week. Compare scores on the leaderboard.</p><button class="btn" data-act="weekly">Play this week's challenge</button></div>`; })()}
+      ${(() => { const w = weeklyChallenge(); return `<div class="weekly"><div class="eyebrow">Weekly challenge · ${w.week}</div><p>The brutal one: <b>${esc(PRACTICES[w.practice].surgery)}</b>. Everyone gets the same goal, the same twist and the same luck this week. Compare scores on the leaderboard.</p><button class="btn" data-act="weekly">Play this week's challenge</button></div>`; })()}
       ${best.length ? `<div class="best"><div class="eyebrow">Your best years</div><ol style="margin:6px 0 0;padding-left:1.2em">${best.map(b => `<li>${b.score} · ${esc(b.t)} · ${esc(b.p)}</li>`).join('')}</ol></div>` : ''}
     </section>
   </div></main>`;
@@ -3411,7 +3411,7 @@ function savedBoardName() { try { return localStorage.getItem(BOARD_NAME_KEY) ||
 function loadBoard() {
   if (!boardOn()) { BD.err = 'off'; return; }
   BD.loading = true; BD.err = '';
-  const q = `${BOARD.table}?select=id,name,practice,title,score,share_k,qof,cqc,exit,week,created_at&order=score.desc,created_at.asc&limit=20` + (BD.tab === 'week' ? `&week=eq.${isoWeek()}` : BD.tab !== 'all' ? `&practice=eq.${BD.tab}` : '');
+  const q = `${BOARD.table}?select=id,name,practice,title,score,share_k,qof,cqc,exit,week,created_at&order=score.desc,created_at.asc&limit=20` + (BD.tab === 'week' ? `&week=eq.${isoWeek()}&practice=eq.city` : BD.tab !== 'all' ? `&practice=eq.${BD.tab}` : '');
   boardFetch(q, { headers: boardHeaders() })
     .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(rows => { BD.rows = Array.isArray(rows) ? rows : []; })

@@ -33,7 +33,7 @@ const GOAL_BONUS = 40;
 // endless mode: what each extra year adds
 const YEAR_DEMAND = 0.1, YEAR_FUNDING = 0.02, YEAR_STAFF = 0.05, YEAR_RUNNING = 0.03, YEAR_YOU = 5;
 const calY = m => CAL_YEAR[Math.min(m, 11)] + ((S && S.yr) || 0);
-const monthsServed = () => ((S && S.yr) || 0) * 12 + Math.min(S.month, 11) + 1;
+const monthsServed = () => ((S && S.yr) || 0) * 12 + Math.min(S.month, 11) + 1 - ((S && S.startAt) || 0);
 const SAVE_KEY = 'lps-save-v2', BEST_KEY = 'lps-best-v1';
 const clamp = (v, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, v));
 const r1 = v => Math.round(v * 10) / 10;
@@ -191,8 +191,11 @@ function partnerLeaves(id) {
 }
 
 /* ---------- month flow ---------- */
+// how hard things have got: years served, partners fallen, meters in the red. Gates the long-haul cards (pmin).
+function pressure() { return (S.yr || 0) + ((S.gen || 1) - 1) + STAT_KEYS.filter(k => S.st[k] < 30).length * 0.5; }
 function eligible(e, queued) {
   if (e.arc) return false;
+  if (e.pmin && pressure() < e.pmin) return false;
   if (e.months && !e.months.includes(S.month)) return false;
   if (!e.rep && S.seen[e.id]) return false;
   if (e.rep && e.max && (S.counts[e.id] || 0) >= e.max) return false;

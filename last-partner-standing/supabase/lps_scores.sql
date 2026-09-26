@@ -84,3 +84,16 @@ end $$;
 -- Endless mode: months served in the run so far when the score was posted (12 after year one).
 alter table public.lps_scores add column if not exists months smallint check (months is null or months between 1 and 600);
 create index if not exists lps_scores_months_idx on public.lps_scores (months desc nulls last, score desc, created_at);
+
+-- The number to beat: how long partners last on average, for the title screen and share picture.
+create or replace function public.lps_stats() returns json
+language sql stable security invoker set search_path = '' as $$
+  select json_build_object(
+    'runs', count(*),
+    'avg_months', round(avg(months)::numeric, 1),
+    'best_months', max(months),
+    'by_practice', (select json_object_agg(practice, a) from (select practice, round(avg(months)::numeric, 1) as a from public.lps_scores where months is not null group by practice) p)
+  )
+  from public.lps_scores where months is not null
+$$;
+grant execute on function public.lps_stats() to anon, authenticated;

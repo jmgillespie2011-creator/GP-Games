@@ -61,7 +61,7 @@ const EXITS = {
   handback: { t: 'Handed back the contract', s: 'Doors closed', f: 0.3, d: 'You gave the contract back rather than carry it alone. The ICB finds a caretaker provider. The lease on the building, you discover, keeps running.', counter: '1,480 practices have closed or merged since 2015. If you lease the building, rent continues after the reimbursement stops.', src: ['S11', 'S23'] }
 };
 function gameOver(k) {
-  S.over = { k, month: S.month, months: (S.yr || 0) * 12 + S.month + 1 };
+  S.over = { k, month: S.month, months: (S.yr || 0) * 12 + S.month + 1 - (S.startAt || 0) };
   S.phase = 'over';
   recordBest(null);
   plaque(`${OVER[k].title}, ${MONTHS[S.month]}${S.yr ? ` of year ${S.yr + 1}` : ''}`, OVER[k].title, 0);
@@ -102,7 +102,7 @@ function finishYear(exit) {
   if (exit) score *= EXITS[exit].f;
   score = Math.round(Math.max(0, score));
   const arche = exit ? EXITS[exit] : archetype(annualK, others);
-  const months = (S.yr || 0) * 12 + monthsDone;
+  const months = (S.yr || 0) * 12 + monthsDone - (S.startAt || 0);
   S.end = { goalMet, exit, monthsDone, months, qofV, qofBal, partnersN, shareK, annualK, pers, balancing, hours, perHour, firstTax: (pers.tax + pers.c4) * 1.5, score, arche };
   S.bestYear = Math.max(S.bestYear || 0, score);
   S.phase = 'end';
@@ -135,8 +135,34 @@ function continueYear() {
   [['year_new', 0], ['mini_docman', 1], ['pay_award', 2], ['mini_triage', 2], ['survey', 3], ['headline', 4], ['flu_saturday', 5],
    ['winter_phones', 8], ['qof_yearend', 10], ['contract_new', 11]].forEach(([id, m]) => S.sched.push({ id, m }));
   S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
+  if (S.yr % 3 === 2) S.sched.push({ id: 'review_3y', m: 5 });
   S.goal = pick(Object.keys(GOALS));
   startMonth();
+  save();
+}
+
+/* ---------- take over the practice: the next partner starts where the last one fell ---------- */
+function takeOver() {
+  const k = S.over.k;
+  (S.lineage = S.lineage || []).push({ n: S.name, look: S.look, months: S.over.months, how: OVER[k].title });
+  const used = new Set(S.lineage.map(x => x.n));
+  let n = diceName(); for (let i = 0; i < 20 && used.has(n); i++) n = diceName();
+  S.name = n;
+  S.look = { s: ((S.look && S.look.s) + 3) % PLAYER_LOOKS.length, c: ((S.look && S.look.c) + 1) % PLAYER_COLOURS.length };
+  S.runId = Date.now().toString(36) + _rand().toString(36).slice(2, 6);
+  S.gen = (S.gen || 1) + 1;
+  S.startAt = (S.yr || 0) * 12 + S.month + 1;
+  S.bestYear = 0;
+  // a new person, and just enough rescue to open the doors on Monday
+  S.st.you = 70; S.aim.you = 0; S.leaveUsed = 0;
+  if (STAT_KEYS.includes(k)) S.st[k] = Math.max(S.st[k], 32);
+  if (k === 'cash') S.cash = Math.max(S.cash, S.overdraft + 30);
+  if (k === 'patients' || k === 'cqc') { S.st.patients = Math.max(S.st.patients, 32); S.st.safety = Math.max(S.st.safety, 30); ['remedialAt', 'breachAt', 'lowAccess'].forEach(f => delete S.flags[f]); }
+  ['crisis_you', 'crisis_team', 'crisis_patients', 'crisis_safety', 'breach_notice', 'cqc_urgent'].forEach(id => delete S.seen[id]);
+  delete S.flags.lifelineOffered;
+  S.forceOver = null; S.over = null; S.exit = null; S.end = null; S.overPost = null;
+  if (S.month >= 11) continueYear(); else { S.month++; startMonth(); }
+  S.queue.unshift('takeover'); S.qi = 0;
   save();
 }
 
@@ -146,7 +172,7 @@ function loadPlaques() { try { const b = JSON.parse(localStorage.getItem(BOARD_L
 function plaque(how, title, score) {
   if (!S || !S.runId) return;
   const st = S.st, weakest = STAT_KEYS.reduce((a, k) => st[k] < st[a] ? k : a, STAT_KEYS[0]);
-  const months = S.end ? S.end.months : (S.yr || 0) * 12 + (S.over ? S.over.month + 1 : S.month + 1);
+  const months = S.end ? S.end.months : S.over ? S.over.months : monthsServed();
   const row = { id: S.runId, n: S.name, look: S.look || { s: 0, c: 0 }, p: S.practiceKey, months, how, t: title, weak: weakest, wv: Math.round(st[weakest]), score: Math.max(score || 0, S.bestYear || 0), w: S.week || null, d: new Date().toISOString().slice(0, 10) };
   const b = loadPlaques().filter(x => x.id !== row.id);
   b.push(row);

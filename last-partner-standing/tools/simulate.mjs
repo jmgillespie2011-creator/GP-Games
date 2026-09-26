@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
-const FILES = ['c-data.js', 'c2-minidata.js', 'd-events1.js', 'e-events2.js', 'f-events3.js', 'f2-events4.js', 'f3-events5.js', 'f4-events6.js', 'g-engine.js', 'g2-endings.js'];
+const FILES = ['c-data.js', 'c2-minidata.js', 'd-events1.js', 'e-events2.js', 'f-events3.js', 'f2-events4.js', 'f3-events5.js', 'f4-events6.js', 'f5-events7.js', 'g-engine.js', 'g2-endings.js'];
 const code = FILES.map(f => readFileSync(path.join(dir, '..', 'src', f), 'utf8')).join('\n') +
   '\n;globalThis.__lps = { newGame, gpHeadroom, locumMax, beginMonth, currentEvent, resolveChoice, continueOutcome, nextMonth, continueYear, calc, activeOthers, arrsCount, roomsNeeded, roomsAvail, ROLES, STAT_KEYS, val, S: () => S };';
 const ctx = vm.createContext({ console, Math, JSON, Date });
@@ -18,7 +18,7 @@ const N = +(process.argv[2] || 200);
 const practices = !process.argv[3] || process.argv[3] === 'all' ? ['suburb', 'town', 'city'] : [process.argv[3]];
 const policies = !process.argv[4] || process.argv[4] === 'both' ? ['random', 'smart'] : [process.argv[4]];
 const ENDLESS = process.argv[5] === 'endless', MAX_YEARS = 10;
-const EXIT_CHOICES = { breach_notice: [2], apex_offer: [0], merger_vote: [0], salaried_offer: [0], emigrate: [0], last_partner: [0], lifeline: [1] };
+const EXIT_CHOICES = { breach_notice: [2], apex_offer: [0], merger_vote: [0], p_merger_again: [0], p_apex_again: [0], salaried_offer: [0], emigrate: [0], last_partner: [0], lifeline: [1] };
 
 function options(e) {
   return e.choices.map((c, i) => i).filter(i => { const c = e.choices[i]; try { return !c.need || c.need(); } catch { return false; } });

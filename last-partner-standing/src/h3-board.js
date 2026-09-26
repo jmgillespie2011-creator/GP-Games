@@ -31,6 +31,20 @@ function nameOk(n) {
 }
 function savedBoardName() { try { return localStorage.getItem(BOARD_NAME_KEY) || ''; } catch (e) { return ''; } }
 
+// the number to beat: the average months served by partners on the board (shown once enough runs exist)
+function loadStats() {
+  if (!boardOn() || BD.stats !== undefined) return;
+  BD.stats = null;
+  boardFetch('rpc/lps_stats', { method: 'POST', headers: boardHeaders(), body: '{}' })
+    .then(r => r.ok ? r.json() : null)
+    .then(j => { if (j && j.runs >= 10 && j.avg_months) { BD.stats = j; const el = document.getElementById('avg-line'); if (el) el.outerHTML = avgLineHTML(); } })
+    .catch(() => { });
+}
+const REAL_LINE = 'In real life, the number of GP partners under 40 in England fell by 17% in 15 months, to September 2025.';
+function avgLineHTML(mine) {
+  const st = BD.stats;
+  return `<p class="avg-line" id="avg-line">${st ? `Partners on the leaderboard last <b>${Math.round(st.avg_months)} months</b> on average.${mine != null ? ` You lasted <b>${mine}</b>.` : ''} ` : ''}${esc(REAL_LINE)} <a href="${esc(SOURCES.S83[1])}" target="_blank" rel="noopener">Institute for Government</a></p>`;
+}
 function loadBoard() {
   if (!boardOn()) { BD.err = 'off'; return; }
   BD.loading = true; BD.err = '';

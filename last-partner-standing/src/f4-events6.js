@@ -78,4 +78,13 @@ EVENTS.push(
   {t:'Book all your leave for the year now',fx:{you:4,team:-1},o:`Your leave is in the rota before anyone else's. It's the most senior thing you've done all year.`},
   {t:'Cut the cake and get on with it',fx:{team:2},o:`The cake lasts eleven minutes. Morning surgery starts at 8:00, as it always will.`}
  ]}
+,
+/* ---------- a new partner takes over after the last one fell ---------- */
+{id:'takeover',arc:1,who:'bev',rep:1,title:'Under new management',tag:'story',
+ text:()=>{ const p = S.lineage[S.lineage.length - 1]; return `Dr ${p.n} lasted ${p.months} month${p.months === 1 ? '' : 's'}. The verdict on the way out: "${p.how}". The ICB needed someone to keep the doors open, and you said yes. Bev hands you the keys, the alarm code and a folder labelled "Things Dr ${p.n} was going to sort out". It is very thick.`; },
+ choices:[
+  {t:'Keep everything as it was, for now',fx:{team:3},o:`Nobody's desk moves. The team relaxes a little. The problems stay exactly where they were.`},
+  {t:'Change everything in the first week',fx:{team:-4,safety:3,patients:1,aim:{safety:1}},o:`New rota, new triage, new everything. It's probably right. It's also a lot, all at once.`},
+  {t:()=>`Ring Dr ${S.lineage[S.lineage.length - 1].n} for a proper handover`,fx:{you:2,safety:2,inbox:-40},o:()=>`An hour on the phone. They sound lighter already. They tell you which consultant never replies and which drawer the spare FP10s live in.`}
+ ]}
 );

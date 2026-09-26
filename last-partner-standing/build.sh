@@ -3,7 +3,7 @@
 #  last-partner-standing.html  - Artifact source (the publish step adds doctype/head)
 #  last-partner-standing-play.html - standalone copy to open directly in any browser
 cd "$(dirname "$0")"
-JS="src/c-data.js src/c2-minidata.js src/c3-art.js src/d-events1.js src/e-events2.js src/f-events3.js src/f2-events4.js src/f3-events5.js src/f4-events6.js src/g-engine.js src/g2-endings.js src/h-ui.js src/h2-screens.js src/h3-board.js src/i-mini.js"
+JS="src/c-data.js src/c2-minidata.js src/c3-art.js src/d-events1.js src/e-events2.js src/f-events3.js src/f2-events4.js src/f3-events5.js src/f4-events6.js src/f5-events7.js src/g-engine.js src/g2-endings.js src/h-ui.js src/h2-screens.js src/h3-board.js src/i-mini.js"
 OUT=last-partner-standing.html
 cat src/a-head.html > "$OUT"
 printf '<div id="app"></div>\n<script>\n' >> "$OUT"
@@ -25,7 +25,7 @@ printf '<meta property="og:image" content="%s">\n<meta property="og:image:width"
 printf '<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="Last Partner Standing">\n<meta name="twitter:description" content="%s">\n<meta name="twitter:image" content="%s">\n<meta name="twitter:image:alt" content="%s">\n' "$DESC" "$IMG" "$ALT" >> "$PLAY"
 # The icon: src/icon.svg (a GP standing on the logo's yellow line), inlined as the favicon.
 ICON=$(base64 < src/icon.svg | tr -d '\n')
-printf '<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,%s">\n<link rel="apple-touch-icon" href="/last-partner-standing/apple-touch-icon.png">\n' "$ICON" >> "$PLAY"
+printf '<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,%s">\n<link rel="apple-touch-icon" href="/last-partner-standing/apple-touch-icon.png">\n<link rel="manifest" href="/last-partner-standing/manifest.webmanifest">\n' "$ICON" >> "$PLAY"
 cat src/a-head.html >> "$PLAY"
 printf '</head>\n<body>\n<div id="app"></div>\n<script>\n' >> "$PLAY"
 cat $JS >> "$PLAY"

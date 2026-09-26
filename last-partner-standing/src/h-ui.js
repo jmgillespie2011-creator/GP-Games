@@ -6,6 +6,19 @@ const signK = v => (v > 0 ? '+' : v < 0 ? '−' : '') + '£' + Math.abs(v).toFix
 const gbp = v => (v < 0 ? '−£' : '£') + Math.round(Math.abs(v)).toLocaleString('en-GB');
 const pct = v => Math.round(v * 100) + '%';
 let UI = { screen: 'title', pickPractice: 'town', nameDraft: '', look: { s: 0, c: 0 } };
+// settings kept in this browser; the 45-second card timer is off by default
+const SETTINGS_KEY = 'lps-settings-v1', CARD_SECONDS = 45;
+function loadSettings() { try { return Object.assign({ timer: false }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) { return { timer: false }; } }
+function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(UI.settings)); } catch (e) { } }
+UI.settings = loadSettings();
+function timeUp(id, qi) {
+  if (!S || S.phase !== 'event' || S.qi !== qi || S.queue[qi] !== id) return;
+  const e = currentEvent(); if (!e) return;
+  const ok = e.choices.map((c, i) => i).filter(i => { const c = e.choices[i]; try { return !c.play && (!c.need || c.need()) && !String(c.run || '').includes('S.exit'); } catch (err) { return false; } });
+  if (!ok.length) return;
+  const i = ok[Math.floor(_rand() * ok.length)];
+  go(() => { resolveChoice(i, { fx: { you: -2, team: -1, patients: -1 } }); S.cur.o = `Time's up. You didn't decide, so it got decided for you: "${fill(val(e.choices[i].t))}". ` + S.cur.o; S.cur.timeout = 1; });
+}
 const narrow = () => { try { return matchMedia('(max-width:640px)').matches; } catch (e) { return false; } };
 
 const BRIEF = [
@@ -85,6 +98,7 @@ function renderTitle() {
       <div class="eyebrow">A general practice survival game</div>
       <h1 class="logo" style="margin-top:12px">Last<br>Partner<span class="rx">Rx</span><br><span class="under">Standing</span></h1>
       <p class="tagline">A year on England's 2026/27 GP contract, then as many more as you can survive. Five things to keep alive, including you.</p>
+      ${avgLineHTML()}
       <div class="memo"><b>Your year as a new GP partner</b>
         <ul>
           <li>Each month, set your week, your cover, your team and one project.</li>
@@ -108,6 +122,7 @@ function renderTitle() {
         <label class="name-row" for="docname"><span>Dr</span><input id="docname" maxlength="24" autocomplete="off" placeholder="Surname" value="${esc(UI.nameDraft)}"><button class="dice" data-act="dice" type="button" aria-label="Roll a random name" title="Roll a random name"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor"/></svg></button></label>
       </div>
       <div class="field" style="display:grid;gap:8px"><b>Choose your practice</b><div class="pcards">${pc}</div></div>
+      <label class="toggle"><input type="checkbox" data-act="timer" ${UI.settings.timer ? 'checked' : ''}> <span><b>The 8am pace</b>: ${CARD_SECONDS} seconds to decide each card, or it gets decided for you. Off by default.</span></label>
       <div class="setup-actions">
         <button class="btn primary" data-act="start">Sign the partnership deed</button>
         ${boardOn() ? '<button class="btn ghost" data-act="board">Leaderboard</button>' : ''}
@@ -292,12 +307,14 @@ function renderEvent() {
   }).join('');
   const info = e.info ? explain(e.tag === 'speculative' ? 'What\'s invented here?' : 'What\'s real here?', `<p>${esc(fill(e.info))}</p>${srcLinks(e.src)}`, 'real') : '';
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap">
+    ${UI.settings.timer && e.kind !== 'mini' ? `<div class="cardtimer" role="timer" aria-label="${CARD_SECONDS} seconds to decide"><b style="animation-duration:${CARD_SECONDS}s"></b></div>` : ''}
     <article class="card" aria-live="polite">${badge(e.who)}<span class="stampno">${MON3[S.month]} · ${Math.min(n, tot)}/${tot}</span></div>
       <div class="card-title-row"><h2>${esc(fill(val(e.title)))}</h2>${tagPill(e)}</div>
       <div class="text"><p>${esc(fill(val(e.text)))}</p></div>
       ${info}
       <div class="choices">${choices}</div>
     </article></div></main>`;
+  if (UI.settings.timer && e.kind !== 'mini') { const id = S.queue[S.qi], qi = S.qi; UI.tmr = setTimeout(() => timeUp(id, qi), CARD_SECONDS * 1000); }
 }
 function deltaChips(ds) {
   if (!ds || !ds.length) return '<p class="muted" style="margin-top:14px;font-size:14px">No immediate effect.</p>';

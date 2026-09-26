@@ -269,6 +269,7 @@ function brassPlate() {
   const names = ['Dr ' + S.name].concat(Object.keys(S.partners).filter(id => isActive(id))
     .map(id => 'Dr ' + PARTNERS0[id].name.split(' ').pop()));
   const gone = Object.keys(S.partners).filter(id => S.partners[id].status === 'left').map(id => 'Dr ' + PARTNERS0[id].name.split(' ').pop());
+  (S.lineage || []).slice().reverse().forEach(x => gone.unshift('Dr ' + x.n));
   return `<div class="brass"><span class="brass-t">Partners</span> ${names.map(n => `<b>${esc(n)}</b>`).join('<i>·</i>')}${gone.map(n => `<i>·</i><s>${esc(n)}</s>`).join('')}${S.cqc ? `<span class="brass-cqc">CQC: ${esc(RATE_NAME[S.cqc.overall])}</span>` : ''}</div>`;
 }
 
@@ -282,7 +283,7 @@ function briefHTML(months) {
     ${tile('Personal best', `${best} month${best === 1 ? '' : 's'}`)}
     ${tile('Most fragile', `${STAT_LABEL[weak]} ${Math.round(st[weak])}`, 'bad-t')}
     ${tile('Strongest', `${STAT_LABEL[strong]} ${Math.round(st[strong])}`, 'good-t')}
-  </section>`;
+  </section>${avgLineHTML(months)}`;
 }
 
 /* ---------- the Partners' Board: an honours board of every run in this browser ---------- */
@@ -316,6 +317,7 @@ function shareSVG() {
     <rect x="560" y="336" width="${Math.min(600, title.length * 17 + 40)}" height="54" rx="8" fill="${over ? '#8E2A1F' : '#C9A24B'}"/>
     <text x="580" y="372" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="700" fill="${over ? '#FBEDEA' : '#2B1F0C'}">${esc(title)}</text>
     ${bars}
+    ${BD.stats ? `<text x="60" y="570" font-family="Georgia, 'Times New Roman', serif" font-size="24" fill="#C9CFDA">The average partner lasts ${Math.round(BD.stats.avg_months)} months.</text>` : ''}
     <text x="60" y="610" font-family="Menlo, Consolas, monospace" font-size="24" fill="#C9CFDA">How long can you last? <tspan fill="#F2D449" font-weight="700">last-partner-standing.vercel.app</tspan></text>
   </svg>`;
 }

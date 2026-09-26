@@ -143,6 +143,9 @@ function miniKey(ev) {
 
 /* ===================== BOOT ===================== */
 function boot(data) {
+  try { loadStats(); } catch (e) { }
+  // installable app: register the service worker on the real website only (not in a Claude Artifact or a local file)
+  try { if ('serviceWorker' in navigator && location.protocol === 'https:' && window.self === window.top && /vercel\.app$/.test(location.hostname)) navigator.serviceWorker.register('/sw.js').catch(() => { }); } catch (e) { }
   try { if (data && data.S && data.S.v === 1) { S = data.S; UI.screen = data.screen || 'game'; } } catch (e) { }
   render();
 }

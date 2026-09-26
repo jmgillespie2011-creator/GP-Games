@@ -1,0 +1,16 @@
+{
+  "name": "Last Partner Standing",
+  "short_name": "Last Partner",
+  "description": "A GP partner survival game on the real 2026/27 contract. How long can you last?",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E3EDE1",
+  "theme_color": "#1D6A4D",
+  "icons": [
+    { "src": "/last-partner-standing/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/last-partner-standing/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/last-partner-standing/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

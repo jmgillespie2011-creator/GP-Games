@@ -264,6 +264,7 @@ const SOURCES = {
   S80:['Indeed: general practitioner salary in Perth WA','https://au.indeed.com/career/general-practitioner/salaries/Perth-WA','C'],
   S81:['SEEK: General Practitioner salary in Perth','https://au.seek.com/career-advice/role/general-practitioner/salary/in-perth','C'],
   S82:['Alecto Australia: GP salary in Australia (a recruiter)','https://www.alectoaustralia.com/gp-jobs-australia/gp-salary-australia/','C'],
+  S83:['Institute for Government: Performance Tracker 2025, general practice','https://www.instituteforgovernment.org.uk/publication/performance-tracker-2025/nhs/general-practice','B'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
   S46:['CQC: GP mythbuster 1, emergency care in general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-1-emergency-care-general-practice','A'],

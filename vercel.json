@@ -1,6 +1,10 @@
 {
   "rewrites": [
     { "source": "/", "destination": "/last-partner-standing/last-partner-standing-play.html" },
-    { "source": "/last-partner-standing", "destination": "/last-partner-standing/last-partner-standing-play.html" }
+    { "source": "/last-partner-standing", "destination": "/last-partner-standing/last-partner-standing-play.html" },
+    { "source": "/sw.js", "destination": "/last-partner-standing/sw.js" }
+  ],
+  "headers": [
+    { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
   ]
 }

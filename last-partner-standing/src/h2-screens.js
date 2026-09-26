@@ -161,7 +161,8 @@ function renderOver() {
     ${S.history.length > 1 ? `<section class="panel"><h3>How it went</h3>${chartSVG()}</section>` : ''}
     ${S.yr >= 1 ? boardPanelHTML() : ''}
     ${partnersBoardHTML(8)}
-    <div class="end-actions"><button class="btn primary" data-act="again">Try again</button><button class="btn" data-act="shareimg">Share a picture</button><button class="btn ghost" data-act="home">Title screen</button></div>
+    <section class="carry-on"><div><b>Take over the practice?</b><p>A new partner walks in where Dr ${esc(S.name)} fell: same staff, same list, same overdraft, same queue. The longer the practice struggles, the harder it gets.</p></div><button class="btn primary" data-act="takeover">Take over →</button></section>
+    <div class="end-actions"><button class="btn" data-act="again">Start afresh</button><button class="btn" data-act="shareimg">Share a picture</button><button class="btn ghost" data-act="home">Title screen</button></div>
   </div></main>`;
 }
 
@@ -186,12 +187,13 @@ function sourcesHTML() {
 }
 function menuHTML() {
   return `<h2>Menu</h2><p class="muted">Your game saves automatically after every decision, in this browser only.</p>
-  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="honours">The Partners' Board</button><button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
+  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="honours">The Partners' Board</button><button class="btn" data-act="timer">${UI.settings.timer ? 'Turn off' : 'Turn on'} the ${CARD_SECONDS}-second timer</button><button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
 }
 function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); }
 
 /* ---------- render ---------- */
 function render() {
+  if (UI.tmr) { clearTimeout(UI.tmr); UI.tmr = null; }
   if (!S || UI.screen === 'title') { renderTitle(); return; }
   switch (S.phase) {
     case 'plan': return renderPlan();
@@ -216,6 +218,8 @@ document.addEventListener('click', ev => {
       else { const k = arg, now = Math.round(S.st[k]); openOverlay(`<h2>${esc({ patients: 'The waiting room', team: 'The staff room', you: 'Your room', safety: 'The treatment room' }[k])}: ${STAT_LABEL[k]}</h2><p class="lede-s">The ${STAT_LABEL[k]} meter is at <b>${now}</b>. If nothing changes, it settles at <b>${T[k].v}</b>.</p>${whyList(T[k].why)}<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>`); }
       break; }
     case 'nextyear': go(continueYear); break;
+    case 'timer': { UI.settings.timer = !UI.settings.timer; saveSettings(); if (S && UI.screen !== 'title') { closeOverlay(); render(); } else keepScroll(renderTitle); toast(UI.settings.timer ? `The 8am pace is on: ${CARD_SECONDS} seconds a card.` : 'The 8am pace is off.'); break; }
+    case 'takeover': go(takeOver); break;
     case 'honours': openOverlay(partnersBoardHTML(40) + '<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>'); break;
     case 'shareimg': openShareImage(); break;
     case 'shareimg-go': { const f = UI.shareFile; if (f && navigator.share) navigator.share({ files: [f], text: 'How long can you last as a GP partner?', url: 'https://last-partner-standing.vercel.app' }).catch(() => { }); break; }

@@ -156,6 +156,15 @@ p{margin:0}
 .plq-m small{display:block;font-size:10px;font-weight:400;color:#CDB889}
 .share-img{display:block;width:100%;height:auto;border-radius:10px;margin:10px 0}
 @media (max-width:640px){.brief-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.btile b{font-size:19px}}
+.avg-line{font-size:14.5px;color:var(--ink-2);max-width:60ch;margin:12px 0 0}
+.avg-line b{color:var(--ink)}
+.brief-tiles + .avg-line{margin:-6px 0 18px}
+.toggle{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ink-2);cursor:pointer}
+.toggle input{margin-top:3px;width:18px;height:18px;accent-color:var(--accent);flex:none}
+.cardtimer{height:6px;border-radius:3px;background:var(--rule);overflow:hidden;margin:0 0 10px}
+.cardtimer b{display:block;height:100%;background:var(--warn);transform-origin:left;animation:cardtimer linear forwards}
+@keyframes cardtimer{from{transform:scaleX(1)}to{transform:scaleX(0);background:var(--bad)}}
+@media (prefers-reduced-motion:reduce){.cardtimer b{animation-timing-function:steps(9)}}
 .setup-actions{display:flex;flex-wrap:wrap;gap:10px}
 .best{font-size:14px;color:var(--ink-2)}
 .best li{font-family:var(--mono);font-size:12.5px}
@@ -791,6 +800,7 @@ const SOURCES = {
   S80:['Indeed: general practitioner salary in Perth WA','https://au.indeed.com/career/general-practitioner/salaries/Perth-WA','C'],
   S81:['SEEK: General Practitioner salary in Perth','https://au.seek.com/career-advice/role/general-practitioner/salary/in-perth','C'],
   S82:['Alecto Australia: GP salary in Australia (a recruiter)','https://www.alectoaustralia.com/gp-jobs-australia/gp-salary-australia/','C'],
+  S83:['Institute for Government: Performance Tracker 2025, general practice','https://www.instituteforgovernment.org.uk/publication/performance-tracker-2025/nhs/general-practice','B'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
   S46:['CQC: GP mythbuster 1, emergency care in general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-1-emergency-care-general-practice','A'],
@@ -1261,6 +1271,7 @@ function brassPlate() {
   const names = ['Dr ' + S.name].concat(Object.keys(S.partners).filter(id => isActive(id))
     .map(id => 'Dr ' + PARTNERS0[id].name.split(' ').pop()));
   const gone = Object.keys(S.partners).filter(id => S.partners[id].status === 'left').map(id => 'Dr ' + PARTNERS0[id].name.split(' ').pop());
+  (S.lineage || []).slice().reverse().forEach(x => gone.unshift('Dr ' + x.n));
   return `<div class="brass"><span class="brass-t">Partners</span> ${names.map(n => `<b>${esc(n)}</b>`).join('<i>·</i>')}${gone.map(n => `<i>·</i><s>${esc(n)}</s>`).join('')}${S.cqc ? `<span class="brass-cqc">CQC: ${esc(RATE_NAME[S.cqc.overall])}</span>` : ''}</div>`;
 }
 
@@ -1274,7 +1285,7 @@ function briefHTML(months) {
     ${tile('Personal best', `${best} month${best === 1 ? '' : 's'}`)}
     ${tile('Most fragile', `${STAT_LABEL[weak]} ${Math.round(st[weak])}`, 'bad-t')}
     ${tile('Strongest', `${STAT_LABEL[strong]} ${Math.round(st[strong])}`, 'good-t')}
-  </section>`;
+  </section>${avgLineHTML(months)}`;
 }
 
 /* ---------- the Partners' Board: an honours board of every run in this browser ---------- */
@@ -1308,6 +1319,7 @@ function shareSVG() {
     <rect x="560" y="336" width="${Math.min(600, title.length * 17 + 40)}" height="54" rx="8" fill="${over ? '#8E2A1F' : '#C9A24B'}"/>
     <text x="580" y="372" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="700" fill="${over ? '#FBEDEA' : '#2B1F0C'}">${esc(title)}</text>
     ${bars}
+    ${BD.stats ? `<text x="60" y="570" font-family="Georgia, 'Times New Roman', serif" font-size="24" fill="#C9CFDA">The average partner lasts ${Math.round(BD.stats.avg_months)} months.</text>` : ''}
     <text x="60" y="610" font-family="Menlo, Consolas, monospace" font-size="24" fill="#C9CFDA">How long can you last? <tspan fill="#F2D449" font-weight="700">last-partner-standing.vercel.app</tspan></text>
   </svg>`;
 }
@@ -2463,7 +2475,143 @@ EVENTS.push(
   {t:'Book all your leave for the year now',fx:{you:4,team:-1},o:`Your leave is in the rota before anyone else's. It's the most senior thing you've done all year.`},
   {t:'Cut the cake and get on with it',fx:{team:2},o:`The cake lasts eleven minutes. Morning surgery starts at 8:00, as it always will.`}
  ]}
+,
+/* ---------- a new partner takes over after the last one fell ---------- */
+{id:'takeover',arc:1,who:'bev',rep:1,title:'Under new management',tag:'story',
+ text:()=>{ const p = S.lineage[S.lineage.length - 1]; return `Dr ${p.n} lasted ${p.months} month${p.months === 1 ? '' : 's'}. The verdict on the way out: "${p.how}". The ICB needed someone to keep the doors open, and you said yes. Bev hands you the keys, the alarm code and a folder labelled "Things Dr ${p.n} was going to sort out". It is very thick.`; },
+ choices:[
+  {t:'Keep everything as it was, for now',fx:{team:3},o:`Nobody's desk moves. The team relaxes a little. The problems stay exactly where they were.`},
+  {t:'Change everything in the first week',fx:{team:-4,safety:3,patients:1,aim:{safety:1}},o:`New rota, new triage, new everything. It's probably right. It's also a lot, all at once.`},
+  {t:()=>`Ring Dr ${S.lineage[S.lineage.length - 1].n} for a proper handover`,fx:{you:2,safety:2,inbox:-40},o:()=>`An hour on the phone. They sound lighter already. They tell you which consultant never replies and which drawer the spare FP10s live in.`}
+ ]}
 );
+/* ===================== EVENTS 7: the long haul =====================
+ Cards for later years and practices in trouble. `pmin` is the pressure a card needs before it can be dealt:
+ pressure() adds one for each year served, one for each partner who has fallen, and a half for each meter below 30.
+ So a comfortable first year never sees these, and a struggling practice sees them sooner.
+*/
+EVENTS.push(
+{id:'p_ai_scribe',who:'rep',title:'The AI scribe',pmin:1,tag:'story',
+ text:`A company offers an AI scribe that listens to consultations and writes the notes. £450 a month for the practice. "It saves each GP an hour a day," says the rep, who has never written a set of notes.`,
+ choices:[
+  {t:'Trial it, with patient consent and a data protection check',fx:{you:3,cash:-0.9,safety:1,team:1},run(){ addMod({id:'scribe',label:'AI scribe',months:99,fx:{cash:-0.45},aim:{you:2}}); },o:`The notes are good, occasionally too good: one records a patient's views on their neighbour's hedge. You spend less time typing and more time looking at people.`},
+  {t:'Not until the ICB has a view',fx:{you:-1},o:`The ICB's view is due "in the next financial year".`}
+ ]},
+{id:'p_building_sold',who:'landlord',title:'Under new ownership',pmin:1,cond:()=>!!S.flags.soldBuilding,tag:'story',
+ text:`Your landlord has sold the building to an investment fund you've never heard of. Their first letter is about the rent review. Their second is about "unlocking the value of the car park".`,
+ choices:[
+  {t:'Get a surveyor to fight the review (£3,000)',fx:{cash:-3,you:-2},alt:{p:0.4,fx:{you:-2},run(){ S.premX = (S.premX || 0) + 0.8; },o:`The surveyor does their best. The rent still goes up £800 a month.`},o:`The surveyor finds three errors in the fund's valuation. The review is settled at the old rent, for now.`},
+  {t:'Accept it',fx:{you:1},run(){ S.premX = (S.premX || 0) + 1.5; },o:`The rent goes up £1,500 a month. The NHS reimbursement doesn't.`}
+ ]},
+{id:'p_icb_merger',who:'icb',title:'A new ICB',pmin:1,tag:'story',
+ text:`Your ICB is merging with the one next door. Jonathan has a new job title, a new email address and no idea who approves your premises bid now. Everything submitted before the merger has to be submitted again.`,
+ choices:[
+  {t:'Resubmit everything, again',fx:{you:-3,icb:3},o:`Eleven forms, some of them identical to the forms they replace. The new ICB is grateful. It says so in a template.`},
+  {t:'Wait for the dust to settle',fx:{icb:-3,you:1},o:`The dust settles in about nine months.`}
+ ]},
+{id:'p_sandra_retires',who:'kayleigh',title:'Sandra retires',pmin:1,tag:'story',
+ text:`Sandra is retiring after twenty years on reception. She knows every patient by voice, which consultant's secretary actually answers, and how to reset the phone system with a paperclip.`,
+ choices:[
+  {t:'A proper send-off and a paid handover month',fx:{team:5,cash:-2.5},run(){ S.staff.recep = Math.max(1, S.staff.recep - 1); S.vac.recep = (S.vac.recep || 0) + 1; },o:`Sandra trains her replacement for a month and leaves a notebook titled "What Actually Happens". It becomes the most important document in the building.`},
+  {t:'Cake, card, and advertise the post',fx:{team:1},run(){ S.staff.recep = Math.max(1, S.staff.recep - 1); S.vac.recep = (S.vac.recep || 0) + 1; addMod({id:'sandra', label:'Nobody knows where anything is', months:2, aim:{patients:-2, team:-2}}); },o:`She goes on Friday. On Monday nobody can find the paperclip.`}
+ ]},
+{id:'p_partner_hours',who:'okoye',title:'Fewer sessions',pmin:1,cond:()=>isActive('okoye'),tag:'story',
+ text:`Nadia wants to drop to four sessions a week. "I've done the maths. I'm working 55 hours for the pay of 40. I'd rather work 35 for the pay of 30."`,
+ choices:[
+  {t:'Agree, and recruit to cover',fx:{team:2,okoye:-15},run(){ pt('okoye').clin = Math.max(3, pt('okoye').clin - 1); },o:`Nadia stays, on fewer sessions. The rota has a hole in it, and she looks five years younger.`},
+  {t:'Ask her to wait a year',fx:{okoye:15,you:-1},o:`She waits. She also updates her CV. You can tell because she asks you to be a referee "for something else".`}
+ ]},
+{id:'p_complaint_ombudsman',who:'pratt',title:'The Ombudsman',pmin:1,tag:'story',
+ info:'If a patient is unhappy with a practice\'s response to a complaint, they can take it to the Parliamentary and Health Service Ombudsman, which can investigate and recommend remedies.',
+ text:`A complaint you thought was closed eighteen months ago has reached the Parliamentary and Health Service Ombudsman. They'd like the full records, the timeline and your reflections, within four weeks.`,
+ choices:[
+  {t:'Do it properly, with your defence organisation',fx:{you:-4,safety:2},o:`It takes three evenings. The Ombudsman finds the practice's response "reasonable, but could have been more timely". You'll take it.`},
+  {t:'Hand it to Bev',fx:{team:-3,you:-1},alt:{p:0.3,fx:{safety:-3,rep:-2},o:`Bev sends the wrong patient's timeline. The Ombudsman is not amused.`},o:`Bev sends it in on time, beautifully indexed.`}
+ ]},
+{id:'p_list_growth',who:'bev',title:'Phase two',pmin:1,cond:()=>S.practiceKey!=='city',tag:'story',
+ text:`The housing estate has a phase two: 400 more homes. The developer's leaflet promises "excellent local amenities, including a GP surgery". It means yours.`,
+ choices:[
+  {t:'Register them and ask the ICB for premises money',fx:{rep:2,icb:2},run(){ S.list += 350; S.newRegs.push({ n: 350, until: S.month + 12 }); plant({ in: 4, p: 0.35, fx: { rooms: 1 }, note: 'The ICB agreed to fund a new consulting room from the housing developer\'s contribution.' }); },o:`Three hundred and fifty new patients by the autumn. The funding follows them, about a year behind.`},
+  {t:'Ask to close the list',fx:{icb:-6,rep:-2},o:`The ICB says no. The patients register anyway, via a process called "being allocated".`,run(){ S.list += 250; S.newRegs.push({ n: 250, until: S.month + 12 }); }}
+ ]},
+{id:'p_your_knee',who:'you',title:'Your knee',pmin:1,tag:'story',
+ text:`Your knee has been bad for a year. Your own GP has referred you. The orthopaedic waiting list is 58 weeks. There's a private slot next month for £11,000.`,
+ choices:[
+  {t:'Pay for it yourself',fx:{you:6},o:`The surgery goes well. The £11,000 comes out of your own savings, then spend two weeks on crutches doing telephone triage from the sofa.`},
+  {t:'Wait like everyone else',fx:{you:-4},later:[{in:4,p:0.5,fx:{you:-3},note:'Your knee gave way on the practice stairs. The waiting list letter says you are "in the queue".'}],o:`You join the list. You now understand your patients' letters in a new and personal way.`}
+ ]},
+{id:'p_trainee_returns',who:'reg',title:'Ellie is back',pmin:1,cond:()=>!!S.flags.training,tag:'story',
+ text:`Ellie, your old registrar, has finished training. She'd like to come back as a salaried GP, and she's asking about partnership "in a year or two".`,
+ choices:[
+  {t:'Offer her a job, and a route to partnership',need:()=>gpHeadroom() >= 6,why:'No room for another GP in this area',fx:{team:5,you:3},run(){ S.staff.salaried++; },o:`Ellie starts next month. This is what growing your own GPs was for.`},
+  {t:'You can\'t afford another GP',fx:{team:-2},o:`She takes a job across town. She sends a very gracious email.`}
+ ]},
+{id:'p_nhs_app',who:'patient',title:'The app',pmin:1,tag:'story',
+ text:`A national update means patients can now see their test results in the NHS App the moment they're filed, before anyone has spoken to them. Forty people rang yesterday about results that were normal.`,
+ choices:[
+  {t:'Add plain-English comments to every result',fx:{you:-3,patients:3,inbox:40},o:`"Normal, no action." "Slightly low, nothing to worry about, recheck in a year." Four hundred comments a week. The calls stop.`},
+  {t:'Let reception reassure people',fx:{team:-3,patients:-1},o:`Reception becomes an unofficial results service. They're good at it. They didn't sign up for it.`}
+ ]},
+{id:'p_locum_chambers',who:'agency',title:'The locum chambers',pmin:1,tag:'story',
+ text:`Three local GPs have set up a locum chambers. They'll supply regular faces for your rota, at £95 an hour, if you commit to eight sessions a week for a year.`,
+ choices:[
+  {t:'Sign up',fx:{patients:3,you:2},run(){ addMod({ id: 'chambers', label: 'Locum chambers contract', months: 12, capAdd: 112, fx: { cash: -13.2, inbox: 15 } }); },o:`About £13,000 a month for 112 extra appointments a week. Same three faces, every week. Patients start asking for them by name.`},
+  {t:'Stay flexible',fx:{},o:`You keep booking locums one session at a time, at whatever the agency charges that week.`}
+ ]},
+{id:'p_burnout_wave',who:'maureen',title:'Running on empty',pmin:2,tag:'real',src:['S36'],
+ info:'In the national GP Worklife Survey, GPs reported high levels of stress, and job satisfaction has fallen over the last decade. Practice nurses and reception staff report similar pressures.',
+ text:`Maureen asks for a word. "Three of the team are on antidepressants, two are job hunting, and I cried in the sluice on Tuesday. Something has to give, and I'd rather it wasn't us."`,
+ choices:[
+  {t:'Close for a protected afternoon each month (£2,000 locum cover)',fx:{team:8,patients:-2,cash:-2,aim:{team:2}},o:`The first afternoon, nobody knows what to do with themselves. By the third, it's the most useful four hours of the month.`},
+  {t:'Pay for staff counselling (£150 a month)',fx:{team:4},run(){ addMod({ id: 'counsel', label: 'Staff counselling', months: 99, fx: { cash: -0.15 }, aim: { team: 1 } }); },o:`Four people use it in the first month. Nobody says who.`},
+  {t:'"We just need to get through winter."',fx:{team:-6},o:`Maureen nods. She doesn't argue. That's what worries you.`}
+ ]},
+{id:'p_merger_again',who:'rowe',title:'Parkside, again',pmin:2,cond:()=>activeOthers()<=1,tag:'story',
+ text:`Dr Rowe from Parkside Surgery rings again. "We're both too small to survive on our own. I'd rather merge with you than be taken over by Apex. Think about it before they do."`,
+ choices:[
+  {t:'Merge',run(){ S.exit = 'merged'; return { o: `The lawyers take four months. Your brass plate comes down and goes in a drawer at home.` }; }},
+  {t:'Not yet',fx:{you:-1},o:`"Not yet," she says. "That's what I said, two years ago."`}
+ ]},
+{id:'p_heatwave_again',who:'bev',title:'Record heat',pmin:1,months:[2,3,4],tag:'story',
+ text:`It's the hottest day on record. The vaccine fridge is struggling, the server cupboard is at 44°C, and a pensioner has fainted in the car park.`,
+ choices:[
+  {t:'Cancel routine clinics and run a cool room for the vulnerable',fx:{patients:3,rep:3,team:-2},o:`The waiting room becomes a cooling centre with free water and a fan the size of a jet engine. The local paper runs a photo.`},
+  {t:'Keep going and hope',fx:{safety:-3},later:[{in:1,p:0.4,fx:{cash:-4,safety:-2},note:'The heatwave took the vaccine fridge above 8°C for a day. £4,000 of stock quarantined.'}],o:`You keep going. Everyone is very, very hot.`}
+ ]},
+{id:'p_apex_again',who:'apex',title:'A better offer',pmin:2,cond:()=>S.cash<0||activeOthers()===0,tag:'story',
+ text:`Apex Primary Care is back, with a better offer: they'll take the lease, the staff and the overdraft. You'd be a salaried "Clinical Director" with a car allowance.`,
+ choices:[
+  {t:'Sign',run(){ S.exit = 'sold'; return { o: `You sign. The overdraft is someone else's problem. So, from Monday, is the practice.` }; }},
+  {t:'Tell them it isn\'t for sale',fx:{team:3,you:1},o:`"Everything is for sale," the man says, kindly. "Eventually."`}
+ ]},
+{id:'p_new_contract_model',who:'dept',title:'A new model',pmin:2,tag:'speculative',
+ info:'Invented: the future of the partnership model is regularly debated, with proposals for more salaried GPs, larger providers and neighbourhood health services. This card imagines one version.',
+ text:`The government announces a consultation on "moving beyond the partnership model". Practices may be offered the chance to hand their contract to a new neighbourhood health organisation and become salaried.`,
+ choices:[
+  {t:'Respond to the consultation with the LMC',fx:{you:-2,team:1},o:`Your response is forty pages. The summary of responses, published a year later, quotes one line of it.`},
+  {t:'Start planning for either outcome',fx:{you:-1,safety:1},o:`You draw up two plans. Both involve Bev.`}
+ ]}
+,
+/* ---------- the three-year review: the long game's big set-piece (years 3, 6, 9) ---------- */
+{id:'review_3y',arc:1,who:'icb',title:'The three-year review',tag:'story',
+ info:'Invented as a game milestone. In real life GMS contracts don\'t expire, but ICBs review practices\' performance and CQC re-inspects based on risk.',
+ text:()=>`Three years since the last one. The ICB and CQC want to review everything: access, safety, the team, the accounts and you. Jonathan's email says it's "supportive, not punitive". It has four attachments.`,
+ choices:[
+  {t:'A weekend of preparation with the whole team',fx:{you:-4,team:-2},run(){ return review3y(6); }},
+  {t:'Let the record speak for itself',fx:{},run(){ return review3y(0); }}
+ ]}
+);
+// passing takes steady meters, not heroics: no meter below 35 and a decent average
+function review3y(prep) {
+  const st = S.st, avg = STAT_KEYS.reduce((a, k) => a + st[k], 0) / 4, min = Math.min(...STAT_KEYS.map(k => st[k]));
+  const cq = S.cqc ? { o: 8, g: 4, ri: -4, i: -10 }[S.cqc.overall] : 0;
+  const mark = avg + prep + cq + (S.cash >= 0 ? 3 : -3);
+  if (min >= 35 && mark >= 58) { applyFx({ you: 8, team: 6, icb: 10, rep: 6, cash: 15 }); return { o: `Passed, with praise. The review calls the practice "resilient and well led", and the ICB offers a £15,000 transformation grant. Bev frames the letter. You go home at 5pm, once.` }; }
+  if (min >= 25 && mark >= 48) { applyFx({ you: 2, icb: 2 }); return { o: `Passed, with conditions: an action plan on your weakest area, reviewed in six months. It's fine. Fine is good.` }; }
+  applyFx({ you: -6, icb: -10, rep: -4 }); addMod({ id: 'review_plan', label: 'ICB improvement plan after the review', months: 6, aim: { patients: -3, team: -3 }, hours: 2 });
+  return { o: `Failed. The ICB puts the practice on a formal improvement plan: monthly meetings, a named "support" officer and a lot of spreadsheets. It will be a long six months.` };
+}
+
 /* ===================== ENGINE: state, month flow, simulation ===================== */
 let S = null;
 // Weekly challenge games use a seeded random stream (kept in S.rng, so it survives saving); everything else uses the browser's.
@@ -2499,7 +2647,7 @@ const GOAL_BONUS = 40;
 // endless mode: what each extra year adds
 const YEAR_DEMAND = 0.1, YEAR_FUNDING = 0.02, YEAR_STAFF = 0.05, YEAR_RUNNING = 0.03, YEAR_YOU = 5;
 const calY = m => CAL_YEAR[Math.min(m, 11)] + ((S && S.yr) || 0);
-const monthsServed = () => ((S && S.yr) || 0) * 12 + Math.min(S.month, 11) + 1;
+const monthsServed = () => ((S && S.yr) || 0) * 12 + Math.min(S.month, 11) + 1 - ((S && S.startAt) || 0);
 const SAVE_KEY = 'lps-save-v2', BEST_KEY = 'lps-best-v1';
 const clamp = (v, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, v));
 const r1 = v => Math.round(v * 10) / 10;
@@ -2657,8 +2805,11 @@ function partnerLeaves(id) {
 }
 
 /* ---------- month flow ---------- */
+// how hard things have got: years served, partners fallen, meters in the red. Gates the long-haul cards (pmin).
+function pressure() { return (S.yr || 0) + ((S.gen || 1) - 1) + STAT_KEYS.filter(k => S.st[k] < 30).length * 0.5; }
 function eligible(e, queued) {
   if (e.arc) return false;
+  if (e.pmin && pressure() < e.pmin) return false;
   if (e.months && !e.months.includes(S.month)) return false;
   if (!e.rep && S.seen[e.id]) return false;
   if (e.rep && e.max && (S.counts[e.id] || 0) >= e.max) return false;
@@ -3136,7 +3287,7 @@ const EXITS = {
   handback: { t: 'Handed back the contract', s: 'Doors closed', f: 0.3, d: 'You gave the contract back rather than carry it alone. The ICB finds a caretaker provider. The lease on the building, you discover, keeps running.', counter: '1,480 practices have closed or merged since 2015. If you lease the building, rent continues after the reimbursement stops.', src: ['S11', 'S23'] }
 };
 function gameOver(k) {
-  S.over = { k, month: S.month, months: (S.yr || 0) * 12 + S.month + 1 };
+  S.over = { k, month: S.month, months: (S.yr || 0) * 12 + S.month + 1 - (S.startAt || 0) };
   S.phase = 'over';
   recordBest(null);
   plaque(`${OVER[k].title}, ${MONTHS[S.month]}${S.yr ? ` of year ${S.yr + 1}` : ''}`, OVER[k].title, 0);
@@ -3177,7 +3328,7 @@ function finishYear(exit) {
   if (exit) score *= EXITS[exit].f;
   score = Math.round(Math.max(0, score));
   const arche = exit ? EXITS[exit] : archetype(annualK, others);
-  const months = (S.yr || 0) * 12 + monthsDone;
+  const months = (S.yr || 0) * 12 + monthsDone - (S.startAt || 0);
   S.end = { goalMet, exit, monthsDone, months, qofV, qofBal, partnersN, shareK, annualK, pers, balancing, hours, perHour, firstTax: (pers.tax + pers.c4) * 1.5, score, arche };
   S.bestYear = Math.max(S.bestYear || 0, score);
   S.phase = 'end';
@@ -3210,8 +3361,34 @@ function continueYear() {
   [['year_new', 0], ['mini_docman', 1], ['pay_award', 2], ['mini_triage', 2], ['survey', 3], ['headline', 4], ['flu_saturday', 5],
    ['winter_phones', 8], ['qof_yearend', 10], ['contract_new', 11]].forEach(([id, m]) => S.sched.push({ id, m }));
   S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
+  if (S.yr % 3 === 2) S.sched.push({ id: 'review_3y', m: 5 });
   S.goal = pick(Object.keys(GOALS));
   startMonth();
+  save();
+}
+
+/* ---------- take over the practice: the next partner starts where the last one fell ---------- */
+function takeOver() {
+  const k = S.over.k;
+  (S.lineage = S.lineage || []).push({ n: S.name, look: S.look, months: S.over.months, how: OVER[k].title });
+  const used = new Set(S.lineage.map(x => x.n));
+  let n = diceName(); for (let i = 0; i < 20 && used.has(n); i++) n = diceName();
+  S.name = n;
+  S.look = { s: ((S.look && S.look.s) + 3) % PLAYER_LOOKS.length, c: ((S.look && S.look.c) + 1) % PLAYER_COLOURS.length };
+  S.runId = Date.now().toString(36) + _rand().toString(36).slice(2, 6);
+  S.gen = (S.gen || 1) + 1;
+  S.startAt = (S.yr || 0) * 12 + S.month + 1;
+  S.bestYear = 0;
+  // a new person, and just enough rescue to open the doors on Monday
+  S.st.you = 70; S.aim.you = 0; S.leaveUsed = 0;
+  if (STAT_KEYS.includes(k)) S.st[k] = Math.max(S.st[k], 32);
+  if (k === 'cash') S.cash = Math.max(S.cash, S.overdraft + 30);
+  if (k === 'patients' || k === 'cqc') { S.st.patients = Math.max(S.st.patients, 32); S.st.safety = Math.max(S.st.safety, 30); ['remedialAt', 'breachAt', 'lowAccess'].forEach(f => delete S.flags[f]); }
+  ['crisis_you', 'crisis_team', 'crisis_patients', 'crisis_safety', 'breach_notice', 'cqc_urgent'].forEach(id => delete S.seen[id]);
+  delete S.flags.lifelineOffered;
+  S.forceOver = null; S.over = null; S.exit = null; S.end = null; S.overPost = null;
+  if (S.month >= 11) continueYear(); else { S.month++; startMonth(); }
+  S.queue.unshift('takeover'); S.qi = 0;
   save();
 }
 
@@ -3221,7 +3398,7 @@ function loadPlaques() { try { const b = JSON.parse(localStorage.getItem(BOARD_L
 function plaque(how, title, score) {
   if (!S || !S.runId) return;
   const st = S.st, weakest = STAT_KEYS.reduce((a, k) => st[k] < st[a] ? k : a, STAT_KEYS[0]);
-  const months = S.end ? S.end.months : (S.yr || 0) * 12 + (S.over ? S.over.month + 1 : S.month + 1);
+  const months = S.end ? S.end.months : S.over ? S.over.months : monthsServed();
   const row = { id: S.runId, n: S.name, look: S.look || { s: 0, c: 0 }, p: S.practiceKey, months, how, t: title, weak: weakest, wv: Math.round(st[weakest]), score: Math.max(score || 0, S.bestYear || 0), w: S.week || null, d: new Date().toISOString().slice(0, 10) };
   const b = loadPlaques().filter(x => x.id !== row.id);
   b.push(row);
@@ -3264,6 +3441,19 @@ const signK = v => (v > 0 ? '+' : v < 0 ? '−' : '') + '£' + Math.abs(v).toFix
 const gbp = v => (v < 0 ? '−£' : '£') + Math.round(Math.abs(v)).toLocaleString('en-GB');
 const pct = v => Math.round(v * 100) + '%';
 let UI = { screen: 'title', pickPractice: 'town', nameDraft: '', look: { s: 0, c: 0 } };
+// settings kept in this browser; the 45-second card timer is off by default
+const SETTINGS_KEY = 'lps-settings-v1', CARD_SECONDS = 45;
+function loadSettings() { try { return Object.assign({ timer: false }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) { return { timer: false }; } }
+function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(UI.settings)); } catch (e) { } }
+UI.settings = loadSettings();
+function timeUp(id, qi) {
+  if (!S || S.phase !== 'event' || S.qi !== qi || S.queue[qi] !== id) return;
+  const e = currentEvent(); if (!e) return;
+  const ok = e.choices.map((c, i) => i).filter(i => { const c = e.choices[i]; try { return !c.play && (!c.need || c.need()) && !String(c.run || '').includes('S.exit'); } catch (err) { return false; } });
+  if (!ok.length) return;
+  const i = ok[Math.floor(_rand() * ok.length)];
+  go(() => { resolveChoice(i, { fx: { you: -2, team: -1, patients: -1 } }); S.cur.o = `Time's up. You didn't decide, so it got decided for you: "${fill(val(e.choices[i].t))}". ` + S.cur.o; S.cur.timeout = 1; });
+}
 const narrow = () => { try { return matchMedia('(max-width:640px)').matches; } catch (e) { return false; } };
 
 const BRIEF = [
@@ -3343,6 +3533,7 @@ function renderTitle() {
       <div class="eyebrow">A general practice survival game</div>
       <h1 class="logo" style="margin-top:12px">Last<br>Partner<span class="rx">Rx</span><br><span class="under">Standing</span></h1>
       <p class="tagline">A year on England's 2026/27 GP contract, then as many more as you can survive. Five things to keep alive, including you.</p>
+      ${avgLineHTML()}
       <div class="memo"><b>Your year as a new GP partner</b>
         <ul>
           <li>Each month, set your week, your cover, your team and one project.</li>
@@ -3366,6 +3557,7 @@ function renderTitle() {
         <label class="name-row" for="docname"><span>Dr</span><input id="docname" maxlength="24" autocomplete="off" placeholder="Surname" value="${esc(UI.nameDraft)}"><button class="dice" data-act="dice" type="button" aria-label="Roll a random name" title="Roll a random name"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor"/></svg></button></label>
       </div>
       <div class="field" style="display:grid;gap:8px"><b>Choose your practice</b><div class="pcards">${pc}</div></div>
+      <label class="toggle"><input type="checkbox" data-act="timer" ${UI.settings.timer ? 'checked' : ''}> <span><b>The 8am pace</b>: ${CARD_SECONDS} seconds to decide each card, or it gets decided for you. Off by default.</span></label>
       <div class="setup-actions">
         <button class="btn primary" data-act="start">Sign the partnership deed</button>
         ${boardOn() ? '<button class="btn ghost" data-act="board">Leaderboard</button>' : ''}
@@ -3550,12 +3742,14 @@ function renderEvent() {
   }).join('');
   const info = e.info ? explain(e.tag === 'speculative' ? 'What\'s invented here?' : 'What\'s real here?', `<p>${esc(fill(e.info))}</p>${srcLinks(e.src)}`, 'real') : '';
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap">
+    ${UI.settings.timer && e.kind !== 'mini' ? `<div class="cardtimer" role="timer" aria-label="${CARD_SECONDS} seconds to decide"><b style="animation-duration:${CARD_SECONDS}s"></b></div>` : ''}
     <article class="card" aria-live="polite">${badge(e.who)}<span class="stampno">${MON3[S.month]} · ${Math.min(n, tot)}/${tot}</span></div>
       <div class="card-title-row"><h2>${esc(fill(val(e.title)))}</h2>${tagPill(e)}</div>
       <div class="text"><p>${esc(fill(val(e.text)))}</p></div>
       ${info}
       <div class="choices">${choices}</div>
     </article></div></main>`;
+  if (UI.settings.timer && e.kind !== 'mini') { const id = S.queue[S.qi], qi = S.qi; UI.tmr = setTimeout(() => timeUp(id, qi), CARD_SECONDS * 1000); }
 }
 function deltaChips(ds) {
   if (!ds || !ds.length) return '<p class="muted" style="margin-top:14px;font-size:14px">No immediate effect.</p>';
@@ -3747,7 +3941,8 @@ function renderOver() {
     ${S.history.length > 1 ? `<section class="panel"><h3>How it went</h3>${chartSVG()}</section>` : ''}
     ${S.yr >= 1 ? boardPanelHTML() : ''}
     ${partnersBoardHTML(8)}
-    <div class="end-actions"><button class="btn primary" data-act="again">Try again</button><button class="btn" data-act="shareimg">Share a picture</button><button class="btn ghost" data-act="home">Title screen</button></div>
+    <section class="carry-on"><div><b>Take over the practice?</b><p>A new partner walks in where Dr ${esc(S.name)} fell: same staff, same list, same overdraft, same queue. The longer the practice struggles, the harder it gets.</p></div><button class="btn primary" data-act="takeover">Take over →</button></section>
+    <div class="end-actions"><button class="btn" data-act="again">Start afresh</button><button class="btn" data-act="shareimg">Share a picture</button><button class="btn ghost" data-act="home">Title screen</button></div>
   </div></main>`;
 }
 
@@ -3772,12 +3967,13 @@ function sourcesHTML() {
 }
 function menuHTML() {
   return `<h2>Menu</h2><p class="muted">Your game saves automatically after every decision, in this browser only.</p>
-  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="honours">The Partners' Board</button><button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
+  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="honours">The Partners' Board</button><button class="btn" data-act="timer">${UI.settings.timer ? 'Turn off' : 'Turn on'} the ${CARD_SECONDS}-second timer</button><button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
 }
 function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); }
 
 /* ---------- render ---------- */
 function render() {
+  if (UI.tmr) { clearTimeout(UI.tmr); UI.tmr = null; }
   if (!S || UI.screen === 'title') { renderTitle(); return; }
   switch (S.phase) {
     case 'plan': return renderPlan();
@@ -3802,6 +3998,8 @@ document.addEventListener('click', ev => {
       else { const k = arg, now = Math.round(S.st[k]); openOverlay(`<h2>${esc({ patients: 'The waiting room', team: 'The staff room', you: 'Your room', safety: 'The treatment room' }[k])}: ${STAT_LABEL[k]}</h2><p class="lede-s">The ${STAT_LABEL[k]} meter is at <b>${now}</b>. If nothing changes, it settles at <b>${T[k].v}</b>.</p>${whyList(T[k].why)}<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>`); }
       break; }
     case 'nextyear': go(continueYear); break;
+    case 'timer': { UI.settings.timer = !UI.settings.timer; saveSettings(); if (S && UI.screen !== 'title') { closeOverlay(); render(); } else keepScroll(renderTitle); toast(UI.settings.timer ? `The 8am pace is on: ${CARD_SECONDS} seconds a card.` : 'The 8am pace is off.'); break; }
+    case 'takeover': go(takeOver); break;
     case 'honours': openOverlay(partnersBoardHTML(40) + '<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>'); break;
     case 'shareimg': openShareImage(); break;
     case 'shareimg-go': { const f = UI.shareFile; if (f && navigator.share) navigator.share({ files: [f], text: 'How long can you last as a GP partner?', url: 'https://last-partner-standing.vercel.app' }).catch(() => { }); break; }
@@ -3918,6 +4116,20 @@ function nameOk(n) {
 }
 function savedBoardName() { try { return localStorage.getItem(BOARD_NAME_KEY) || ''; } catch (e) { return ''; } }
 
+// the number to beat: the average months served by partners on the board (shown once enough runs exist)
+function loadStats() {
+  if (!boardOn() || BD.stats !== undefined) return;
+  BD.stats = null;
+  boardFetch('rpc/lps_stats', { method: 'POST', headers: boardHeaders(), body: '{}' })
+    .then(r => r.ok ? r.json() : null)
+    .then(j => { if (j && j.runs >= 10 && j.avg_months) { BD.stats = j; const el = document.getElementById('avg-line'); if (el) el.outerHTML = avgLineHTML(); } })
+    .catch(() => { });
+}
+const REAL_LINE = 'In real life, the number of GP partners under 40 in England fell by 17% in 15 months, to September 2025.';
+function avgLineHTML(mine) {
+  const st = BD.stats;
+  return `<p class="avg-line" id="avg-line">${st ? `Partners on the leaderboard last <b>${Math.round(st.avg_months)} months</b> on average.${mine != null ? ` You lasted <b>${mine}</b>.` : ''} ` : ''}${esc(REAL_LINE)} <a href="${esc(SOURCES.S83[1])}" target="_blank" rel="noopener">Institute for Government</a></p>`;
+}
 function loadBoard() {
   if (!boardOn()) { BD.err = 'off'; return; }
   BD.loading = true; BD.err = '';
@@ -4149,6 +4361,9 @@ function miniKey(ev) {
 
 /* ===================== BOOT ===================== */
 function boot(data) {
+  try { loadStats(); } catch (e) { }
+  // installable app: register the service worker on the real website only (not in a Claude Artifact or a local file)
+  try { if ('serviceWorker' in navigator && location.protocol === 'https:' && window.self === window.top && /vercel\.app$/.test(location.hostname)) navigator.serviceWorker.register('/sw.js').catch(() => { }); } catch (e) { }
   try { if (data && data.S && data.S.v === 1) { S = data.S; UI.screen = data.screen || 'game'; } } catch (e) { }
   render();
 }

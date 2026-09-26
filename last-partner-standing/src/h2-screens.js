@@ -265,6 +265,11 @@ document.addEventListener('click', ev => {
     case 'draw': S.plan.draw = arg; save(); keepScroll(renderPlan); break;
     case 'proj': S.plan.project = arg; save(); keepScroll(renderPlan); break;
     case 'hire': {
+      if (arg === 'arrsgp') {
+        S.vac.arrsgp = (S.vac.arrsgp || 0) + 1; S.cash = r1(S.cash - 1.5); save(); keepScroll(renderPlan);
+        const left = arrsLeft();
+        toast(`GP advertised through the PCN's additional-roles budget (£1.5k).${gpHeadroom() < 0 ? ` Don't hold your breath: ${prac().place} already has one GP per ${prac().gpCap.toLocaleString('en-GB')} patients, and the local GPs are all taken.` : ' Results at month end.'}${left < 0 ? ` The budget is now over by about £${Math.round(-left)}k a year, which the practice pays.` : ''}`); break;
+      }
       const R = ROLES[arg]; const overK = R.arrs ? Math.max(0, Math.min(arrsClaimOf(arg), arrsClaimOf(arg) - arrsLeft())) : 0;
       const cost = arg === 'salaried' ? 1.5 : arg === 'nurse' ? 0.8 : R.arrs ? 0 : 0.4;
       S.vac[arg] = (S.vac[arg] || 0) + 1; S.cash = r1(S.cash - cost); save(); keepScroll(renderPlan);

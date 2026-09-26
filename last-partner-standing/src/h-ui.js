@@ -188,9 +188,11 @@ function renderPlan() {
     const arrsFull = r === 'salaried' && gpHeadroom() < 6;
     const over = R.arrs ? Math.min(arrsClaimOf(r), Math.max(0, arrsClaimOf(r) - arrsLeft())) : 0;
     const costTxt = (R.arrs ? `About £${Math.round(arrsClaimOf(r))}k a year (${R.band}), claimed from the PCN budget` : `£${(R.cost * 12).toFixed(1)}k a year each, all in`) + (R.room ? `, ${R.room} room sessions a week` : r === 'recep' ? ', no clinic room' : '');
-    return `<div class="role"><div class="l"><b>${esc(R.name)}</b>${R.arrs ? '<span class="tag arrs">ARRS</span>' : ''}${vac ? `<span class="tag vac">${vac} advertised</span>` : ''}<small>${esc(R.desc)} ${costTxt}.</small></div>
+    const gpA = r === 'salaried' ? arrsGPs() : 0, gpAv = r === 'salaried' ? (S.vac.arrsgp || 0) : 0;
+    const gpArrsTxt = r === 'salaried' ? ` Or recruit one through the PCN's additional-roles budget: about £${Math.round(ARRS_GP_CLAIM * (1 + YEAR_STAFF * (S.yr || 0)))}k a year claimed from ARRS instead of paid by the practice${gpA ? `. ${gpA} of yours ${gpA === 1 ? 'is' : 'are'} claimed this way` : ''}.` : '';
+    return `<div class="role"><div class="l"><b>${esc(R.name)}</b>${R.arrs ? '<span class="tag arrs">ARRS</span>' : ''}${vac ? `<span class="tag vac">${vac} advertised</span>` : ''}${gpAv ? `<span class="tag arrs">${gpAv} PCN ad${gpAv > 1 ? "s" : ""} open</span>` : ''}<small>${esc(R.desc)} ${costTxt}.${gpArrsTxt}</small></div>
       <span class="n" aria-label="${n} in post">${n}</span>
-      <div class="acts">${vac ? `<button data-act="unvac" data-arg="${r}">Withdraw ad</button>` : ''}<button data-act="hire" data-arg="${r}" ${arrsFull ? `aria-describedby="off-${r}"` : ''}>Recruit</button><button data-act="fire" data-arg="${r}" ${n ? '' : 'disabled'}>Let go</button></div>
+      <div class="acts">${vac ? `<button data-act="unvac" data-arg="${r}">Withdraw ad</button>` : ''}<button data-act="hire" data-arg="${r}" ${arrsFull ? `aria-describedby="off-${r}"` : ''}>Recruit</button>${r === 'salaried' ? `${gpAv ? '<button data-act="unvac" data-arg="arrsgp">Withdraw PCN ad</button>' : ''}<button data-act="hire" data-arg="arrsgp">Recruit via PCN</button>` : ''}<button data-act="fire" data-arg="${r}" ${n ? '' : 'disabled'}>Let go</button></div>
       ${arrsFull ? `<p class="role-off" id="off-${r}">You can advertise, but don't expect anyone: ${esc(prac().place)} already has more GPs than local applicants will fill.</p>` : over > 0.5 ? `<p class="role-off">Over the PCN budget: about <b>£${Math.round(over)}k a year</b> of another one would come from the practice.</p>` : ''}</div>`;
   }).join('');
   const ratio = c.ratio;

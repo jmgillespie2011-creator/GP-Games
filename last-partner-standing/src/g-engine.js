@@ -55,9 +55,11 @@ const arrsCount = () => ROLE_ORDER.filter(r => ROLES[r].arrs).reduce((n, r) => n
 const arrsBudget = () => weightedList() * P.arrs / 1000 * (1 + YEAR_FUNDING * ((S && S.yr) || 0));
 const arrsClaimOf = r => (ROLES[r].claim || 0) * (1 + YEAR_STAFF * ((S && S.yr) || 0));
 // from 2026/27 a PCN can claim a GP from the same budget: up to £152,900 a year full time; our salaried GP works six sessions
-const ARRS_GP_CLAIM = 152.9 * 6 / 9;
+// a GP through ARRS is reimbursed at actual salary plus on-costs, up to £152,900 a year full time (2026/27);
+// ours work six sessions, so the claim is their real cost, capped at six ninths of the maximum
+const ARRS_GP_CLAIM = Math.min(152.9 * 6 / 9, ROLES.salaried.cost * 12);
 const arrsGPs = () => Math.min(S.arrsGP || 0, S.staff.salaried);
-const arrsSpend = withAdverts => ROLE_ORDER.filter(r => ROLES[r].arrs).reduce((a, r) => a + arrsClaimOf(r) * (S.staff[r] + (withAdverts ? (S.vac[r] || 0) : 0)), 0) + arrsGPs() * ARRS_GP_CLAIM * (1 + YEAR_STAFF * ((S && S.yr) || 0));
+const arrsSpend = withAdverts => ROLE_ORDER.filter(r => ROLES[r].arrs).reduce((a, r) => a + arrsClaimOf(r) * (S.staff[r] + (withAdverts ? (S.vac[r] || 0) : 0)), 0) + (arrsGPs() + (withAdverts ? (S.vac.arrsgp || 0) : 0)) * ARRS_GP_CLAIM * (1 + YEAR_STAFF * ((S && S.yr) || 0));
 const arrsLeft = () => arrsBudget() - arrsSpend(true);
 const EVMAP = {};
 EVENTS.forEach(e => { EVMAP[e.id] = e; });
@@ -78,16 +80,16 @@ function roomsAvail() { return ROOM_SESSIONS * (S.rooms + activeMods().reduce((a
 // Under-doctored areas: some practices can't recruit GPs past a local ceiling (patients per full-time GP).
 // Your own sessions count as one full-time GP, so working harder never blocks a hire.
 function gpHiredSessions() {
-  let n = GP_FTE_SESSIONS + 6 * (S.staff.salaried + (S.vac.salaried || 0));
+  let n = GP_FTE_SESSIONS + 6 * (S.staff.salaried + (S.vac.salaried || 0) + (S.vac.arrsgp || 0));
   for (const id in S.partners) if (isActive(id)) n += S.partners[id].clin + 1;
   if (hasMod('scheme')) n += 2;
   return n;
 }
 const NO_GP_REPLIES = [
-  'Salaried GP advert: no applicants. The only enquiry was from a recruitment agency offering to "partner with you on your GP challenge".',
-  'Salaried GP advert: no applicants. The job board says it has had 212 views.',
-  'Salaried GP advert: one application, from a GP who wanted to know if the job could be done entirely from Portugal.',
-  'Salaried GP advert: no applicants. Every GP within 20 miles already has three job offers.'
+  'GP advert: no applicants. The only enquiry was from a recruitment agency offering to "partner with you on your GP challenge".',
+  'GP advert: no applicants. The job board says it has had 212 views.',
+  'GP advert: one application, from a GP who wanted to know if the job could be done entirely from Portugal.',
+  'GP advert: no applicants. Every GP within 20 miles already has three job offers.'
 ];
 function gpHeadroom() { const cap = prac().gpCap; return cap ? S.list / cap * GP_FTE_SESSIONS - gpHiredSessions() : Infinity; }
 const locumMax = () => prac().locumMax || 8;
@@ -603,7 +605,14 @@ function monthEnd() {
     let n = S.vac[r];
     while (n > 0) {
       // in an under-doctored area a salaried GP advert can run, but nobody applies
-      if (r === 'salaried' && gpHeadroom() < 0) { hires.push(pick(NO_GP_REPLIES)); n--; continue; }
+      if ((r === 'salaried' || r === 'arrsgp') && gpHeadroom() < 0) { hires.push(pick(NO_GP_REPLIES)); n--; continue; }
+      // a GP through the PCN's additional-roles budget: a salaried GP whose pay is claimed from ARRS.
+      // Since 2026/27 any GP can be claimed, so the pool is a little wider than for a practice post.
+      if (r === 'arrsgp') {
+        if (chance(Math.min(0.95, ROLES.salaried.hire * 1.25 * p.hire * (1 + (proj.hireBoost || 0)) * (0.8 + S.rep / 250) * (S.st.team < 35 ? 0.7 : 1)))) { S.staff.salaried++; S.arrsGP = (S.arrsGP || 0) + 1; S.vac.arrsgp--; hires.push('Salaried GP hired through the PCN\'s additional-roles budget.'); }
+        else hires.push('GP through the PCN budget: no suitable applicants yet.');
+        n--; continue;
+      }
       const pr = Math.min(0.95, ROLES[r].hire * p.hire * (1 + (proj.hireBoost || 0)) * (0.8 + S.rep / 250) * (S.st.team < 35 ? 0.7 : 1));
       if (chance(pr)) { S.staff[r]++; S.vac[r]--; hires.push(`${ROLES[r].name} hired.`); }
       else hires.push(`${ROLES[r].name}: no suitable applicants yet.`);

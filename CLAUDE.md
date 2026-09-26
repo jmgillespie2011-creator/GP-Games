@@ -13,7 +13,7 @@ A single-page vanilla JS game with no dependencies. The only build step is conca
   - `vercel.json` rewrites `/` and `/last-partner-standing` to the playable file.
   - `.vercelignore` keeps source, tools and docs out of the deployment.
   - Rebuild before deploying.
-  - The Vercel project `last-partner-standing` (https://last-partner-standing.vercel.app) used to hold a different build of the game. Since September 2026 it serves this game too. It isn't linked to GitHub, so deploy it by hand from this repo (a production deployment with a GitHub `gitSource` for this repo and branch) whenever you deploy `gp-games`, until it is linked in the Vercel dashboard.
+  - https://last-partner-standing.vercel.app (the Vercel project `last-partner-standing`) is a proxy. It holds only `vercel-proxy/last-partner-standing/vercel.json`, which rewrites every request to https://gp-games.vercel.app. So it always serves whatever `gp-games` is serving, and a push to `main` updates both addresses. Don't deploy the game to that project. Only redeploy it if the proxy file changes (see `vercel-proxy/README.md`).
 - Leaderboard database: the Supabase project `rttvlxawjidhneljhglk` (organisation GP Games, region eu-west-1), applied as the migration `lps_scores_leaderboard`. `last-partner-standing/supabase/lps_scores.sql` creates the table, row-level security (anyone can read and insert; nobody can update or delete), sanity checks on values, a server-set timestamp and a limit of 30 posts a minute. Scores are computed in the browser, so they can be faked.
 - Save games (`lps-save-v2`) and best scores (`lps-best-v1`) live in `localStorage`. Every access is wrapped in try/catch. Bump the save key if the state shape changes.
 

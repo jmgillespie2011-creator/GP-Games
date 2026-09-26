@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "https://gp-games.vercel.app/" },
+    { "source": "/:path*", "destination": "https://gp-games.vercel.app/:path*" }
+  ]
+}

@@ -1322,7 +1322,12 @@ function openShareImage() {
       const url = URL.createObjectURL(blob);
       const file = typeof File === 'function' ? new File([blob], 'last-partner-standing.png', { type: 'image/png' }) : null;
       const canShare = file && navigator.canShare && navigator.canShare({ files: [file] });
-      openOverlay(`<h2>Your picture</h2><img class="share-img" src="${url}" alt="Dr ${esc(S.name)} at ${esc(prac().surgery)}"><div class="row-actions">${canShare ? '<button class="btn primary" data-act="shareimg-go">Share</button>' : ''}<a class="btn${canShare ? '' : ' primary'}" href="${url}" download="last-partner-standing.png">Save image</a><button class="btn ghost" data-act="close">Close</button></div>`);
+      // inside a Claude Artifact the page is framed and can't offer downloads, so point to the website instead
+      let framed = false; try { framed = window.self !== window.top; } catch (e) { framed = true; }
+      const acts = framed
+        ? `<p class="muted">To save or share it, play at <a href="https://last-partner-standing.vercel.app" target="_blank" rel="noopener">last-partner-standing.vercel.app</a>.</p><div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>`
+        : `<div class="row-actions">${canShare ? '<button class="btn primary" data-act="shareimg-go">Share</button>' : ''}<a class="btn${canShare ? '' : ' primary'}" href="${url}" download="last-partner-standing.png">Save image</a><button class="btn ghost" data-act="close">Close</button></div>`;
+      openOverlay(`<h2>Your picture</h2><img class="share-img" src="${url}" alt="Dr ${esc(S.name)} at ${esc(prac().surgery)}">${acts}`);
       UI.shareFile = file;
     }, 'image/png');
   };

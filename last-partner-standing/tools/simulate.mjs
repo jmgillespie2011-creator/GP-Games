@@ -16,7 +16,7 @@ const L = ctx.__lps;
 const N = +(process.argv[2] || 200);
 const practices = !process.argv[3] || process.argv[3] === 'all' ? ['suburb', 'town', 'city'] : [process.argv[3]];
 const policies = !process.argv[4] || process.argv[4] === 'both' ? ['random', 'smart'] : [process.argv[4]];
-const EXIT_CHOICES = { apex_offer: [0], merger_vote: [0], salaried_offer: [0], emigrate: [0], last_partner: [0], lifeline: [1] };
+const EXIT_CHOICES = { breach_notice: [2], apex_offer: [0], merger_vote: [0], salaried_offer: [0], emigrate: [0], last_partner: [0], lifeline: [1] };
 
 function options(e) {
   return e.choices.map((c, i) => i).filter(i => { const c = e.choices[i]; try { return !c.need || c.need(); } catch { return false; } });

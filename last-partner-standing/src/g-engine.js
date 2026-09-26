@@ -482,6 +482,15 @@ function monthEnd() {
   due.forEach(x => { if (chance(x.p)) { applyFx(x.fx); if (x.note) consq.push(x.note); } });
   // things that happen because of the state you're in
   incidents(c).forEach(n => consq.push(n));
+  // the contract process: a remedial notice, a breach notice if access hasn't improved a month later,
+  // and termination after three month-ends in a row of poor access once notice has been served
+  const f = S.flags;
+  if (f.remedialAt != null && f.breachAt == null && !S.seen.breach_notice && S.month >= f.remedialAt + 1 && S.st.patients < 30) schedule('breach_notice', 0);
+  f.lowAccess = S.st.patients < (prac().accessLine || 10) ? (f.lowAccess || 0) + 1 : 0;
+  if (f.remedialAt != null && f.lowAccess >= 3) {
+    S.forceOver = 'patients';
+    consq.push('Because patients still couldn\'t get through, three months running after the ICB\'s notice: the ICB has given notice to terminate the contract.');
+  } else if (f.remedialAt != null && f.lowAccess === 2) consq.push('Warning: two months in a row of poor access since the ICB\'s notice. A third means the contract can be terminated.');
   // recruitment: harder when morale or reputation is poor
   const hires = [];
   for (const r in S.vac) {

@@ -534,7 +534,7 @@ const PRACTICES = {
     key:'city',label:'Inner city',diff:'Brutal',surgery:'Canal Street Medical Centre',place:'Hollowbrook',paper:'The Hollowbrook Herald',
     blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold. One GP per 3,000 patients, and nobody is applying.',
     list:10400,weight:0.96,prev:0.9,lastQof:88,cash:25,overdraft:-95,st:{patients:42,team:48,you:62,safety:48},
-    demandRate:0.104,inboxRate:0.046,qofEase:0.88,hire:0.7,turnover:0.14,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:3000,locumMax:4,
+    demandRate:0.104,inboxRate:0.046,qofEase:0.88,hire:0.7,turnover:0.14,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:3000,locumMax:4,accessLine:16,
     staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0}
   }
 };
@@ -1817,10 +1817,21 @@ EVENTS.push(
 
 {id:'crisis_patients',arc:1,who:'icb',title:'A remedial notice',tag:'rule',src:['S1'],
  info:'If the ICB believes a practice is breaching its contract, for example on access in core hours, it can issue a remedial notice with a deadline, then a breach notice. Repeated breaches can end the contract.',
- text:`The ICB sends a remedial notice: patients "unable to access services in core hours". You have 28 days to put it right.`,
+ text:`The ICB sends a remedial notice: patients "unable to access services in core hours". You have 28 days to put it right. After that, the ICB will keep watching access month by month.`,
+ after(){ S.flags.remedialAt = S.month; },
  choices:[
-  {t:'Hire locums now (about £12,000 over two months)',fx:{patients:8,cash:-6,icb:4},run(){ addMod({id:'remedial',label:'Remedial locum cover',months:2,capAdd:84,fx:{cash:-3}}); },o:`Six extra locum sessions a week for two months. The ICB closes the notice with a note to "monitor".`},
+  {t:'Hire locums now (about £12,000 over two months)',fx:{patients:8,cash:-6,icb:4},run(){ addMod({id:'remedial',label:'Remedial locum cover',months:2,capAdd:84,fx:{cash:-3}}); },o:`Six extra locum sessions a week for two months. The ICB notes the improvement, and keeps monitoring.`},
   {t:'Contest the notice',fx:{icb:-10,you:-6},o:`The LMC helps you write a firm reply. The ICB is unmoved and schedules a review.`}
+ ]},
+
+{id:'breach_notice',arc:1,who:'icb',title:'A breach notice',tag:'rule',src:['S1'],
+ info:'If a remedial notice doesn\'t fix the problem, the commissioner can issue a breach notice. Further breaches can lead to the contract being terminated, and the patients being moved to other practices or a caretaker provider.',
+ text:`A month on, the ICB says access hasn't improved enough. This is a formal breach notice. If patients still can't get through for three months running, the ICB can end the contract.`,
+ after(){ S.flags.breachAt = S.month; },
+ choices:[
+  {t:'Emergency access plan: locums, extended hours, partners on the phones (£10,000)',fx:{patients:4,cash:-10,you:-8,team:-3},run(){ addMod({id:'breach',label:'Emergency access plan',months:2,capAdd:40,hours:4}); },o:`Every spare session goes into same-day access. It's exhausting. It might be enough.`},
+  {t:'Ask the LMC to negotiate more time',fx:{you:-3,icb:-2},alt:{p:0.5,fx:{you:-3,icb:-4},o:`The ICB won't move. The clock is still running.`},run(){ if(!S._alt) S.flags.lowAccess = 0; },o:`The LMC gets the clock reset: a fresh three months to show improvement.`},
+  {t:'Start talks with neighbouring practices about handing over the list',run(){ S.exit='handback'; return {o:`You start the conversation nobody wants to have. By the spring, your patients are spread across three other practices.`}; }}
  ]},
 
 {id:'crisis_safety',arc:1,who:'cqc',title:'Tomorrow',tag:'story',
@@ -2448,6 +2459,15 @@ function monthEnd() {
   due.forEach(x => { if (chance(x.p)) { applyFx(x.fx); if (x.note) consq.push(x.note); } });
   // things that happen because of the state you're in
   incidents(c).forEach(n => consq.push(n));
+  // the contract process: a remedial notice, a breach notice if access hasn't improved a month later,
+  // and termination after three month-ends in a row of poor access once notice has been served
+  const f = S.flags;
+  if (f.remedialAt != null && f.breachAt == null && !S.seen.breach_notice && S.month >= f.remedialAt + 1 && S.st.patients < 30) schedule('breach_notice', 0);
+  f.lowAccess = S.st.patients < (prac().accessLine || 10) ? (f.lowAccess || 0) + 1 : 0;
+  if (f.remedialAt != null && f.lowAccess >= 3) {
+    S.forceOver = 'patients';
+    consq.push('Because patients still couldn\'t get through, three months running after the ICB\'s notice: the ICB has given notice to terminate the contract.');
+  } else if (f.remedialAt != null && f.lowAccess === 2) consq.push('Warning: two months in a row of poor access since the ICB\'s notice. A third means the contract can be terminated.');
   // recruitment: harder when morale or reputation is poor
   const hires = [];
   for (const r in S.vac) {

@@ -233,10 +233,21 @@ EVENTS.push(
 
 {id:'crisis_patients',arc:1,who:'icb',title:'A remedial notice',tag:'rule',src:['S1'],
  info:'If the ICB believes a practice is breaching its contract, for example on access in core hours, it can issue a remedial notice with a deadline, then a breach notice. Repeated breaches can end the contract.',
- text:`The ICB sends a remedial notice: patients "unable to access services in core hours". You have 28 days to put it right.`,
+ text:`The ICB sends a remedial notice: patients "unable to access services in core hours". You have 28 days to put it right. After that, the ICB will keep watching access month by month.`,
+ after(){ S.flags.remedialAt = S.month; },
  choices:[
-  {t:'Hire locums now (about £12,000 over two months)',fx:{patients:8,cash:-6,icb:4},run(){ addMod({id:'remedial',label:'Remedial locum cover',months:2,capAdd:84,fx:{cash:-3}}); },o:`Six extra locum sessions a week for two months. The ICB closes the notice with a note to "monitor".`},
+  {t:'Hire locums now (about £12,000 over two months)',fx:{patients:8,cash:-6,icb:4},run(){ addMod({id:'remedial',label:'Remedial locum cover',months:2,capAdd:84,fx:{cash:-3}}); },o:`Six extra locum sessions a week for two months. The ICB notes the improvement, and keeps monitoring.`},
   {t:'Contest the notice',fx:{icb:-10,you:-6},o:`The LMC helps you write a firm reply. The ICB is unmoved and schedules a review.`}
+ ]},
+
+{id:'breach_notice',arc:1,who:'icb',title:'A breach notice',tag:'rule',src:['S1'],
+ info:'If a remedial notice doesn\'t fix the problem, the commissioner can issue a breach notice. Further breaches can lead to the contract being terminated, and the patients being moved to other practices or a caretaker provider.',
+ text:`A month on, the ICB says access hasn't improved enough. This is a formal breach notice. If patients still can't get through for three months running, the ICB can end the contract.`,
+ after(){ S.flags.breachAt = S.month; },
+ choices:[
+  {t:'Emergency access plan: locums, extended hours, partners on the phones (£10,000)',fx:{patients:4,cash:-10,you:-8,team:-3},run(){ addMod({id:'breach',label:'Emergency access plan',months:2,capAdd:40,hours:4}); },o:`Every spare session goes into same-day access. It's exhausting. It might be enough.`},
+  {t:'Ask the LMC to negotiate more time',fx:{you:-3,icb:-2},alt:{p:0.5,fx:{you:-3,icb:-4},o:`The ICB won't move. The clock is still running.`},run(){ if(!S._alt) S.flags.lowAccess = 0; },o:`The LMC gets the clock reset: a fresh three months to show improvement.`},
+  {t:'Start talks with neighbouring practices about handing over the list',run(){ S.exit='handback'; return {o:`You start the conversation nobody wants to have. By the spring, your patients are spread across three other practices.`}; }}
  ]},
 
 {id:'crisis_safety',arc:1,who:'cqc',title:'Tomorrow',tag:'story',

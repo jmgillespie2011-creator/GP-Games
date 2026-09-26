@@ -43,6 +43,7 @@ A single-page vanilla JS game with no dependencies. The only build step is conca
 - **One-off effects fade; lasting ones don't.** Plain `fx` values jolt a meter and then drift back. `aim` moves the target itself, permanently or for a while through a `mod` with `aim`.
 - **Delayed effects.** `later: [{in, p, fx, note}]` plants a consequence that may land `in` months later with probability `p`. Its `note` appears under "What came of it" in the month report. Seeds must be plain data, not functions, so they survive saving.
 - **State-driven incidents.** `incidents()` rolls month-end events from the state, for example a missed result when the inbox is high or a resignation when morale is low. Each note says "Because…".
+- **The ICB contract process.** The patients crisis card is a remedial notice (`flags.remedialAt`). If Patients is below 30 a month later, a breach notice follows. Once notice has been served, three month-ends in a row with Patients below the practice's `accessLine` (16 in the city, 10 elsewhere; counted in `flags.lowAccess`) make the ICB terminate the contract (`forceOver = 'patients'`). The month report warns after two.
 - **Crises before game over.** A meter at 18 or below, the bank past its overdraft limit, or being the last partner queues a one-off crisis card first.
 - **Other endings.** Setting `S.exit` in a choice (`sold`, `merged`, `salaried`, `emigrated`, `handback`) ends the game after the outcome card.
 - **Hidden relationships.** `S.icb` and `S.rep` (0–100) shape patient satisfaction, recruitment, bids and ICB behaviour. The report explains them.
@@ -103,13 +104,14 @@ The last run of `tools/simulate.mjs 400` covered 2,400 years:
 
 | Practice | Random play survived | Sensible play survived | Sensible play profit share | Sensible play take-home | Sensible play QOF |
 |---|---|---|---|---|---|
-| Suburb | 58% | 100% | £148k | £73k | 94% |
-| Town | 54% | 100% | £154k | £74k | 94% |
-| City | 31% | 100% | £149k | £73k | 94% |
+| Suburb | 55% | 100% | £150k | £73k | 94% |
+| Town | 44% | 100% | £153k | £74k | 94% |
+| City | 6% | 92% | £149k | £73k | 94% |
 
 - Burnout in January and February is the most common game over.
 - The city was rebalanced in September 2026: it starts with a care coordinator and a social prescriber, £40k in the bank against a £110k overdraft, lower overheads and slightly lower demand. It also carries a small extra drag on You. Sensible play now ends with patients around 39, mostly Good from CQC (about a third Requires improvement) and the bank within its overdraft.
 - Random-play survival moves by about 5 points between runs.
+- The city must be able to beat a sensible player. With `accessLine: 16`, about 8% of sensible city years end with the ICB terminating the contract, mostly in February or March.
 - The city was made harder again: demand 0.104 contacts per patient a week (deprived areas consult more), £25k in the bank against a £95k overdraft, lower starting meters, recruitment at 0.7 of the town's success rate, and `turnover: 0.14`. That's a 14% monthly chance that a receptionist, nurse or HCA leaves regardless of morale (`incidents()`). Sensible play survives, but most years end "Survived. Technically.", with patients around 18, 80% Requires improvement and 12% Inadequate.
 - The city is under-doctored on purpose. `gpCap: 3000` stops salaried GP recruitment beyond one full-time GP per 3,000 patients (`gpHeadroom()`). That's like the worst-covered parts of Kent; the worst whole ICB, North West London, is about 1 per 2,750. Your own sessions count as one full-time GP, so they never block a hire. The city starts at about 1 per 2,800, already past the cap, so no salaried GP can be recruited even after one leaves, and partnership adverts rarely find anyone. Locums are capped at 4 sessions a week there (`locumMax`). Sensible play still survives, but ends with patients around 27 and mostly Requires improvement from CQC.
 - Staffing is calibrated to the England workforce figures for August 2026 (per 10,000 patients: about 4.6 fully qualified GPs, 2.6 nurses, 2.9 other practice clinical staff and 12.3 admin and reception staff). The Team panel's "How you compare with England" shows the player's practice against these averages (`BENCH` and `benchmark()`). Receptionists are needed at 1 per 1,600 patients.

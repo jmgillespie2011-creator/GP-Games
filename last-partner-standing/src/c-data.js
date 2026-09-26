@@ -255,6 +255,8 @@ const SOURCES = {
   S75:['The King\'s Fund: waiting times for elective treatment','https://www.kingsfund.org.uk/insight-and-analysis/data-and-charts/waiting-times-non-urgent-treatment','B'],
   S76:['NHS England: interim commissioning guidance, tirzepatide (NICE TA1026)','https://www.england.nhs.uk/long-read/interim-commissioning-guidance-nice-ta1026-tirzepatide/','A'],
   S77:['NHS Somerset ICB: weight management and tirzepatide for clinicians','https://nhssomerset.nhs.uk/for-clinicians/weight-management-mounjaro/','B'],
+  S78:['NHS England: women\'s health hubs','https://www.england.nhs.uk/long-read/womens-health-hubs/','A'],
+  S79:['GOV.UK: £25 million for women\'s health hub expansion','https://gov.uk/government/news/25-million-for-womens-health-hub-expansion','A'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
   S46:['CQC: GP mythbuster 1, emergency care in general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-1-emergency-care-general-practice','A'],

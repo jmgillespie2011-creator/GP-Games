@@ -215,7 +215,7 @@ function archetype(shareK, others) {
 /* ---------- storage ---------- */
 function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { } }
 function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) { } }
-function loadSave() { try { const t = localStorage.getItem(SAVE_KEY); if (!t) return null; const s = JSON.parse(t); return s && s.v === 2 && s.phase !== 'over' && !(s.phase === 'end' && s.end && s.end.exit) ? s : null; } catch (e) { return null; } }
+function loadSave() { try { const t = localStorage.getItem(SAVE_KEY); if (!t) return null; const s = JSON.parse(t); if (s && s.staff && s.staff.anp == null) s.staff.anp = 0; return s && s.v === 2 && s.phase !== 'over' && !(s.phase === 'end' && s.end && s.end.exit) ? s : null; } catch (e) { return null; } }
 function loadBest() { try { const b = JSON.parse(localStorage.getItem(BEST_KEY) || '[]'); return Array.isArray(b) ? b : []; } catch (e) { return []; } }
 function recordBest(end) {
   const entry = end

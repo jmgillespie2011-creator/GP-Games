@@ -125,7 +125,7 @@ function benchmark() {
   const other = ['hca', 'pharm', 'physio', 'para', 'mhp', 'cc', 'sp', 'gpa'].reduce((a, r) => a + S.staff[r], 0);
   return [
     ['GPs (FTE, excluding trainees)', gpSess / GP_FTE_SESSIONS, BENCH.gp * k, 'Your sessions and your partners\', salaried GPs\' and scheme sessions, at 9 a week each'],
-    ['Practice nurses', S.staff.nurse, BENCH.nurse * k, ''],
+    ['Nurses', S.staff.nurse + (S.staff.anp || 0), BENCH.nurse * k, 'Practice nurses and advanced nurse practitioners'],
     ['Other clinical staff', other, BENCH.dpc * k, 'Nationally this counts practice staff only. PCN-funded ARRS roles come on top.'],
     ['Admin and reception', S.staff.recep + office, BENCH.admin * k, `${S.staff.recep} receptionists and about ${office.toFixed(1)} office staff`]
   ];

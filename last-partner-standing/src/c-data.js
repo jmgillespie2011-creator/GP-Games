@@ -51,21 +51,21 @@ const PRACTICES = {
     blurb:'Healthy, wealthy and well-informed. The easiest list in the county, on paper. The building is older than the NHS.',
     list:7200,weight:1.02,prev:0.95,lastQof:96,cash:50,overdraft:-65,st:{patients:54,team:60,you:68,safety:58},
     demandRate:0.097,inboxRate:0.05,qofEase:1.08,hire:1.0,turnover:0.04,youDrag:4,youDragWhy:'Patients who read the guidelines before you do',rooms:7,premNet:1.5,overhead:0,priv:4.1,
-    staff:{recep:5,nurse:2,hca:1,salaried:1,pharm:0,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0}
+    staff:{recep:5,nurse:2,hca:1,salaried:1,pharm:0,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0,anp:0}
   },
   town:{
     key:'town',label:'Market town',diff:'Standard',surgery:'Riverside Surgery',place:'Bramleigh',paper:'The Bramleigh Bugle',
     blurb:'A proper mix: farms, a new estate, a care home and one very active local Facebook group.',
     list:8200,weight:1.0,prev:1.0,lastQof:94,cash:30,overdraft:-75,st:{patients:48,team:52,you:64,safety:52},
     demandRate:0.102,inboxRate:0.048,qofEase:1.0,hire:0.9,turnover:0.07,youDrag:6,youDragWhy:'The care home, the new estate and the Facebook group',rooms:7,premNet:2.5,overhead:0,priv:2.9,
-    staff:{recep:5,nurse:2,hca:1,salaried:1,pharm:1,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0}
+    staff:{recep:5,nurse:2,hca:1,salaried:1,pharm:1,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0,anp:0}
   },
   city:{
     key:'city',label:'Inner city',diff:'Brutal',surgery:'Canal Street Medical Centre',place:'Hollowbrook',paper:'The Hollowbrook Herald',
     blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold. One GP per 3,000 patients, and nobody is applying.',
     list:10400,weight:0.96,prev:0.9,lastQof:88,cash:25,overdraft:-95,st:{patients:48,team:50,you:66,safety:50},
     demandRate:0.104,inboxRate:0.046,qofEase:0.88,hire:0.7,turnover:0.14,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:3000,locumMax:4,accessLine:15,
-    staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0}
+    staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0,anp:0}
   }
 };
 // income per registered patient a year, £ (scaled from the 2026/27 reference practice) [S8,S9]
@@ -79,6 +79,7 @@ const ROLES = {
   nurse:{name:'Practice nurse',cost:empCostK(35884,0.85),cap:104,qof:1.2,room:8,hire:0.4,desc:'Chronic disease reviews, smears, imms. Your QOF engine.'},
   hca:{name:'Healthcare assistant',cost:empCostK(24500,0.7),cap:120,qof:0.8,room:9,hire:0.6,desc:'Bloods, blood pressures, ECGs, health checks.'},
   salaried:{name:'Salaried GP',cost:empCostK(P.salaried*6/9,1),cap:84,clear:50,room:6,hire:0.4,desc:'Six sessions a week. Doesn\'t have to think about the overdraft.'},
+  anp:{name:'Advanced nurse practitioner',arrs:1,claim:78.5,band:'Band 8a',sup:1,cost:0.35,cap:100,clear:15,room:9,hire:0.45,desc:'Sees same-day problems start to finish, examines, diagnoses and prescribes. Not a GP, but the nearest thing you can hire when no GP will come.'},
   pharm:{name:'Clinical pharmacist',arrs:1,claim:78,band:'Band 7 to 8a',sup:1,cost:0.35,cap:60,clear:40,qof:0.8,room:4,hire:0.65,desc:'Med reviews, scripts, and queries about the queries.'},
   physio:{name:'First contact physio',arrs:1,claim:78,band:'Band 7 to 8a',sup:1,cost:0.35,cap:80,room:9,hire:0.6,desc:'Backs, knees and shoulders, straight to the right person.'},
   para:{name:'Paramedic',arrs:1,claim:78,band:'Band 7 to 8a',sup:1,cost:0.35,cap:55,room:4,hire:0.5,desc:'Home visits and same-day minor illness.'},
@@ -87,7 +88,7 @@ const ROLES = {
   sp:{name:'Social prescriber',arrs:1,claim:50,band:'Band 5',cost:0.35,demand:-2,hire:0.75,desc:'Loneliness, debt, housing: the things a prescription can\'t fix.'},
   gpa:{name:'GP assistant',arrs:1,claim:40,band:'Band 4',cost:0.35,clear:80,hire:0.7,desc:'Codes letters, preps results, tames the inbox.'}
 };
-const ROLE_ORDER = ['salaried','nurse','hca','recep','pharm','physio','para','mhp','cc','sp','gpa'];
+const ROLE_ORDER = ['salaried','anp','nurse','hca','recep','pharm','physio','para','mhp','cc','sp','gpa'];
 // ARRS roles are claimed from the PCN's additional-roles budget (P.arrs per weighted patient; the practice's share is modelled).
 // `claim` is our estimate of each role's maximum reimbursement, £k a year: the top of its Agenda for Change band plus employer NI and pension.
 // A consulting room gives about 9 bookable half-day sessions a week (10, less clashes, cleaning and meetings).
@@ -282,6 +283,7 @@ const SOURCES = {
   S95:['National Audit Office: Investigation, clinical correspondence handling at NHS Shared Business Services','https://www.nao.org.uk/reports/investigation-clinical-correspondence-handling-at-nhs-shared-business-services/','A'],
   S96:['Pulse: How undelivered hospital letters have caused chaos for GPs','https://www.pulsetoday.co.uk/analysis/special-investigations/youve-not-got-mail/how-undelivered-hospital-letters-have-caused-chaos-for-gps/','B'],
   S97:['Pulse: Hospital trust fails to send over 50,000 patient letters to GPs due to IT fault','https://www.pulsetoday.co.uk/news/breaking-news/hospital-trust-fails-to-send-over-50000-patient-letters-to-gps-due-to-it-fault/','B'],
+  S98:['Nursing in Practice: Funding for ARRS nurse roles outlined for 2026/27','https://www.nursinginpractice.com/latest-news/funding-for-arrs-nurse-roles-outlined-for-2026-27/','B'],
   S94:['NHS England Digital: Appointments in General Practice','https://digital.nhs.uk/data-and-information/publications/statistical/appointments-in-general-practice','A'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
@@ -305,7 +307,7 @@ const GLOSSARY = [
   ['Weighted list (Carr-Hill)','Your list adjusted for need: age, sex, care-home residence (1.43x), new registration (1.46x for a year), rurality and staff costs. The global sum is paid on this, not on headcount.',['S3']],
   ['QOF','The Quality and Outcomes Framework. 582 points in 2026/27, each worth £227.95 for an average-sized practice, scaled for list size and disease prevalence.',['S3']],
   ['Aspiration payment','80% of last year\'s QOF value, paid monthly during the year. The balance for what you actually achieved is due by the end of the following June. Under-achieve and you pay some back.',['S3']],
-  ['ARRS','The Additional Roles Reimbursement Scheme. Each PCN gets a budget of £27.668 per weighted patient a year (2026/27) and claims back the pay of pharmacists, physios, paramedics, care coordinators and others, up to a maximum for each role. From 2026/27 GPs can be claimed too, up to £152,900 a year with on-costs. Staff beyond the budget are paid for by the practices. The practice still has to find the room and the supervision.',['S4','S84']],
+  ['ARRS','The Additional Roles Reimbursement Scheme. Each PCN gets a budget of £27.668 per weighted patient a year (2026/27) and claims back the pay of pharmacists, physios, paramedics, advanced nurse practitioners (up to £78,534 a year at Band 8a), care coordinators and others, up to a maximum for each role. From 2026/27 GPs can be claimed too, up to £152,900 a year with on-costs. Staff beyond the budget are paid for by the practices. The practice still has to find the room and the supervision.',['S4','S84']],
   ['PCN','Primary Care Network: a group of neighbouring practices working together under the Network Contract DES. Practices get £1.761 per weighted patient for taking part.',['S4']],
   ['ICB','Integrated Care Board: the NHS body that commissions and pays practices in your area, and issues remedial and breach notices.',[]],
   ['CQC','The Care Quality Commission, which inspects and rates practices on five questions: safe, effective, caring, responsive and well-led. About 5% of practices are rated Requires Improvement or Inadequate.',['S33']],

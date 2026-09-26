@@ -8,6 +8,11 @@ A single-page vanilla JS game with no dependencies. The only build step is conca
   - `last-partner-standing.html` is the Claude Artifact source. It has no doctype, head or body tags, because the Artifact publish step adds them.
   - `last-partner-standing-play.html` is the standalone copy, with doctype, charset and viewport. Players open this one.
 - After changing numbers, events or the engine, run the balance check: `node last-partner-standing/tools/simulate.mjs 200` (optional arguments: `suburb|town|city|all` and `random|smart|both`). It plays whole years headlessly and reports survival, endings, profit share and final meters.
+- Deploy: `vercel deploy --prod --yes` from the repo root. It goes to the Vercel project `gp-games` (team john-g-projects), live at https://gp-games.vercel.app.
+  - `vercel.json` rewrites `/` and `/last-partner-standing` to the playable file.
+  - `.vercelignore` keeps source, tools and docs out of the deployment.
+  - Rebuild before deploying.
+  - Never deploy to the separate Vercel project `last-partner-standing`, which is a different build of the game.
 - Save games (`lps-save-v2`) and best scores (`lps-best-v1`) live in `localStorage`. Every access is wrapped in try/catch. Bump the save key if the state shape changes.
 
 ### src files

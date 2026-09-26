@@ -6,7 +6,9 @@ Games about life in UK general practice.
 
 A survival game about one financial year, April 2026 to March 2027, as a new GP partner in England. Each month you plan your sessions, locum cover, staff and one project, then deal with whatever lands on your desk: patients, the team, the ICB, CQC and a leaking flat roof. Keep Patients, Team, You and Safety above zero and the bank inside its overdraft, and at year end the accountant tells you what it was all worth after pension and tax.
 
-**Play:** download [`last-partner-standing/last-partner-standing-play.html`](last-partner-standing/last-partner-standing-play.html) and open it in any browser. It's a single file with nothing to install.
+**Play online:** https://gp-games.vercel.app
+
+Or download [`last-partner-standing/last-partner-standing-play.html`](last-partner-standing/last-partner-standing-play.html) and open it in any browser. It's a single file with nothing to install.
 
 - **Real 2026/27 numbers.** Money figures come from the 2026/27 contract and pay rules:
   - the global sum of £130.07 per weighted patient, paid on the weighted list;

@@ -12,6 +12,8 @@ printf '</script>\n' >> "$OUT"
 
 PLAY=last-partner-standing-play.html
 printf '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n' > "$PLAY"
+DESC='A survival game about one year as a new GP partner in England, on real 2026/27 contract figures.'
+printf '<meta name="description" content="%s">\n<meta property="og:title" content="Last Partner Standing">\n<meta property="og:description" content="%s">\n' "$DESC" "$DESC" >> "$PLAY"
 cat src/a-head.html >> "$PLAY"
 printf '</head>\n<body>\n<div id="app"></div>\n<script>\n' >> "$PLAY"
 cat $JS >> "$PLAY"

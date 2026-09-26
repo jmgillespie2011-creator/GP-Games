@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/last-partner-standing/last-partner-standing-play.html" },
+    { "source": "/last-partner-standing", "destination": "/last-partner-standing/last-partner-standing-play.html" }
+  ]
+}

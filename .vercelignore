@@ -1,0 +1,6 @@
+# Only the playable game is deployed. Source, tools and docs stay in the repo.
+*.md
+last-partner-standing/src
+last-partner-standing/tools
+last-partner-standing/build.sh
+last-partner-standing/last-partner-standing.html

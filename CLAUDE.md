@@ -7,12 +7,13 @@ A single-page vanilla JS game with no dependencies. The only build step is conca
 - Edit the files in `src/`, then run `sh last-partner-standing/build.sh`. It writes two files, both committed. Never hand-edit them.
   - `last-partner-standing.html` is the Claude Artifact source. It has no doctype, head or body tags, because the Artifact publish step adds them.
   - `last-partner-standing-play.html` is the standalone copy, with doctype, charset and viewport. Players open this one.
+- Check the layout on phones as well as desktop. Below 640px the month plan gets a fixed Start bar, the staff list starts collapsed and the mini-games hide the meters. On touch screens the keyboard hints are hidden.
 - After changing numbers, events or the engine, run the balance check: `node last-partner-standing/tools/simulate.mjs 200` (optional arguments: `suburb|town|city|all` and `random|smart|both`). It plays whole years headlessly and reports survival, endings, profit share and final meters.
 - Deploy: the Vercel project `gp-games` (team john-g-projects) is linked to this GitHub repo. A push to `main` deploys to production at https://gp-games.vercel.app. A push to any other branch builds a preview, which can be promoted to production from Vercel. `vercel deploy --prod --yes` from the repo root still works by hand. Commit the rebuilt HTML, because Vercel doesn't run `build.sh`.
   - `vercel.json` rewrites `/` and `/last-partner-standing` to the playable file.
   - `.vercelignore` keeps source, tools and docs out of the deployment.
   - Rebuild before deploying.
-  - Never deploy to the separate Vercel project `last-partner-standing`, which is a different build of the game.
+  - The Vercel project `last-partner-standing` (https://last-partner-standing.vercel.app) used to hold a different build of the game. Since September 2026 it serves this game too. It isn't linked to GitHub, so deploy it by hand from this repo (a production deployment with a GitHub `gitSource` for this repo and branch) whenever you deploy `gp-games`, until it is linked in the Vercel dashboard.
 - Save games (`lps-save-v2`) and best scores (`lps-best-v1`) live in `localStorage`. Every access is wrapped in try/catch. Bump the save key if the state shape changes.
 
 ### src files

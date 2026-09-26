@@ -389,6 +389,52 @@ details.explain.heading .explain-body{padding-left:24px}
   .seg{width:100%}
   .seg button{flex:1 1 0;padding:.45em .4em;font-size:13px}
 }
+/* ---------- touch and small screens ---------- */
+button,.choice,.bin,summary{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.bin{user-select:none;-webkit-user-select:none}
+.mgo{display:none}
+details.rolebox>summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--accent);padding:4px 0}
+@media (hover:none) and (pointer:coarse){
+  .kbd,.kbd-only{display:none}
+  .choice:hover:not([disabled]){transform:none;box-shadow:none;background:var(--sheet-2)}
+  .choice:active:not([disabled]){background:var(--accent-soft)}
+  .btn:hover{transform:none;box-shadow:none}
+  .bin:hover{background:var(--sheet-2)}
+  .bin:active{background:var(--accent-soft)}
+}
+@media (max-width:640px){
+  .hud-name{white-space:normal;font-size:17px;line-height:1.2}
+  .stage{padding-block:14px 32px}
+  .card{padding:18px 16px 20px}
+  .card h2{font-size:24px}
+  .who{margin-bottom:10px}
+  .mono-badge{width:42px;height:42px;font-size:15px}
+  .ledger{gap:4px 12px;font-size:12px;padding-block:0 8px}
+  .choice{padding:12px}
+  .stepper button{width:44px;height:40px}
+  .projects{grid-template-columns:1fr 1fr;gap:6px}
+  .proj{padding:8px 10px}
+  .proj b{font-size:13.5px}
+  .proj small{font-size:12px}
+  .role .acts button{padding:.5em .8em;font-size:13px}
+  .plan-head{margin-bottom:12px}
+  .plan-head h1{font-size:34px}
+  .forecast .btn[data-act="begin"]{display:none}
+  .mgo{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;align-items:center;justify-content:space-between;gap:10px;
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--rule);font-size:13px}
+  .mgo .btn{flex:none}
+  .stage:has(.plan-grid){padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  body:has(.mini) .hud .meters,body:has(.mini) .hud .ledger,body:has(.mini) .hud .months,body:has(.mini) .hud .month-label{display:none}
+  .mini{gap:10px}
+  .mini-top h2{font-size:22px}
+  .mini-score{font-size:13px;gap:10px}
+  .doc{min-height:140px;padding:14px 16px}
+  .doc .body{font-size:15px}
+  .bin{padding:14px 6px;min-height:64px}
+  .verdict h1{font-size:40px}
+  .verdict .bigstamp{position:static;display:inline-block;margin-bottom:10px;transform:rotate(-3deg)}
+  .dialog{padding:16px}
+}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
@@ -2412,6 +2458,7 @@ const signK = v => (v > 0 ? '+' : v < 0 ? '−' : '') + '£' + Math.abs(v).toFix
 const gbp = v => (v < 0 ? '−£' : '£') + Math.round(Math.abs(v)).toLocaleString('en-GB');
 const pct = v => Math.round(v * 100) + '%';
 let UI = { screen: 'title', pickPractice: 'town', nameDraft: '' };
+const narrow = () => { try { return matchMedia('(max-width:640px)').matches; } catch (e) { return false; } };
 
 const BRIEF = [
   'The QOF year starts today. Everything resets to zero except the overdraft.',
@@ -2603,7 +2650,7 @@ function renderPlan() {
         <section class="panel" aria-labelledby="h-team">
           <h3 id="h-team">Team <small>ARRS ${arrsCount()}/${ARRS_CAP} · rooms ${c.rNeed}/${c.rAvail} used · reception needs ${c.recepNeed}</small></h3>
           ${explain('Staff costs, ARRS and recruitment', `<p>Every salary carries 15% employer NI above £5,000. GP practices can't claim the Employment Allowance that offsets NI for most small employers. Staff in the NHS Pension Scheme also cost 14.38% employer pension.</p><p>ARRS roles (pharmacists, physios, paramedics and others) are reimbursed through the PCN up to a cap for each role, so they cost the practice little. Each clinician still needs a room, and supervising more than two adds to your hours.</p><p>Recruiting opens an advert. Results come at month end and can fail. Low morale and a poor local reputation make it harder. Letting someone go hurts morale.</p>${srcLinks(['S19', 'S20', 'S22', 'S4'])}`)}
-          <div class="roles">${roles}</div>
+          <details class="rolebox"${narrow() ? '' : ' open'}><summary>Staff, vacancies and recruitment</summary><div class="roles">${roles}</div></details>
         </section>
       </div>
       <aside class="panel forecast" aria-labelledby="h-fc">
@@ -2626,7 +2673,8 @@ function renderPlan() {
         <button class="btn primary" data-act="begin" style="justify-self:start">Start ${MONTHS[S.month]} →</button>
       </aside>
     </div>
-  </div></main>`;
+  </div></main>
+  <div class="mgo"><span><b class="${gcls === 'bad' ? 'bad-t' : gcls === 'warn' ? 'warn-t' : 'good-t'}">${ratioWord}</b> · cash <b class="${c.net >= 0 ? 'good-t' : 'bad-t'}">${signK(c.net)}</b></span><button class="btn primary" data-act="begin">Start ${MONTHS[S.month]} →</button></div>`;
   const lv = document.getElementById('leave');
   if (lv) lv.addEventListener('change', () => { S.plan.leave = lv.checked; save(); keepScroll(renderPlan); });
 }
@@ -2699,7 +2747,7 @@ function renderOutcome() {
       ${S.cur.html || ''}
       ${deltaChips(S.cur.deltas)}
       ${notes.length ? `<p class="echo">${notes.map(esc).join(' ')}</p>` : ''}
-      <div class="card-foot"><span class="muted">Press Enter to continue</span><button class="btn primary" data-act="cont">${S.exit ? 'Sign the papers' : over ? 'Uh oh…' : 'Continue'}</button></div>
+      <div class="card-foot"><span class="muted kbd-only">Press Enter to continue</span><button class="btn primary" data-act="cont">${S.exit ? 'Sign the papers' : over ? 'Uh oh…' : 'Continue'}</button></div>
     </article></div></main>`;
   pulse(S.cur.deltas);
 }

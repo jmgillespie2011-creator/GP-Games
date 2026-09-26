@@ -389,6 +389,52 @@ details.explain.heading .explain-body{padding-left:24px}
   .seg{width:100%}
   .seg button{flex:1 1 0;padding:.45em .4em;font-size:13px}
 }
+/* ---------- touch and small screens ---------- */
+button,.choice,.bin,summary{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.bin{user-select:none;-webkit-user-select:none}
+.mgo{display:none}
+details.rolebox>summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--accent);padding:4px 0}
+@media (hover:none) and (pointer:coarse){
+  .kbd,.kbd-only{display:none}
+  .choice:hover:not([disabled]){transform:none;box-shadow:none;background:var(--sheet-2)}
+  .choice:active:not([disabled]){background:var(--accent-soft)}
+  .btn:hover{transform:none;box-shadow:none}
+  .bin:hover{background:var(--sheet-2)}
+  .bin:active{background:var(--accent-soft)}
+}
+@media (max-width:640px){
+  .hud-name{white-space:normal;font-size:17px;line-height:1.2}
+  .stage{padding-block:14px 32px}
+  .card{padding:18px 16px 20px}
+  .card h2{font-size:24px}
+  .who{margin-bottom:10px}
+  .mono-badge{width:42px;height:42px;font-size:15px}
+  .ledger{gap:4px 12px;font-size:12px;padding-block:0 8px}
+  .choice{padding:12px}
+  .stepper button{width:44px;height:40px}
+  .projects{grid-template-columns:1fr 1fr;gap:6px}
+  .proj{padding:8px 10px}
+  .proj b{font-size:13.5px}
+  .proj small{font-size:12px}
+  .role .acts button{padding:.5em .8em;font-size:13px}
+  .plan-head{margin-bottom:12px}
+  .plan-head h1{font-size:34px}
+  .forecast .btn[data-act="begin"]{display:none}
+  .mgo{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;align-items:center;justify-content:space-between;gap:10px;
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--rule);font-size:13px}
+  .mgo .btn{flex:none}
+  .stage:has(.plan-grid){padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  body:has(.mini) .hud .meters,body:has(.mini) .hud .ledger,body:has(.mini) .hud .months,body:has(.mini) .hud .month-label{display:none}
+  .mini{gap:10px}
+  .mini-top h2{font-size:22px}
+  .mini-score{font-size:13px;gap:10px}
+  .doc{min-height:140px;padding:14px 16px}
+  .doc .body{font-size:15px}
+  .bin{padding:14px 6px;min-height:64px}
+  .verdict h1{font-size:40px}
+  .verdict .bigstamp{position:static;display:inline-block;margin-bottom:10px;transform:rotate(-3deg)}
+  .dialog{padding:16px}
+}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
 }

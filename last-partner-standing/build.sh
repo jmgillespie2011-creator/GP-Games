@@ -13,6 +13,7 @@ printf '</script>\n' >> "$OUT"
 PLAY=last-partner-standing-play.html
 printf '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n' > "$PLAY"
 DESC='A survival game about one year as a new GP partner in England, on real 2026/27 contract figures.'
+printf '<meta name="theme-color" content="#E3EDE1" media="(prefers-color-scheme: light)">\n<meta name="theme-color" content="#0D1712" media="(prefers-color-scheme: dark)">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-title" content="Last Partner">\n<meta name="format-detection" content="telephone=no">\n' >> "$PLAY"
 printf '<meta name="description" content="%s">\n<meta property="og:title" content="Last Partner Standing">\n<meta property="og:description" content="%s">\n' "$DESC" "$DESC" >> "$PLAY"
 cat src/a-head.html >> "$PLAY"
 printf '</head>\n<body>\n<div id="app"></div>\n<script>\n' >> "$PLAY"

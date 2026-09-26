@@ -6,6 +6,7 @@ const signK = v => (v > 0 ? '+' : v < 0 ? '−' : '') + '£' + Math.abs(v).toFix
 const gbp = v => (v < 0 ? '−£' : '£') + Math.round(Math.abs(v)).toLocaleString('en-GB');
 const pct = v => Math.round(v * 100) + '%';
 let UI = { screen: 'title', pickPractice: 'town', nameDraft: '' };
+const narrow = () => { try { return matchMedia('(max-width:640px)').matches; } catch (e) { return false; } };
 
 const BRIEF = [
   'The QOF year starts today. Everything resets to zero except the overdraft.',
@@ -197,7 +198,7 @@ function renderPlan() {
         <section class="panel" aria-labelledby="h-team">
           <h3 id="h-team">Team <small>ARRS ${arrsCount()}/${ARRS_CAP} · rooms ${c.rNeed}/${c.rAvail} used · reception needs ${c.recepNeed}</small></h3>
           ${explain('Staff costs, ARRS and recruitment', `<p>Every salary carries 15% employer NI above £5,000. GP practices can't claim the Employment Allowance that offsets NI for most small employers. Staff in the NHS Pension Scheme also cost 14.38% employer pension.</p><p>ARRS roles (pharmacists, physios, paramedics and others) are reimbursed through the PCN up to a cap for each role, so they cost the practice little. Each clinician still needs a room, and supervising more than two adds to your hours.</p><p>Recruiting opens an advert. Results come at month end and can fail. Low morale and a poor local reputation make it harder. Letting someone go hurts morale.</p>${srcLinks(['S19', 'S20', 'S22', 'S4'])}`)}
-          <div class="roles">${roles}</div>
+          <details class="rolebox"${narrow() ? '' : ' open'}><summary>Staff, vacancies and recruitment</summary><div class="roles">${roles}</div></details>
         </section>
       </div>
       <aside class="panel forecast" aria-labelledby="h-fc">
@@ -220,7 +221,8 @@ function renderPlan() {
         <button class="btn primary" data-act="begin" style="justify-self:start">Start ${MONTHS[S.month]} →</button>
       </aside>
     </div>
-  </div></main>`;
+  </div></main>
+  <div class="mgo"><span><b class="${gcls === 'bad' ? 'bad-t' : gcls === 'warn' ? 'warn-t' : 'good-t'}">${ratioWord}</b> · cash <b class="${c.net >= 0 ? 'good-t' : 'bad-t'}">${signK(c.net)}</b></span><button class="btn primary" data-act="begin">Start ${MONTHS[S.month]} →</button></div>`;
   const lv = document.getElementById('leave');
   if (lv) lv.addEventListener('change', () => { S.plan.leave = lv.checked; save(); keepScroll(renderPlan); });
 }
@@ -293,7 +295,7 @@ function renderOutcome() {
       ${S.cur.html || ''}
       ${deltaChips(S.cur.deltas)}
       ${notes.length ? `<p class="echo">${notes.map(esc).join(' ')}</p>` : ''}
-      <div class="card-foot"><span class="muted">Press Enter to continue</span><button class="btn primary" data-act="cont">${S.exit ? 'Sign the papers' : over ? 'Uh oh…' : 'Continue'}</button></div>
+      <div class="card-foot"><span class="muted kbd-only">Press Enter to continue</span><button class="btn primary" data-act="cont">${S.exit ? 'Sign the papers' : over ? 'Uh oh…' : 'Continue'}</button></div>
     </article></div></main>`;
   pulse(S.cur.deltas);
 }

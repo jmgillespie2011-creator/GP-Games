@@ -23,7 +23,7 @@ A single-page vanilla JS game with no dependencies. The only build step is conca
 
 - `a-head.html`: title, the Google Fonts link and all the CSS. Colours are tokens on `:root`, overridden for dark mode by both the `prefers-color-scheme` media query and `[data-theme]`.
 - `c-data.js`: the sourced 2026/27 constants (`P`), practices, staff roles with costs that include employer NI and pension, projects, the cast, meter icons, headlines, `SOURCES` and `GLOSSARY`.
-- `c2-minidata.js`: Inbox Dash, 8am Rush and Walkround items.
+- `c2-minidata.js`: Docman Dash, 8am Rush and Walkround items.
 - `d-events1.js`: story arcs (scheduled): partners, CQC, QOF year end.
 - `e-events2.js`: patient, team and wellbeing cards.
 - `f-events3.js`: money, safety and systems cards. These include the clinical system outage (paper notes, handwritten FP10s, no records; a continuity kit sets `flags.bcp` and softens later outages), ICB-pushed Windows updates, and medicine shortages (Medicine Supply Notifications and Serious Shortage Protocols).
@@ -35,7 +35,7 @@ A single-page vanilla JS game with no dependencies. The only build step is conca
 - `h-ui.js`: helpers (`explain()` for expandable explainers, `srcLinks()`), HUD, title, month plan and cards.
 - `h2-screens.js`: month report, endings, overlays (how to play, glossary, sources) and input handling via event delegation on `data-act`.
 - `h3-board.js`: the shared leaderboard. It reads and posts scores in the Supabase table `lps_scores` through its REST API, using the project URL and publishable key in `BOARD`. With `BOARD.url` empty, it stays hidden. It shows on the year-end screen, the title screen and in the menu. Inside a Claude Artifact the network is blocked, so it points players to the website.
-- `i-mini.js`: the three mini-games (Inbox Dash, The 8am Rush, The Walkround), then boot.
+- `i-mini.js`: the three mini-games (Docman Dash, The 8am Rush, The Walkround), then boot.
 
 ### How consequences work
 

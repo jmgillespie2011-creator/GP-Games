@@ -101,7 +101,7 @@ EVENTS.push(
  info:'Partnership adverts often get few or no applicants. Nationally, 15% of GPs said they couldn\'t find suitable GP work, but most newly qualified GPs want salaried or locum roles rather than partnership.',
  text:`"We're thin on partners," Bev says. "Do we advertise? The last partnership advert in {place} got one applicant. He wanted to work Tuesdays only and bring his dog."`,
  choices:[
-  {t:'Advertise nationally (£1,500)',fx:{cash:-1.5},run(){ if(chance(0.25+(S.rep-55)/200+(S.st.team-50)/250)) schedule('partner_applicant',2); else plant({in:2,note:'Your partnership advert closed with no applicants. A locum rang to ask if the rate was per hour.'}); },o:`The advert goes out. You check the inbox every morning like it's exam results day. Your reputation and your team's morale will decide who applies.`},
+  {t:'Advertise nationally (£1,500)',fx:{cash:-1.5},run(){ if(chance((0.25+(S.rep-55)/200+(S.st.team-50)/250)*(gpHeadroom()<6?0.3:1))) schedule('partner_applicant',2); else plant({in:2,note:'Your partnership advert closed with no applicants. A locum rang to ask if the rate was per hour.'}); },o:`The advert goes out. You check the inbox every morning like it's exam results day. Your reputation and your team's morale will decide who applies.`},
   {t:'Don\'t bother. Salaried GPs are the future.',fx:{you:1},o:`You tell yourself this is a strategic decision. It's mostly a financial one.`}
  ]},
 

@@ -56,9 +56,9 @@ const PRACTICES = {
   },
   city:{
     key:'city',label:'Inner city',diff:'Brutal',surgery:'Canal Street Medical Centre',place:'Hollowbrook',paper:'The Hollowbrook Herald',
-    blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold.',
+    blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold. One GP per 2,750 patients, and nobody is applying.',
     list:10400,weight:0.96,prev:0.9,lastQof:88,cash:40,overdraft:-110,st:{patients:44,team:50,you:64,safety:50},
-    demandRate:0.097,inboxRate:0.046,qofEase:0.88,hire:0.9,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,
+    demandRate:0.097,inboxRate:0.046,qofEase:0.88,hire:0.9,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:2750,locumMax:4,
     staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0}
   }
 };
@@ -243,6 +243,8 @@ const SOURCES = {
   S63:['NHSBSA: Serious Shortage Protocols','https://www.nhsbsa.nhs.uk/pharmacies-gp-practices-and-appliance-contractors/serious-shortage-protocols-ssps','A'],
   S64:['Community Pharmacy England: medicine shortages','https://cpe.org.uk/dispensing-and-supply/supply-chain/medicine-shortages/','B'],
   S65:['House of Commons Library: medicines shortages','https://commonslibrary.parliament.uk/research-briefings/cbp-9997/','A'],
+  S66:['Healthcare Leader: no ICB meets the "gold standard" GP-to-patient ratio','https://healthcareleadernews.com/news/no-icb-meeting-gold-standard-gp-to-patient-ratio/','B'],
+  S67:['KentOnline: Kent and Medway have the highest patient-to-GP ratio','https://www.kentonline.co.uk/medway/news/reasons-why-kent-has-uks-worst-gp-numbers-272523/','C'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
   S46:['CQC: GP mythbuster 1, emergency care in general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-1-emergency-care-general-practice','A'],

@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const FILES = ['c-data.js', 'c2-minidata.js', 'd-events1.js', 'e-events2.js', 'f-events3.js', 'f2-events4.js', 'f3-events5.js', 'g-engine.js', 'g2-endings.js'];
 const code = FILES.map(f => readFileSync(path.join(dir, '..', 'src', f), 'utf8')).join('\n') +
-  '\n;globalThis.__lps = { newGame, beginMonth, currentEvent, resolveChoice, continueOutcome, nextMonth, calc, activeOthers, arrsCount, roomsNeeded, roomsAvail, ROLES, STAT_KEYS, val, S: () => S };';
+  '\n;globalThis.__lps = { newGame, gpHeadroom, locumMax, beginMonth, currentEvent, resolveChoice, continueOutcome, nextMonth, calc, activeOthers, arrsCount, roomsNeeded, roomsAvail, ROLES, STAT_KEYS, val, S: () => S };';
 const ctx = vm.createContext({ console, Math, JSON, Date });
 vm.runInContext(code, ctx, { filename: 'lps.js' });
 const L = ctx.__lps;
@@ -48,13 +48,13 @@ function smartPlan(S) {
   if (S.month >= 1 && S.month <= 7) {
     const roomFree = L.roomsNeeded() + 8 <= L.roomsAvail();
     if (roomFree && L.arrsCount() < 6) for (const r of ['physio', 'para', 'mhp']) if (!S.staff[r] && !S.vac[r]) { S.vac[r] = 1; break; }
-    if (c.ratio < 1.02 && !S.vac.salaried && S.staff.salaried < 3 && S.cash > S.overdraft + 50) { S.vac.salaried = 1; S.cash -= 1.5; }
+    if (c.ratio < 1.02 && L.gpHeadroom() >= 6 && !S.vac.salaried && S.staff.salaried < 3 && S.cash > S.overdraft + 50) { S.vac.salaried = 1; S.cash -= 1.5; }
     if (c.recepShort && !S.vac.recep) S.vac.recep = 1;
   }
   if (L.activeOthers() <= 1 && L.arrsCount() < 6 && !S.staff.gpa && !S.vac.gpa) S.vac.gpa = 1;
   c = L.calc();
   while (c.inboxEnd > 380 && pl.admin < 3) { pl.admin++; c = L.calc(); }
-  while (c.ratio < 0.95 && pl.locum < 5 && S.cash > S.overdraft + 25) { pl.locum++; c = L.calc(); }
+  while (c.ratio < 0.95 && pl.locum < Math.min(5, L.locumMax()) && S.cash > S.overdraft + 25) { pl.locum++; c = L.calc(); }
   if (S.st.you < 50 && S.leaveUsed < 6) pl.leave = true;
   pl.project = S.flags.telephony && !S.flags.proj_telephony ? 'telephony'
     : S.st.team < 45 ? 'wellbeing' : S.st.safety < 45 ? 'cqc' : S.inbox > 450 ? 'inbox' : S.st.patients < 40 ? 'ppg'

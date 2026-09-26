@@ -31,6 +31,16 @@ function roomsNeeded() {
   return n;
 }
 function roomsAvail() { return ROOM_SESSIONS * (S.rooms + activeMods().reduce((a, m) => a + (m.rooms || 0), 0)); }
+// Under-doctored areas: some practices can't recruit GPs past a local ceiling (patients per full-time GP).
+// Your own sessions count as one full-time GP, so working harder never blocks a hire.
+function gpHiredSessions() {
+  let n = GP_FTE_SESSIONS + 6 * (S.staff.salaried + (S.vac.salaried || 0));
+  for (const id in S.partners) if (isActive(id)) n += S.partners[id].clin + 1;
+  if (hasMod('scheme')) n += 2;
+  return n;
+}
+function gpHeadroom() { const cap = prac().gpCap; return cap ? S.list / cap * GP_FTE_SESSIONS - gpHiredSessions() : Infinity; }
+const locumMax = () => prac().locumMax || 8;
 // headcount and FTE against the England averages for a list this size
 function benchmark() {
   const k = S.list / BENCH.patients;

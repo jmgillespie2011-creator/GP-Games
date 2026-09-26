@@ -213,11 +213,12 @@ document.addEventListener('click', ev => {
       if (d > 0 && tot >= 12) break; if (d < 0 && pl[a] <= 0) break;
       pl[a] += d; save(); keepScroll(renderPlan); break;
     }
-    case 'locum': S.plan.locum = clamp(S.plan.locum + +arg, 0, 8); save(); keepScroll(renderPlan); break;
+    case 'locum': S.plan.locum = clamp(S.plan.locum + +arg, 0, locumMax()); save(); keepScroll(renderPlan); break;
     case 'draw': S.plan.draw = arg; save(); keepScroll(renderPlan); break;
     case 'proj': S.plan.project = arg; save(); keepScroll(renderPlan); break;
     case 'hire': {
       const R = ROLES[arg]; if (R.arrs && arrsCount() >= ARRS_CAP) break;
+      if (arg === 'salaried' && gpHeadroom() < 6) { toast(`No GP will apply. ${prac().place} already has one GP per ${prac().gpCap.toLocaleString('en-GB')} patients and the local GPs are all taken.`); break; }
       const cost = arg === 'salaried' ? 1.5 : arg === 'nurse' ? 0.8 : R.arrs ? 0 : 0.4;
       S.vac[arg] = (S.vac[arg] || 0) + 1; S.cash = r1(S.cash - cost); save(); keepScroll(renderPlan);
       toast(`${R.name} advertised${cost ? ` (${fmtK(cost)})` : ''}. Results at month end.`); break;

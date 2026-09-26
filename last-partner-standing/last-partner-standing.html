@@ -516,9 +516,9 @@ const PRACTICES = {
   },
   city:{
     key:'city',label:'Inner city',diff:'Brutal',surgery:'Canal Street Medical Centre',place:'Hollowbrook',paper:'The Hollowbrook Herald',
-    blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold.',
+    blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold. One GP per 2,750 patients, and nobody is applying.',
     list:10400,weight:0.96,prev:0.9,lastQof:88,cash:40,overdraft:-110,st:{patients:44,team:50,you:64,safety:50},
-    demandRate:0.097,inboxRate:0.046,qofEase:0.88,hire:0.9,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,
+    demandRate:0.097,inboxRate:0.046,qofEase:0.88,hire:0.9,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:2750,locumMax:4,
     staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0}
   }
 };
@@ -703,6 +703,8 @@ const SOURCES = {
   S63:['NHSBSA: Serious Shortage Protocols','https://www.nhsbsa.nhs.uk/pharmacies-gp-practices-and-appliance-contractors/serious-shortage-protocols-ssps','A'],
   S64:['Community Pharmacy England: medicine shortages','https://cpe.org.uk/dispensing-and-supply/supply-chain/medicine-shortages/','B'],
   S65:['House of Commons Library: medicines shortages','https://commonslibrary.parliament.uk/research-briefings/cbp-9997/','A'],
+  S66:['Healthcare Leader: no ICB meets the "gold standard" GP-to-patient ratio','https://healthcareleadernews.com/news/no-icb-meeting-gold-standard-gp-to-patient-ratio/','B'],
+  S67:['KentOnline: Kent and Medway have the highest patient-to-GP ratio','https://www.kentonline.co.uk/medway/news/reasons-why-kent-has-uks-worst-gp-numbers-272523/','C'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
   S46:['CQC: GP mythbuster 1, emergency care in general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-1-emergency-care-general-practice','A'],
@@ -957,7 +959,7 @@ EVENTS.push(
  info:'Partnership adverts often get few or no applicants. Nationally, 15% of GPs said they couldn\'t find suitable GP work, but most newly qualified GPs want salaried or locum roles rather than partnership.',
  text:`"We're thin on partners," Bev says. "Do we advertise? The last partnership advert in {place} got one applicant. He wanted to work Tuesdays only and bring his dog."`,
  choices:[
-  {t:'Advertise nationally (£1,500)',fx:{cash:-1.5},run(){ if(chance(0.25+(S.rep-55)/200+(S.st.team-50)/250)) schedule('partner_applicant',2); else plant({in:2,note:'Your partnership advert closed with no applicants. A locum rang to ask if the rate was per hour.'}); },o:`The advert goes out. You check the inbox every morning like it's exam results day. Your reputation and your team's morale will decide who applies.`},
+  {t:'Advertise nationally (£1,500)',fx:{cash:-1.5},run(){ if(chance((0.25+(S.rep-55)/200+(S.st.team-50)/250)*(gpHeadroom()<6?0.3:1))) schedule('partner_applicant',2); else plant({in:2,note:'Your partnership advert closed with no applicants. A locum rang to ask if the rate was per hour.'}); },o:`The advert goes out. You check the inbox every morning like it's exam results day. Your reputation and your team's morale will decide who applies.`},
   {t:'Don\'t bother. Salaried GPs are the future.',fx:{you:1},o:`You tell yourself this is a strategic decision. It's mostly a financial one.`}
  ]},
 
@@ -1922,6 +1924,16 @@ function roomsNeeded() {
   return n;
 }
 function roomsAvail() { return ROOM_SESSIONS * (S.rooms + activeMods().reduce((a, m) => a + (m.rooms || 0), 0)); }
+// Under-doctored areas: some practices can't recruit GPs past a local ceiling (patients per full-time GP).
+// Your own sessions count as one full-time GP, so working harder never blocks a hire.
+function gpHiredSessions() {
+  let n = GP_FTE_SESSIONS + 6 * (S.staff.salaried + (S.vac.salaried || 0));
+  for (const id in S.partners) if (isActive(id)) n += S.partners[id].clin + 1;
+  if (hasMod('scheme')) n += 2;
+  return n;
+}
+function gpHeadroom() { const cap = prac().gpCap; return cap ? S.list / cap * GP_FTE_SESSIONS - gpHiredSessions() : Infinity; }
+const locumMax = () => prac().locumMax || 8;
 // headcount and FTE against the England averages for a list this size
 function benchmark() {
   const k = S.list / BENCH.patients;
@@ -2667,11 +2679,11 @@ function renderPlan() {
   }).join('');
   const roles = ROLE_ORDER.map(r => {
     const R = ROLES[r], n = S.staff[r], vac = S.vac[r] || 0;
-    const arrsFull = R.arrs && arrsCount() >= ARRS_CAP;
+    const arrsFull = (R.arrs && arrsCount() >= ARRS_CAP) || (r === 'salaried' && gpHeadroom() < 6);
     const costTxt = (R.arrs ? 'PCN-funded' : `£${(R.cost * 12).toFixed(1)}k a year each, all in`) + (R.room ? `, ${R.room} room sessions a week` : r === 'recep' ? ', no clinic room' : '');
     return `<div class="role"><div class="l"><b>${esc(R.name)}</b>${R.arrs ? '<span class="tag arrs">ARRS</span>' : ''}${vac ? `<span class="tag vac">${vac} advertised</span>` : ''}<small>${esc(R.desc)} ${costTxt}.</small></div>
       <span class="n" aria-label="${n} in post">${n}</span>
-      <div class="acts">${vac ? `<button data-act="unvac" data-arg="${r}">Withdraw ad</button>` : ''}<button data-act="hire" data-arg="${r}" ${arrsFull ? 'disabled title="The PCN\'s additional-roles budget is fully used"' : ''}>Recruit</button><button data-act="fire" data-arg="${r}" ${n ? '' : 'disabled'}>Let go</button></div></div>`;
+      <div class="acts">${vac ? `<button data-act="unvac" data-arg="${r}">Withdraw ad</button>` : ''}<button data-act="hire" data-arg="${r}" ${arrsFull ? `disabled title="${r === 'salaried' ? 'No GPs are applying in this area' : 'The PCN\'s additional-roles budget is fully used'}"` : ''}>Recruit</button><button data-act="fire" data-arg="${r}" ${n ? '' : 'disabled'}>Let go</button></div></div>`;
   }).join('');
   const ratio = c.ratio;
   const gcls = ratio >= 0.94 ? '' : ratio >= 0.85 ? 'warn' : 'bad';
@@ -2715,7 +2727,7 @@ function renderPlan() {
         </section>
         <section class="panel" aria-labelledby="h-locum">
           <h3 id="h-locum">Locum cover <small>£${Math.round(LOCUM_SESSION * 1000)} a session. They see patients. They don't do paperwork.</small></h3>
-          <div class="step" style="border:0"><div class="l"><b>Locum sessions per week</b><small>${pl.locum ? `${pl.locum * 14} extra appointments, about ${fmtK(c.cost.locum)} this month` : 'None booked'}</small></div>${stepper('locum', pl.locum, pl.locum <= 0, pl.locum >= 8, 'Locum sessions')}</div>
+          <div class="step" style="border:0"><div class="l"><b>Locum sessions per week</b><small>${pl.locum ? `${pl.locum * 14} extra appointments, about ${fmtK(c.cost.locum)} this month` : 'None booked'}</small></div>${stepper('locum', pl.locum, pl.locum <= 0, pl.locum >= locumMax(), 'Locum sessions')}</div>
           ${explain('What a locum costs', `<p>Typical in-hours GP locum rates in 2026 are £85 to £105 an hour, and agencies keep 15 to 25%. A 4h10m session at £100 an hour, plus 14.38% employer pension on NHS locum work, comes to about £${Math.round(LOCUM_SESSION * 1000)}.</p><p>Locums add appointments straight away, with no recruitment wait. They don't do results or letters, so each session adds a few items to your inbox.</p>${srcLinks(['S28', 'S22'])}`)}
         </section>
         <section class="panel" aria-labelledby="h-proj">
@@ -2727,6 +2739,7 @@ function renderPlan() {
           <h3 id="h-team">Team <small>ARRS ${arrsCount()}/${ARRS_CAP} · room sessions ${c.rNeed} of ${c.rAvail} booked · receptionists ${S.staff.recep} of ${c.recepNeed} needed</small></h3>
           ${explain('Staff costs, ARRS and recruitment', `<p>Every salary carries 15% employer NI above £5,000. GP practices can't claim the Employment Allowance that offsets NI for most small employers. Staff in the NHS Pension Scheme also cost 14.38% employer pension.</p><p>ARRS roles (pharmacists, physios, paramedics and others) are reimbursed through the PCN up to a cap for each role, so they cost the practice little. Clinicians still need somewhere to see patients, and supervising more than two adds to your hours.</p><p><b>Rooms are booked by the session.</b> Your ${S.rooms + activeMods().reduce((a, m) => a + (m.rooms || 0), 0)} consulting and treatment rooms give about ${ROOM_SESSIONS} bookable sessions a week each. A GP books a room for each clinical session. A nurse books about 8 a week, a pharmacist or paramedic about 4 (the rest is phone work or home visits). Receptionists work on headsets at the front desk, and care coordinators, social prescribers and GP assistants don't need a clinic room.</p><p>Recruiting opens an advert. Results come at month end and can fail. Low morale and a poor local reputation make it harder. Letting someone go hurts morale.</p>${srcLinks(['S19', 'S20', 'S22', 'S4'])}`)}
           ${explain('How you compare with England', `<dl class="kv small">${benchmark().map(([l, you, nat, how]) => `<dt>${esc(l)}${how ? `<small>${esc(how)}</small>` : ''}</dt><dd><b class="${you < nat * 0.85 ? 'warn-t' : ''}">${you.toFixed(1)}</b> <span class="muted">vs ${nat.toFixed(1)}</span></dd>`).join('')}</dl><p>England averages for ${S.list.toLocaleString('en-GB')} patients, from the August 2026 workforce figures: about 4.6 fully qualified GPs, 2.6 nurses, 2.9 other clinical staff and 12.3 admin and reception staff per 10,000 patients. That's about ${Math.round(BENCH.patients / BENCH.gp).toLocaleString('en-GB')} patients per full-time GP. Averages aren't targets: an older or poorer list needs more.</p>${srcLinks(['S58', 'S59'])}`)}
+          ${p.gpCap ? `<div class="fc-note"><p class="${gpHeadroom() < 6 ? 'bad-t' : ''}"><b>GPs are hard to find here.</b> Practices like yours can't recruit past about one GP per ${p.gpCap.toLocaleString('en-GB')} patients, against ${Math.round(BENCH.patients / BENCH.gp).toLocaleString('en-GB')} nationally. ${gpHeadroom() < 6 ? 'You can only advertise for a salaried GP when one leaves.' : 'There\'s room for one more salaried GP.'} Locums are scarce too: at most ${locumMax()} sessions a week.</p>${explain('Why', `<p>GP numbers vary a lot by area. The worst-covered ICB, North West London, had one full-time GP for every 2,746 patients in late 2025, against about 2,200 nationally. Parts of Kent and Medway are worse: about 38 GPs per 100,000 people against 60 nationally, with some practices far beyond that. Deprived areas usually have the most patients per GP and the hardest time recruiting.</p>${srcLinks(['S66', 'S67', 'S59'])}`)}</div>` : ''}
           <details class="rolebox"${narrow() ? '' : ' open'}><summary>Staff, vacancies and recruitment</summary><div class="roles">${roles}</div></details>
         </section>
       </div>
@@ -3049,11 +3062,12 @@ document.addEventListener('click', ev => {
       if (d > 0 && tot >= 12) break; if (d < 0 && pl[a] <= 0) break;
       pl[a] += d; save(); keepScroll(renderPlan); break;
     }
-    case 'locum': S.plan.locum = clamp(S.plan.locum + +arg, 0, 8); save(); keepScroll(renderPlan); break;
+    case 'locum': S.plan.locum = clamp(S.plan.locum + +arg, 0, locumMax()); save(); keepScroll(renderPlan); break;
     case 'draw': S.plan.draw = arg; save(); keepScroll(renderPlan); break;
     case 'proj': S.plan.project = arg; save(); keepScroll(renderPlan); break;
     case 'hire': {
       const R = ROLES[arg]; if (R.arrs && arrsCount() >= ARRS_CAP) break;
+      if (arg === 'salaried' && gpHeadroom() < 6) { toast(`No GP will apply. ${prac().place} already has one GP per ${prac().gpCap.toLocaleString('en-GB')} patients and the local GPs are all taken.`); break; }
       const cost = arg === 'salaried' ? 1.5 : arg === 'nurse' ? 0.8 : R.arrs ? 0 : 0.4;
       S.vac[arg] = (S.vac[arg] || 0) + 1; S.cash = r1(S.cash - cost); save(); keepScroll(renderPlan);
       toast(`${R.name} advertised${cost ? ` (${fmtK(cost)})` : ''}. Results at month end.`); break;

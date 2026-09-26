@@ -1,0 +1,2310 @@
+<title>Last Partner Standing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --paper:#E3EDE1;
+  --paper-2:#D7E4D5;
+  --sheet:#F8FBF6;
+  --sheet-2:#EEF4EC;
+  --ink:#15241C;
+  --ink-2:#4A5E52;
+  --ink-3:#6F8577;
+  --rule:#BCCFBF;
+  --accent:#1D6A4D;
+  --accent-ink:#F4FAF6;
+  --accent-soft:#CFE5D8;
+  --stamp:#BF3A2C;
+  --stamp-soft:#F6D9D4;
+  --hilite:#F2D449;
+  --good:#2C8656;
+  --warn:#C27C12;
+  --bad:#BF3A2C;
+  --hatch:rgba(29,106,77,.055);
+  --s1:#1D6A4D;--s2:#C27C12;--s3:#BF3A2C;--s4:#3563A8;
+  --shadow:0 1px 0 rgba(21,36,28,.06),0 10px 28px -14px rgba(21,36,28,.35);
+  --display:"Bricolage Grotesque","Avenir Next Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible","Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0D1712;--paper-2:#122019;--sheet:#15241C;--sheet-2:#1B2D24;
+    --ink:#DCE9E0;--ink-2:#A2B8AA;--ink-3:#7F968A;--rule:#2B4135;
+    --accent:#5CBF90;--accent-ink:#08140E;--accent-soft:#1F3E30;
+    --stamp:#F07C6E;--stamp-soft:#3E1F1B;--hilite:#E6C84A;
+    --good:#5CBF90;--warn:#E3A43E;--bad:#F07C6E;--hatch:rgba(92,191,144,.045);--s1:#5CBF90;--s2:#E3A43E;--s3:#F07C6E;--s4:#86AEE8;
+    --shadow:0 1px 0 rgba(0,0,0,.4),0 14px 30px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0D1712;--paper-2:#122019;--sheet:#15241C;--sheet-2:#1B2D24;
+  --ink:#DCE9E0;--ink-2:#A2B8AA;--ink-3:#7F968A;--rule:#2B4135;
+  --accent:#5CBF90;--accent-ink:#08140E;--accent-soft:#1F3E30;
+  --stamp:#F07C6E;--stamp-soft:#3E1F1B;--hilite:#E6C84A;
+  --good:#5CBF90;--warn:#E3A43E;--bad:#F07C6E;--hatch:rgba(92,191,144,.045);--s1:#5CBF90;--s2:#E3A43E;--s3:#F07C6E;--s4:#86AEE8;
+  --shadow:0 1px 0 rgba(0,0,0,.4),0 14px 30px -16px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  background-image:repeating-linear-gradient(135deg,var(--hatch) 0 2px,transparent 2px 9px);
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--hilite);outline-offset:2px;border-radius:6px}
+h1,h2,h3{font-family:var(--display);line-height:1.08;text-wrap:balance;margin:0}
+p{margin:0}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--ink-2)}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+#app{min-height:100%;display:flex;flex-direction:column}
+.wrap{width:100%;max-width:1120px;margin:0 auto;padding-inline:16px}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.5em;border:1.5px solid var(--ink);
+  background:var(--sheet);border-radius:999px;padding:.62em 1.2em;font-weight:700;line-height:1.1;
+  transition:transform .12s ease,background .12s ease,box-shadow .12s ease;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:0 3px 0 var(--ink)}
+.btn:active{transform:translateY(1px);box-shadow:none}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{box-shadow:0 3px 0 var(--ink)}
+.btn.ghost{border-color:var(--rule);background:transparent}
+.btn.small{padding:.4em .85em;font-size:14px}
+.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.kbd{font-family:var(--mono);font-size:11px;border:1px solid currentColor;border-radius:4px;padding:0 .35em;opacity:.7}
+
+/* ---------- title screen ---------- */
+.title-screen{flex:1;padding-block:clamp(24px,6vh,64px) 48px}
+.title-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(24px,4vw,56px);align-items:start}
+.logo{font-size:clamp(46px,8.2vw,104px);font-weight:800;letter-spacing:-.035em;line-height:.88;font-variation-settings:"opsz" 96}
+.logo .rx{display:inline-block;font-family:var(--mono);font-weight:600;font-size:.3em;letter-spacing:0;vertical-align:.95em;color:var(--stamp);border:2px solid var(--stamp);border-radius:6px;padding:.05em .3em;transform:rotate(-8deg);margin-left:.15em}
+.logo .under{background:linear-gradient(transparent 62%,var(--hilite) 62% 90%,transparent 90%);padding-inline:.04em}
+.tagline{font-size:clamp(17px,2vw,20px);max-width:34ch;margin-top:22px;color:var(--ink-2)}
+.memo{margin-top:26px;max-width:52ch;background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);font-size:15px}
+.memo ul{margin:.4em 0 0;padding-left:1.1em;display:grid;gap:.25em}
+.setup{background:var(--sheet);border:1.5px solid var(--ink);border-radius:14px;padding:22px;box-shadow:var(--shadow);display:grid;gap:18px}
+.setup label.field{display:grid;gap:6px;font-weight:700}
+.name-row{display:flex;align-items:center;border:1.5px solid var(--rule);border-radius:8px;background:var(--sheet-2);overflow:hidden}
+.name-row span{padding:.55em .7em;font-family:var(--mono);color:var(--ink-2);border-right:1px solid var(--rule)}
+.name-row input{flex:1;min-width:0;border:0;background:transparent;padding:.55em .7em;outline:none}
+.pcards{display:grid;gap:10px}
+.pcard{text-align:left;border:1.5px solid var(--rule);border-radius:10px;background:var(--sheet);padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:2px 12px}
+.pcard[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.pcard b{font-family:var(--display);font-size:18px}
+.pcard .diff{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;align-self:center}
+.pcard .d{grid-column:1/-1;font-size:14px;color:var(--ink-2)}
+.pcard .facts{grid-column:1/-1;font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.setup-actions{display:flex;flex-wrap:wrap;gap:10px}
+.best{font-size:14px;color:var(--ink-2)}
+.best li{font-family:var(--mono);font-size:12.5px}
+
+/* ---------- HUD ---------- */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--rule)}
+.hud-top{display:flex;align-items:center;gap:14px;padding-block:10px 6px;flex-wrap:wrap}
+.hud-name{font-family:var(--display);font-weight:700;font-size:18px;white-space:nowrap}
+.hud-sub{font-size:13px;color:var(--ink-2)}
+.months{display:flex;gap:3px;margin-left:auto;align-items:flex-end}
+.months i{display:block;width:clamp(14px,2.4vw,26px);height:6px;border-radius:2px;background:var(--rule)}
+.months i.done{background:var(--accent)}
+.months i.now{background:var(--hilite);height:10px}
+.month-label{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.icon-btn{border:1.5px solid var(--rule);background:var(--sheet);border-radius:8px;width:34px;height:34px;display:grid;place-items:center}
+.meters{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding-block:4px 10px}
+.meter{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;align-items:center;position:relative;min-width:0}
+.meter svg{width:20px;height:20px;grid-row:span 2}
+.meter .lab{font-size:12px;font-weight:700;display:flex;justify-content:space-between;gap:6px;min-width:0}
+.meter .lab span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meter .val{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+.bar{height:8px;border-radius:99px;background:var(--paper-2);border:1px solid var(--rule);overflow:hidden}
+.bar b{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1),background .3s}
+.meter.low .bar b{background:var(--warn)}
+.meter.crit .bar b{background:var(--bad)}
+.meter.crit .val{color:var(--bad)}
+.meter .hint{position:absolute;top:-7px;left:6px;width:10px;height:10px;border-radius:50%;background:var(--ink);opacity:0;transform:scale(.3);transition:.15s}
+.meter .hint.on{opacity:1;transform:scale(1)}
+.meter .hint.big{width:14px;height:14px;top:-9px;left:4px}
+.meter.pulse-up .bar{box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 45%,transparent)}
+.meter.pulse-down .bar{box-shadow:0 0 0 3px color-mix(in srgb,var(--bad) 45%,transparent)}
+.ledger{display:flex;flex-wrap:wrap;gap:6px 18px;padding-block:0 10px;font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+.ledger b{color:var(--ink);font-weight:600}
+.ledger .warnv{color:var(--warn)}
+.ledger .badv{color:var(--bad)}
+
+/* ---------- stage ---------- */
+.stage{flex:1;padding-block:22px 48px}
+.card{
+  position:relative;max-width:640px;margin:0 auto;background:var(--sheet);border:1.5px solid var(--ink);border-radius:14px;
+  box-shadow:var(--shadow);padding:22px clamp(18px,3vw,30px) 24px;animation:deal .38s cubic-bezier(.2,.8,.2,1)
+}
+.card::before{content:"";position:absolute;inset:8px auto 8px 8px;width:2px;background:repeating-linear-gradient(to bottom,var(--stamp) 0 6px,transparent 6px 10px);opacity:.35;border-radius:2px}
+@keyframes deal{from{transform:translateY(14px) rotate(-.6deg);opacity:0}to{transform:none;opacity:1}}
+.who{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.mono-badge{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:17px;color:#fff;letter-spacing:.02em;border:2px solid var(--ink)}
+.who b{display:block;font-size:16px;line-height:1.2}
+.who small{color:var(--ink-2);font-size:13px}
+.card .stampno{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--stamp);border:1.5px solid var(--stamp);border-radius:5px;padding:2px 7px;transform:rotate(3deg);white-space:nowrap}
+.card h2{font-size:clamp(24px,3.4vw,32px);font-weight:800;letter-spacing:-.02em;margin-bottom:10px}
+.card .text{font-size:17px;max-width:60ch}
+.card .text p+p{margin-top:.6em}
+.choices{display:grid;gap:10px;margin-top:20px}
+.choice{
+  text-align:left;border:1.5px solid var(--ink);background:var(--sheet-2);border-radius:10px;padding:12px 14px;display:grid;gap:6px;
+  transition:transform .12s ease,box-shadow .12s ease,background .12s ease
+}
+.choice:hover:not([disabled]),.choice:focus-visible{transform:translateX(3px);box-shadow:-4px 0 0 var(--accent);background:var(--sheet)}
+.choice[disabled]{opacity:.5;cursor:not-allowed}
+.choice .t{font-weight:700;font-size:16px}
+.choice .why{font-size:13px;color:var(--stamp)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11.5px;color:var(--ink-2);border:1px solid var(--rule);border-radius:99px;padding:1px 8px 1px 5px;background:var(--sheet)}
+.chip svg{width:14px;height:14px}
+.chip .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-2)}
+.chip .dot.big{width:10px;height:10px}
+.chip.risk{border-style:dashed;color:var(--stamp);border-color:var(--stamp)}
+.outcome .text{font-size:17px}
+.deltas{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.delta{font-family:var(--mono);font-size:13px;font-weight:600;border-radius:6px;padding:3px 9px;border:1.5px solid}
+.delta.up{color:var(--good);border-color:var(--good)}
+.delta.down{color:var(--bad);border-color:var(--bad)}
+.delta.neutral{color:var(--ink-2);border-color:var(--rule)}
+.card-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;align-items:center;flex-wrap:wrap}
+.card-foot .muted{margin-right:auto;font-size:13px}
+
+/* ---------- planning ---------- */
+.plan-head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;margin-bottom:18px}
+.plan-head h1{font-size:clamp(30px,4.6vw,48px);font-weight:800;letter-spacing:-.03em}
+.brief{flex:1 1 320px;font-size:15px;color:var(--ink-2);border-left:3px solid var(--hilite);padding-left:12px}
+.plan-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,1fr);gap:18px;align-items:start}
+.panel{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:16px 18px;display:grid;gap:12px}
+.panel h3{font-size:19px;font-weight:700;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.panel h3 small{font-family:var(--body);font-weight:400;font-size:13px;color:var(--ink-2)}
+.col{display:grid;gap:14px}
+.steps{display:grid;gap:8px}
+.step{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dashed var(--rule)}
+.step:last-child{border-bottom:0}
+.step .l b{display:block}
+.step .l small{color:var(--ink-2);font-size:13px}
+.stepper{display:flex;align-items:center;border:1.5px solid var(--ink);border-radius:99px;overflow:hidden;background:var(--sheet-2)}
+.stepper button{width:34px;height:32px;border:0;background:transparent;font-weight:700;font-size:18px;line-height:1}
+.stepper button:hover:not([disabled]){background:var(--accent-soft)}
+.stepper button[disabled]{opacity:.3;cursor:not-allowed}
+.stepper output{min-width:30px;text-align:center;font-family:var(--mono);font-weight:600}
+.sessbar{display:flex;gap:3px;flex-wrap:wrap}
+.sessbar i{width:22px;height:14px;border-radius:3px;border:1px solid var(--ink-2)}
+.sessbar i.c{background:var(--accent)}
+.sessbar i.a{background:var(--hilite)}
+.sessbar i.m{background:var(--stamp)}
+.sessbar i.over{outline:2px solid var(--bad);outline-offset:1px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--ink-2)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.seg{display:flex;border:1.5px solid var(--ink);border-radius:99px;overflow:hidden;width:max-content;max-width:100%}
+.seg button{border:0;background:var(--sheet-2);padding:.4em .9em;font-size:14px;font-weight:700}
+.seg button+button{border-left:1.5px solid var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
+.toggle{display:flex;align-items:center;gap:10px;font-size:15px}
+.toggle input{width:20px;height:20px;accent-color:var(--accent)}
+.projects{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.proj{text-align:left;border:1.5px solid var(--rule);border-radius:10px;background:var(--sheet);padding:10px 12px;display:grid;gap:3px;align-content:start}
+.proj b{font-size:14.5px}
+.proj small{font-size:12.5px;color:var(--ink-2);line-height:1.35}
+.proj[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.proj[disabled]{opacity:.45;cursor:not-allowed}
+.roles{display:grid;gap:0}
+.role{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--rule)}
+.role:last-child{border-bottom:0}
+.role .l b{font-size:14.5px}
+.role .l small{display:block;font-size:12px;color:var(--ink-2);line-height:1.3}
+.role .n{font-family:var(--mono);font-weight:600;min-width:2ch;text-align:right}
+.role .acts{display:flex;gap:5px}
+.role .acts button{font-size:12.5px;padding:.3em .65em;border-radius:99px;border:1.5px solid var(--ink);background:var(--sheet-2);font-weight:700}
+.role .acts button[disabled]{opacity:.35;cursor:not-allowed}
+.tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:1px 5px;vertical-align:1px;margin-left:4px}
+.tag.arrs{background:var(--accent-soft);color:var(--accent)}
+.tag.vac{background:var(--hilite);color:#2b2300}
+.forecast{position:sticky;top:150px}
+.fc-row{display:grid;gap:5px}
+.fc-row .top{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.fc-row .top b{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.gauge{position:relative;height:12px;background:var(--paper-2);border-radius:99px;border:1px solid var(--rule);overflow:hidden}
+.gauge b{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:99px;transition:width .3s}
+.gauge i{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
+.gauge.warn b{background:var(--warn)}
+.gauge.bad b{background:var(--bad)}
+.fc-note{font-size:12.5px;color:var(--ink-2)}
+.good-t{color:var(--good)}.warn-t{color:var(--warn)}.bad-t{color:var(--bad)}
+.plan-go{display:flex;justify-content:flex-end;margin-top:16px}
+
+/* ---------- report ---------- */
+.report{max-width:860px;margin:0 auto;display:grid;gap:16px}
+.clip{background:var(--sheet);border:1px solid var(--rule);padding:16px 20px 18px;border-radius:4px;box-shadow:var(--shadow);transform:rotate(-.4deg)}
+.clip .masthead{font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:.14em;text-transform:uppercase;border-bottom:3px double var(--ink);padding-bottom:6px;display:flex;justify-content:space-between;gap:10px}
+.clip h2{font-size:clamp(24px,3.6vw,36px);font-weight:800;letter-spacing:-.02em;margin-top:10px}
+.clip p{margin-top:6px;color:var(--ink-2);font-style:italic}
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14.5px}
+.kv dt{color:var(--ink-2)}
+.kv dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.kv .sum{border-top:1.5px solid var(--ink);padding-top:4px;font-weight:700;color:var(--ink)}
+.notes{margin:0;padding-left:1.1em;display:grid;gap:5px;font-size:14.5px}
+.statlines{display:grid;gap:8px}
+.statline{display:grid;grid-template-columns:22px 90px 1fr 70px;gap:10px;align-items:center;font-size:14px}
+.statline svg{width:18px;height:18px}
+.statline .d{font-family:var(--mono);text-align:right}
+
+/* ---------- mini games ---------- */
+.mini{max-width:720px;margin:0 auto;display:grid;gap:14px}
+.mini-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.mini-top h2{font-size:28px;font-weight:800}
+.mini-score{margin-left:auto;font-family:var(--mono);font-size:14px;display:flex;gap:14px}
+.timer{height:10px;border-radius:99px;background:var(--paper-2);border:1px solid var(--rule);overflow:hidden}
+.timer b{display:block;height:100%;background:var(--accent);transition:width .1s linear}
+.timer.hurry b{background:var(--bad)}
+.doc{background:var(--sheet);border:1.5px solid var(--ink);border-radius:8px;padding:18px 20px;min-height:170px;box-shadow:var(--shadow);animation:slide .22s ease-out;position:relative}
+@keyframes slide{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}
+.doc .kind{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--rule);padding-bottom:6px;margin-bottom:10px}
+.doc .body{font-family:var(--mono);font-size:15.5px;line-height:1.55}
+.doc.sms{border-radius:18px 18px 18px 4px}
+.doc .fb{position:absolute;right:12px;bottom:10px;font-family:var(--mono);font-size:12px;font-weight:600;padding:2px 8px;border-radius:5px}
+.doc .fb.ok{background:var(--accent-soft);color:var(--good)}
+.doc .fb.no{background:var(--stamp-soft);color:var(--bad)}
+.bins{display:grid;grid-template-columns:repeat(var(--n,4),1fr);gap:8px}
+.bin{border:1.5px solid var(--ink);border-radius:10px;background:var(--sheet-2);padding:10px 6px;display:grid;justify-items:center;gap:3px;font-weight:700;font-size:14px;text-align:center;line-height:1.2}
+.bin small{font-weight:400;font-size:11.5px;color:var(--ink-2)}
+.bin:hover{background:var(--accent-soft)}
+.bin.flash-ok{background:var(--accent-soft);border-color:var(--good)}
+.bin.flash-no{background:var(--stamp-soft);border-color:var(--bad)}
+.mini-intro{display:grid;gap:12px}
+.mini-intro ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
+.lastfb{font-size:14px;min-height:1.5em;color:var(--ink-2)}
+.lastfb b.ok{color:var(--good)} .lastfb b.no{color:var(--bad)}
+
+/* ---------- ending ---------- */
+.ending{max-width:860px;margin:0 auto;display:grid;gap:18px}
+.verdict{background:var(--sheet);border:1.5px solid var(--ink);border-radius:16px;padding:clamp(20px,4vw,36px);box-shadow:var(--shadow);position:relative;overflow:hidden}
+.verdict .eyebrow{margin-bottom:8px}
+.verdict h1{font-size:clamp(38px,7vw,76px);font-weight:800;letter-spacing:-.035em;line-height:.95}
+.verdict p.lede{font-size:18px;margin-top:14px;max-width:58ch}
+.verdict .bigstamp{position:absolute;right:clamp(10px,3vw,30px);top:clamp(10px,3vw,26px);font-family:var(--mono);font-weight:600;color:var(--stamp);border:3px solid var(--stamp);border-radius:8px;padding:4px 10px;transform:rotate(9deg);font-size:clamp(12px,1.6vw,15px);letter-spacing:.1em;text-transform:uppercase;opacity:.9}
+.verdict.over{border-color:var(--bad)}
+.score{font-family:var(--mono);font-size:15px;margin-top:16px;display:flex;flex-wrap:wrap;gap:8px 20px}
+.score b{font-size:22px}
+.cqc-card{border:1.5px solid var(--ink);border-radius:10px;overflow:hidden;margin-top:14px}
+.cqc-card .row{display:grid;grid-template-columns:1fr auto;padding:6px 12px;border-bottom:1px solid var(--rule);font-size:14px}
+.cqc-card .row:last-child{border-bottom:0}
+.cqc-card .overall{background:var(--ink);color:var(--sheet);font-weight:700}
+.rate{font-family:var(--mono);font-size:12.5px;font-weight:600}
+.rate.o{color:var(--good)} .rate.g{color:var(--accent)} .rate.ri{color:var(--warn)} .rate.i{color:var(--bad)}
+.cqc-card .overall .rate{color:inherit}
+.chart{width:100%;height:auto;display:block}
+.end-actions{display:flex;flex-wrap:wrap;gap:10px}
+
+/* ---------- overlay / toast ---------- */
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(10,20,15,.45);display:grid;place-items:center;padding:16px}
+.dialog{background:var(--sheet);border:1.5px solid var(--ink);border-radius:14px;max-width:560px;width:100%;max-height:calc(100% - 32px);overflow:auto;padding:20px 22px;box-shadow:var(--shadow);display:grid;gap:12px}
+.dialog h2{font-size:24px;font-weight:800}
+.dialog ul{margin:0;padding-left:1.1em;display:grid;gap:5px;font-size:15px}
+.dialog .row-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--sheet);padding:9px 16px;border-radius:99px;font-size:14px;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px){
+  .title-grid,.plan-grid,.rgrid{grid-template-columns:1fr}
+  .forecast{position:static;order:-1}
+}
+@media (max-width:640px){
+  .meters{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+  .meter{grid-template-columns:1fr;justify-items:stretch}
+  .meter svg{grid-row:auto;width:16px;height:16px}
+  .meter .lab span:first-child{display:none}
+  .meter .lab{justify-content:flex-start}
+  .months{margin-left:0;width:100%}
+  .months i{flex:1;width:auto}
+  .hud-sub{display:none}
+  .bins{grid-template-columns:repeat(2,1fr)}
+  .bins.five{grid-template-columns:repeat(3,1fr)}
+  .statline{grid-template-columns:20px 70px 1fr 56px}
+  .role{grid-template-columns:1fr auto}
+  .role .acts{grid-column:1/-1;justify-content:flex-end}
+  .card .text{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+<div id="app"></div>
+<script>
+/* ===================== DATA: world, roles, cast ===================== */
+const MONTHS = ['April','May','June','July','August','September','October','November','December','January','February','March'];
+const MON3 = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+// demand multiplier through the QOF year (winter bites from November)
+const SEASON = [0.95,0.95,0.93,0.9,0.86,0.99,1.04,1.1,1.16,1.19,1.1,1.03];
+const FLU_INCOME = [0,0,0,0,0,3,6,4,2,0,0,0];
+const WEEKS = 4.33;
+const OVERDRAFT = -40; // £k: below this the bank pulls the plug
+const RESERVE = 25; // £k working capital kept back at year end
+
+const PRACTICES = {
+  suburb:{
+    key:'suburb',label:'Leafy suburb',diff:'Gentle',surgery:'Oakfield Surgery',place:'Little Oakfield',paper:'The Oakfield Courier',
+    blurb:'Healthy, wealthy and extremely well-informed. They have read the NICE guidance. All of it.',
+    list:7200,cash:70,st:{patients:58,team:64,you:74,safety:62},demandRate:0.089,inboxRate:0.05,gsRate:0.0101,qofValue:112,qofEase:1.08,
+    hire:1.1,rooms:10,premises:11,other:4,overhead:0,
+    staff:{recep:5,nurse:2,hca:1,salaried:1,pharm:0,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0}
+  },
+  town:{
+    key:'town',label:'Market town',diff:'Standard',surgery:'Riverside Surgery',place:'Bramleigh',paper:'The Bramleigh Bugle',
+    blurb:'A proper mix: farms, a new estate, a care home and one very active local Facebook group.',
+    list:8200,cash:45,st:{patients:52,team:56,you:68,safety:55},demandRate:0.093,inboxRate:0.048,gsRate:0.0102,qofValue:125,qofEase:1.0,
+    hire:1.0,rooms:10,premises:16,other:2,overhead:0,
+    staff:{recep:6,nurse:2,hca:1,salaried:1,pharm:1,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0}
+  },
+  city:{
+    key:'city',label:'Inner city',diff:'Brutal',surgery:'Canal Street Medical Centre',place:'Hollowbrook',paper:'The Hollowbrook Herald',
+    blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold.',
+    list:10400,cash:25,st:{patients:44,team:50,you:64,safety:50},demandRate:0.1,inboxRate:0.046,gsRate:0.0103,qofValue:150,qofEase:0.88,
+    hire:0.9,rooms:11,premises:19,other:1,overhead:6,
+    staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:0,sp:0,gpa:0}
+  }
+};
+
+// cost in £k per month. cap = appointments per week. clear = inbox items cleared per week.
+const ROLES = {
+  recep:{name:'Receptionist',cost:2.1,hire:0.8,desc:'Takes the 8am calls. Absorbs the abuse. Knows everyone\'s nan.'},
+  nurse:{name:'Practice nurse',cost:4.2,cap:104,qof:1.2,room:1,hire:0.4,desc:'Chronic disease reviews, smears, imms. Your QOF engine.'},
+  hca:{name:'Healthcare assistant',cost:2.6,cap:120,qof:0.8,room:1,hire:0.6,desc:'Bloods, BPs, ECGs, health checks.'},
+  salaried:{name:'Salaried GP',cost:8.6,cap:84,clear:50,room:1,hire:0.4,desc:'Six sessions a week. Does not have to care about the overdraft.'},
+  pharm:{name:'Clinical pharmacist',arrs:1,sup:1,cost:0.35,cap:60,clear:40,qof:0.8,room:1,hire:0.65,desc:'Med reviews, scripts, and queries about the queries.'},
+  physio:{name:'First contact physio',arrs:1,sup:1,cost:0.35,cap:80,room:1,hire:0.6,desc:'Backs, knees and shoulders, straight to the right person.'},
+  para:{name:'Paramedic',arrs:1,sup:1,cost:0.35,cap:55,room:1,hire:0.5,desc:'Home visits and same-day minor illness.'},
+  mhp:{name:'Mental health practitioner',arrs:1,sup:1,cost:0.35,cap:40,room:1,hire:0.45,desc:'Longer appointments for the patients who need them most.'},
+  cc:{name:'Care coordinator',arrs:1,cost:0.35,qof:2,hire:0.75,desc:'Recalls, care plans, chasing. QOF loves them.'},
+  sp:{name:'Social prescriber',arrs:1,cost:0.35,demand:-2,hire:0.75,desc:'Loneliness, debt, housing. Fewer frequent attenders.'},
+  gpa:{name:'GP assistant',arrs:1,cost:0.35,clear:80,hire:0.7,desc:'Codes letters, preps results, tames the inbox.'}
+};
+const ROLE_ORDER = ['salaried','nurse','hca','recep','pharm','physio','para','mhp','cc','sp','gpa'];
+const ARRS_CAP = 6;
+
+const PARTNERS0 = {
+  hartley:{name:'Dr Alan Hartley',short:'Alan',clin:6,capital:35},
+  okoye:{name:'Dr Nadia Okoye',short:'Nadia',clin:5,capital:25},
+  tom:{name:'Dr Tom Reeves',short:'Tom',clin:6,capital:10},
+  priya:{name:'Dr Priya Nair',short:'Priya',clin:6,capital:12}
+};
+const DRAW = {low:7.5,std:9,high:11};
+
+const PROJECTS = [
+  {id:'none',name:'Keep the lights on',desc:'No project this month. Breathe.',fx:{you:2}},
+  {id:'qof',name:'QOF recall blitz',desc:'Texts, letters, a Saturday clinic. QOF up, overtime costs.',fx:{qof:5,team:-2,cash:-1.2}},
+  {id:'cqc',name:'Mock CQC inspection',desc:'Policies updated, fridge logs found, fire marshals named.',fx:{safety:8,team:-2}},
+  {id:'wellbeing',name:'Team afternoon off',desc:'Close for a protected learning afternoon. Pizza is involved.',fx:{team:8,patients:-2,cash:-0.6}},
+  {id:'inbox',name:'Workflow overhaul',desc:'Train the admin team to code letters. The backlog shrinks.',fx:{inbox:-170,cash:-1.5,team:-1}},
+  {id:'ppg',name:'Patient participation group',desc:'Tea, biscuits, and feedback. So much feedback.',fx:{patients:5,you:-1}},
+  {id:'claims',name:'Chase unclaimed income',desc:'Audit the enhanced service claims. Money is hiding in there.',fx:{cash:6}},
+  {id:'recruit',name:'Recruitment drive',desc:'Adverts, socials, a stall at the training scheme. Better odds for every vacancy.',fx:{cash:-1},hireBoost:0.3},
+  {id:'digital',once:1,name:'Tidy the online front door',desc:'Better request forms, fewer "cough (3 years)". Demand eases a little for good.',fx:{demand:-1.5,team:-1,cash:-0.8}},
+  {id:'telephony',once:1,name:'Cloud telephony go-live',desc:'Queue position, call-backs, no more engaged tone.',fx:{patients:6,team:3,cash:-4,demand:-1},need:'telephony'}
+];
+
+// people who turn up on cards
+const CAST = {
+  bev:{name:'Bev Marsh',role:'Practice Manager, 31 years and counting',m:'BM',c:'#A65E1F'},
+  hartley:{name:'Dr Alan Hartley',role:'Senior Partner',m:'AH',c:'#46688A'},
+  okoye:{name:'Dr Nadia Okoye',role:'Partner',m:'NO',c:'#76468F'},
+  tom:{name:'Dr Tom Reeves',role:'Salaried GP',m:'TR',c:'#2B7A72'},
+  maureen:{name:'Maureen Kelly',role:'Lead Practice Nurse',m:'MK',c:'#9E3A46'},
+  kayleigh:{name:'Kayleigh Dunn',role:'Receptionist',m:'KD',c:'#C9731F'},
+  raj:{name:'Raj Mistry',role:'Clinical Pharmacist',m:'RM',c:'#3A7535'},
+  pratt:{name:'Mr Derek Pratt',role:'Patient. Prolific correspondent.',m:'DP',c:'#666B70'},
+  higgins:{name:'Mrs Edna Higgins',role:'Patient, 84',m:'EH',c:'#B55C80'},
+  icb:{name:'Jonathan Price',role:'ICB Primary Care Commissioning',m:'JP',c:'#314559'},
+  pcn:{name:'Dr Clare Fenwick',role:'PCN Clinical Director',m:'CF',c:'#1C8068'},
+  cqc:{name:'Patricia Sharpe',role:'CQC Inspector',m:'PS',c:'#232C3B'},
+  paper:{name:'',role:'Local newspaper',m:'NEWS',c:'#7E6334'},
+  landlord:{name:'Property Services',role:'Your landlord, allegedly',m:'PS',c:'#57493A'},
+  lmc:{name:'Dr Steve Morgan',role:'LMC Secretary',m:'SM',c:'#5E54B8'},
+  accountant:{name:'Neville Crump',role:'Specialist Medical Accountant',m:'NC',c:'#4F6530'},
+  home:{name:'Home',role:'The people who live with you',m:'♥',c:'#C98F12'},
+  you:{name:'You',role:'Inner monologue',m:'ME',c:'#1D6A4D'},
+  apex:{name:'Apex Primary Care Ltd',role:'"Delivering scalable care solutions"',m:'APX',c:'#0E7490'},
+  reg:{name:'Dr Ellie Chen',role:'GP Registrar (ST3)',m:'EC',c:'#914A8B'},
+  patient:{name:'Online consultation',role:'Submitted 07:59',m:'OC',c:'#5A7684'},
+  cat:{name:'QOF',role:'Car park cat. Unregistered.',m:'Q',c:'#B87433'},
+  dept:{name:'The Department',role:'Announced on the radio first',m:'DoH',c:'#383D56'},
+  hospital:{name:'St Swithin\'s Hospital',role:'Acute Trust',m:'SSH',c:'#684838'},
+  chemist:{name:'Ashok Patel',role:'Community Pharmacist',m:'AP',c:'#2A8054'},
+  rep:{name:'Chad',role:'Pharmaceutical representative',m:'CH',c:'#B5382B'},
+  agency:{name:'Locum agency',role:'"Solutions for every rota gap"',m:'LA',c:'#72807F'},
+  mp:{name:'Sir Geoffrey Pomfrey MP',role:'Your local MP',m:'GP',c:'#4A1D78'},
+  bank:{name:'The bank',role:'Business Banking Team',m:'£',c:'#2A3B4D'},
+  med:{name:'Oliver',role:'Third-year medical student',m:'OL',c:'#3E7CA8'},
+  it:{name:'IT Helpdesk',role:'Ticket #448213',m:'IT',c:'#4B5563'}
+};
+
+// line icons for the meters (stroke uses currentColor)
+const ICON = {
+  patients:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.6-3.6 3-5.6 6-5.6s5.4 2 6 5.6"/><circle cx="17" cy="9" r="2.4"/><path d="M16.5 14.2c2.3.2 4 1.9 4.5 4.8"/></svg>',
+  team:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l4-4 4 3 3-2 7 5"/><path d="M7 7l-4 8 5 5 3-2"/><path d="M21 13l-5 5-2-1"/><path d="M10 15l2 2M12 13l2.5 2.5"/></svg>',
+  you:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M8.5 11.5h2l1-2 1.5 4 1-2h1.5"/></svg>',
+  safety:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.6-3 8.2-7 10-4-1.8-7-5.4-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+  cash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.5 6.5A3.5 3.5 0 0 0 9 8.5V13c0 2.5-1 4.5-3 6h12"/><path d="M6.5 12.5h7"/></svg>'
+};
+const STAT_LABEL = {patients:'Patients',team:'Team',you:'You',safety:'Safety',cash:'Bank'};
+const STAT_KEYS = ['patients','team','you','safety'];
+
+/* ---------------- newspaper headlines ---------------- */
+const HEADLINES = {
+  bad:[
+    '"I rang 94 times": readers vent over {surgery} phone queue',
+    'Patients queue round the block at {surgery} before 8am',
+    'Petition over GP waits hits 2,000 signatures',
+    'Councillor demands "answers" over {surgery} appointments',
+    '{place} Facebook group "absolutely furious", sources confirm'
+  ],
+  ok:[
+    '{surgery} "doing its best", says man in Co-op queue',
+    'GP waits "about the same", shrugs {place}',
+    'Local surgery neither praised nor condemned in shock development'
+  ],
+  good:[
+    'Same-day appointments stun {place} residents',
+    '{surgery} praised as waits fall',
+    '"They rang me back!": pensioner hails surgery call-back system'
+  ],
+  filler:[
+    'Marrow at {place} show "the size of a labrador", say judges',
+    'Pothole on Mill Lane now has its own postcode',
+    'Seagull "with attitude" banned from chip shop',
+    'Village fete raises £412 for new defibrillator',
+    'Car park charges at St Swithin\'s branded "daylight robbery"',
+    'Roundabout gnome missing for third week; police "following leads"',
+    'Council to review bin collections, again',
+    'Local dog elected honorary mayor in landslide'
+  ]
+};
+
+/* ---------------- Docman Dash items ---------------- */
+// a = accepted bins. file / action / urgent / bounce
+const DOCS = [
+  {k:'Blood result',f:'Pathology',b:'Potassium 6.8 mmol/L, sample not haemolysed. Mr D, 71, on ramipril and spironolactone.',a:['urgent'],w:'Hyperkalaemia on an ACE inhibitor and spironolactone: same-day action.'},
+  {k:'Blood result',f:'Pathology',b:'Haemoglobin 68 g/L. Six months ago: 128 g/L.',a:['urgent'],w:'A 60 g/L drop needs same-day contact.'},
+  {k:'Blood result',f:'Pathology',b:'Sodium 119 mmol/L. Carer reports she is "a bit muddled".',a:['urgent'],w:'Severe symptomatic hyponatraemia: same day.'},
+  {k:'Anticoagulation',f:'Pathology',b:'INR 8.2 on warfarin. Target 2.5. No bleeding reported.',a:['urgent'],w:'INR above 8: withhold warfarin and consider vitamin K today.'},
+  {k:'Blood result',f:'Pathology',b:'Adjusted calcium 3.2 mmol/L. Thirsty and constipated.',a:['urgent'],w:'Symptomatic hypercalcaemia: same-day assessment.'},
+  {k:'Blood result',f:'Pathology',b:'Platelets 18 x10^9/L. New bruising on legs.',a:['urgent'],w:'Severe thrombocytopenia with bruising: same day.'},
+  {k:'Blood result',f:'Pathology',b:'eGFR 24. Two weeks ago: 61. Started naproxen last week, already on ramipril.',a:['urgent'],w:'Acute kidney injury on an NSAID and ACE inhibitor.'},
+  {k:'111 report',f:'NHS 111',b:'Disposition: "Contact GP practice within 1 hour." Call time: Friday 23:52.',a:['urgent','action'],w:'It is Monday. Ring them now.'},
+  {k:'Blood result',f:'Pathology',b:'Full blood count: all parameters within normal range.',a:['file'],w:'Normal. File it.'},
+  {k:'Blood result',f:'Pathology',b:'TSH 1.9 mU/L on levothyroxine 100 micrograms. Stable.',a:['file'],w:'On target. File it.'},
+  {k:'Clinic letter',f:'Dermatology',b:'Seborrhoeic keratosis. Reassured. Discharged.',a:['file'],w:'Benign and discharged. File it.'},
+  {k:'Screening',f:'Cervical screening',b:'HPV negative. Routine recall.',a:['file'],w:'Nothing to do. File it.'},
+  {k:'Discharge',f:'MSK Physiotherapy',b:'Goals met. Discharged with home exercise programme.',a:['file'],w:'File it.'},
+  {k:'OOH report',f:'Out of hours',b:'Sore throat, FeverPAIN 1. Advised fluids and paracetamol.',a:['file'],w:'Handled well. File it.'},
+  {k:'Pharmacy First',f:'Community pharmacy',b:'Uncomplicated UTI, woman aged 34. Nitrofurantoin supplied.',a:['file'],w:'Handled in the community. File it.'},
+  {k:'Screening',f:'Breast screening',b:'No evidence of cancer. Routine recall in 3 years.',a:['file'],w:'File it.'},
+  {k:'Blood result',f:'Pathology',b:'CRP 3 mg/L. LFTs normal.',a:['file'],w:'Normal. File it.'},
+  {k:'Clinic letter',f:'Cardiology',b:'We have referred her directly to the heart failure nurses. No action for the GP.',a:['file'],w:'A hospital doing its own onward referral. Frame it.'},
+  {k:'Discharge summary',f:'St Swithin\'s',b:'New AF. Apixaban 5 mg BD started. Please add to repeats and check U&E in one week.',a:['action'],w:'New medication and monitoring: action.'},
+  {k:'Blood result',f:'Pathology',b:'Ferritin 6 micrograms/L. Man, 58. Hb 104.',a:['action','urgent'],w:'Iron deficiency anaemia in a man: suspected cancer pathway.'},
+  {k:'Blood result',f:'Pathology',b:'PSA 11.2. Eighteen months ago: 2.9. Aged 66.',a:['action','urgent'],w:'Rising PSA: suspected cancer referral.'},
+  {k:'FIT result',f:'Bowel pathway',b:'Faecal immunochemical test: 180 micrograms Hb/g faeces.',a:['action','urgent'],w:'FIT of 10 or more: urgent suspected lower GI cancer referral.'},
+  {k:'Microbiology',f:'Pathology',b:'Urine: E. coli, resistant to trimethoprim. Trimethoprim prescribed yesterday.',a:['action'],w:'Wrong antibiotic: switch it.'},
+  {k:'Clinic letter',f:'Psychiatry',b:'Started sertraline 50 mg OD. Please continue on repeat.',a:['action'],w:'Add to repeats: action.'},
+  {k:'Request',f:'DVLA',b:'Medical questionnaire, Group 2 licence. Reply within 21 days.',a:['action'],w:'Paperwork, but yours: action.'},
+  {k:'Request',f:'Coroner\'s Office',b:'Request for a statement regarding the late Mr F.',a:['action'],w:'Statutory. Action.'},
+  {k:'Blood result',f:'Pathology',b:'HbA1c 97 mmol/mol. New. Aged 45. No symptoms documented.',a:['action','urgent'],w:'New diabetes: needs prompt review.'},
+  {k:'Clinic letter',f:'Orthopaedics',b:'Please could the GP arrange an MRI lumbar spine and re-refer if abnormal.',a:['bounce'],w:'Their test, their job. Bounce it.'},
+  {k:'Clinic letter',f:'Rheumatology',b:'Please refer to orthopaedics regarding her knee.',a:['bounce'],w:'Consultant-to-consultant referral is the hospital\'s job.'},
+  {k:'Clinic letter',f:'General Surgery',b:'Please could the GP chase the CT result we requested.',a:['bounce'],w:'They ordered it. They chase it.'},
+  {k:'Letter',f:'St Mary\'s Primary School',b:'Please provide a letter confirming Jayden had a cold on Tuesday.',a:['bounce'],w:'Schools should not need GP evidence for a cold.'},
+  {k:'Letter',f:'PowerHouse Gym',b:'Please confirm Mr B is medically fit for spin classes.',a:['bounce'],w:'Not NHS work. Bounce it, or charge for it.'},
+  {k:'Request',f:'Private ADHD clinic',b:'Please take over prescribing of lisdexamfetamine. No shared care agreement enclosed.',a:['bounce'],w:'No agreement, no shared care. Bounce it.'},
+  {k:'Clinic letter',f:'Gastroenterology',b:'Did not attend for the third time. Discharged back to GP.',a:['file','action'],w:'File it, or a gentle nudge.'}
+];
+
+/* ---------------- 8am Rush triage items ---------------- */
+// 999 / gp (same day) / routine / pharm (Pharmacy First, self-care) / physio
+const TRIAGE = [
+  {b:'Crushing chest pain for 20 minutes, going into my left arm. Sweaty and feel sick.',a:['999'],w:'Possible heart attack: 999.'},
+  {b:'Dad\'s face has dropped on one side and his words are slurred. Started half an hour ago.',a:['999'],w:'FAST positive: 999.'},
+  {b:'My lips are swelling and I\'m struggling to breathe after a satay.',a:['999'],w:'Anaphylaxis: 999.'},
+  {b:'My 2-year-old has a fever, is floppy, and has a rash that doesn\'t fade under a glass.',a:['999'],w:'Non-blanching rash in a febrile child: 999.'},
+  {b:'Sudden headache, worst of my life, like being hit with a bat.',a:['999'],w:'Thunderclap headache: 999.'},
+  {b:'Vomiting blood, quite a lot, and I feel faint when I stand up.',a:['999'],w:'Upper GI bleed with symptoms: 999.'},
+  {b:'My 18-month-old has had a temperature of 39 for two days and isn\'t drinking much.',a:['gp'],w:'Febrile toddler, poor intake: see today.'},
+  {b:'Left calf is swollen and sore. Flew back from Sydney three days ago.',a:['gp'],w:'Possible DVT: same-day assessment.'},
+  {b:'I\'ve been feeling hopeless and I\'ve started planning how I would end my life.',a:['gp','999'],w:'Active suicidal plans: urgent same-day contact.'},
+  {b:'Burning when I wee, fever and pain in my back. I\'m a 45-year-old man.',a:['gp'],w:'Male UTI with fever: not a Pharmacy First case.'},
+  {b:'Asthma worse over two days. Blue inhaler not lasting four hours.',a:['gp'],w:'Worsening asthma: same-day review.'},
+  {b:'Can I book my asthma review? Last one was 2022.',a:['routine'],w:'Routine review.'},
+  {b:'Blood pressure was 152/96 at the pharmacy. I feel fine.',a:['routine'],w:'Routine: home readings and review.'},
+  {b:'I\'d like to talk about starting HRT.',a:['routine'],w:'Routine appointment.'},
+  {b:'Cough for five weeks. I\'m 64 and smoked for forty years.',a:['routine','gp'],w:'Needs a prompt appointment and chest X-ray.'},
+  {b:'My friend got Mounjaro. I want it too.',a:['routine'],w:'Routine, and a conversation about eligibility.'},
+  {b:'The mole on my back has changed shape and got darker.',a:['routine','gp'],w:'Needs a prompt look: possible urgent referral.'},
+  {b:'Sore throat for three days. No other problems.',a:['pharm'],w:'Pharmacy First.'},
+  {b:'Burning when I wee. I\'m 29, not pregnant, no fever.',a:['pharm'],w:'Pharmacy First: uncomplicated UTI.'},
+  {b:'My 4-year-old has had earache since yesterday. Otherwise well.',a:['pharm'],w:'Pharmacy First covers acute otitis media, ages 1 to 17.'},
+  {b:'Hay fever is ruining my life.',a:['pharm'],w:'Pharmacy, self-care.'},
+  {b:'I need the morning-after pill today.',a:['pharm','gp'],w:'Community pharmacy is quickest.'},
+  {b:'Painful, blistery rash in a band on one side of my chest. I\'m 60.',a:['pharm','gp'],w:'Shingles is on the Pharmacy First list for adults.'},
+  {b:'Head lice. Again.',a:['pharm'],w:'Pharmacy.'},
+  {b:'Blocked nose and pain in my face for twelve days.',a:['pharm'],w:'Pharmacy First: acute sinusitis.'},
+  {b:'Diarrhoea since last night\'s kebab. Keeping fluids down fine.',a:['pharm'],w:'Self-care and pharmacy advice.'},
+  {b:'Lower back pain after gardening. No numbness, weeing normally.',a:['physio'],w:'No red flags: first contact physio.'},
+  {b:'Knee pain for six weeks after five-a-side.',a:['physio'],w:'First contact physio.'},
+  {b:'Shoulder has been stiff and sore for two months.',a:['physio'],w:'First contact physio.'},
+  {b:'Tennis elbow from my new padel obsession.',a:['physio'],w:'First contact physio.'}
+];
+/* ===================== EVENTS 1: story arcs =====================
+ Event: {id, who, title, text, cond(), months[], w, arc (scheduled only), rep (repeatable), max, kind:'mini', game}
+ Choice: {t, fx:{...}|()=>{...}, o, alt:{p,fx,o}, need(), why, run()=>({o,html}|void)}
+ fx keys: patients team you safety cash qof inbox list demand admin rooms okoye staff:{} flags:{} sched:[[id,inMonths]] mod:{}
+*/
+const EVENTS = [];
+
+EVENTS.push(
+{id:'welcome',arc:1,who:'bev',title:'Welcome to the partnership',
+ text:`Your name is on the contract now. Also the lease, the bank mandate and the overdraft. "Partners have unlimited liability," Bev says, handing you a lanyard. "Right. Where do you want to start?"`,
+ choices:[
+  {t:'Meet every member of staff, one by one',fx:{team:6,you:-3},o:`Twenty-three conversations. You learn who makes the tea, who does the rota, and that nobody has fixed the back door since 2019.`},
+  {t:'Go through the practice accounts line by line',fx:{cash:4,you:-3},o:`You find a direct debit for a photocopier the practice has not owned since 2017. Cancelled. You feel like a partner already.`},
+  {t:'Clear the inbox so you start clean',fx:{inbox:-120,you:-4,safety:2},o:`You file until 9pm. A letter from 2023 asks you to "please arrange" something. You decide it has arranged itself.`}
+ ]},
+
+{id:'hartley_retire',arc:1,who:'hartley',title:'Wonderful news',
+ text:`"I'm retiring at the end of September! Thirty-four years. The golf club has been very patient." Alan beams. He does 6 clinical sessions a week, and nobody else knows how the dispensary stock system works.`,
+ choices:[
+  {t:'"Congratulations, Alan. We\'ll manage."',fx:{team:2,flags:{hartleyGo:5},sched:[['hartley_building',2],['hartley_farewell',5]]},o:`He shakes your hand for slightly too long. "You'll be fine. It practically runs itself."`},
+  {t:'"Would you retire and return? Four sessions, no admin?"',fx:{sched:[['hartley_building',2]]},
+   run(){ if(chance(0.55)){ pt('hartley').clin=4; S.flags.hartleyGo=11; schedule('hartley_farewell_late',11-S.month); return {o:`He thinks about it over a Garibaldi. "Four sessions. No home visits. And I keep my parking space." Deal. He stays until March.`}; }
+     S.flags.hartleyGo=5; schedule('hartley_farewell',5-S.month); S.st.you=clamp(S.st.you-2); return {o:`"My wife has booked a cruise," he says. "Round the world. Leaves 1st October." It was never really a question.`}; }}
+ ]},
+
+{id:'hartley_building',arc:1,who:'hartley',title:'About the building',cond:()=>pt('hartley').status==='active',
+ text:`"One small thing. I own a third of the building. My share is valued at £210,000, and I'd like it before I go." Premises ownership: the gift that keeps on giving.`,
+ choices:[
+  {t:'Take out a partnership loan and buy him out',fx:{you:-4,flags:{loan:1}},run(){S.loan=(S.loan||0)+1.6;},o:`The bank is delighted. You now own a larger share of a building with a flat roof. Repayments: £1.6k a month, for twenty years.`},
+  {t:'Ask Nadia to take on half the debt with you',need:()=>isActive('okoye'),why:'Nadia is no longer a partner',fx:{okoye:22,you:-2},run(){S.loan=(S.loan||0)+0.8;},o:`Nadia signs. She does not make eye contact. She makes a phone call in the car park that lasts forty minutes.`},
+  {t:'Sell the building to an investor and lease it back',fx:{cash:22,team:-2,flags:{soldBuilding:1}},run(){S.premX=(S.premX||0)+2.4;},o:`Alan gets his money and the practice gets a cash injection. The new landlord, a pension fund in Guernsey, sends a lease with a five-yearly upward-only rent review.`}
+ ]},
+
+{id:'hartley_farewell',arc:1,who:'bev',title:'Alan\'s leaving do',cond:()=>pt('hartley').status==='active',
+ text:`It's Alan's last week. The collection envelope contains £43.20 and a button. He has asked, loudly, whether there will be "a speech and a proper send-off".`,
+ choices:[
+  {t:'Book the function room at the Fox & Hounds (£1,500)',fx:{team:7,cash:-1.5},o:`He cries during his speech. So does Maureen. The karaoke goes on until 1am. It is the best night the practice has had in years.`},
+  {t:'Cake and a card in the staff room',fx:{team:2},o:`A Colin the Caterpillar and a card that says "Good luck in your new job". Alan is gracious about it.`}
+ ],
+ after(){ partnerLeaves('hartley'); }},
+
+{id:'hartley_farewell_late',arc:1,who:'hartley',title:'Alan hangs up the stethoscope',cond:()=>pt('hartley').status==='active',
+ text:`Alan did his four sessions right to the end. Thirty-five years. He leaves you his desk, a tin of travel sweets, and a 1994 BNF "for sentimental value".`,
+ choices:[
+  {t:'Organise a proper send-off (£1,500)',fx:{team:6,cash:-1.5,you:2},o:`He tells the story about the home visit and the goat. Everyone has heard it. Everyone laughs anyway.`},
+  {t:'A handshake and a heartfelt card',fx:{team:2,you:1},o:`"You'll be fine," he says. "Better than fine." You almost believe him.`}
+ ],
+ after(){ partnerLeaves('hartley'); }},
+
+{id:'okoye_email',arc:1,who:'okoye',title:'Just a joke',cond:()=>isActive('okoye'),
+ text:`Nadia forwards you a job advert. Perth, Western Australia. AUD 420,000, four-day week, 15-minute appointments. "Ha! As if!" she writes. You notice she has printed it out and laminated it.`,
+ choices:[
+  {t:'Offer to take over her QOF lead role',fx:{okoye:-18,you:-3,qof:2},o:`She hugs you. You now own the diabetes recall spreadsheet, which has 14 tabs and a macro nobody understands.`},
+  {t:'Laugh along: "Who even wants sunshine?"',fx:{okoye:12,you:1},o:`She laughs. The laminated advert goes back in her bag. Carefully.`},
+  {t:'Suggest a month\'s sabbatical this summer',fx:{okoye:-26,team:1,mod:{id:'okoye_away',label:'Nadia on sabbatical',months:1,at:3,away:'okoye'}},o:`She takes July. She comes back tanned, rested and slightly suspicious of how nice it felt.`}
+ ]},
+
+{id:'okoye_leaving',arc:1,who:'okoye',title:'Nadia closes the door',cond:()=>isActive('okoye')&&S.okoye>=60,
+ text:`"I've accepted the job in Perth. I'll work my notice until the end of January." She has already bought sun cream. Factor 50. The big bottle.`,
+ choices:[
+  {t:'Offer her fewer sessions and a bigger profit share',fx:{cash:-4},alt:{p:0.5,fx:{you:-3},o:`She is touched. She still goes. "It's not the money. It's that I haven't eaten lunch sitting down since 2021."`},
+   run(){ if(!S._alt){ S.okoye=30; pt('okoye').clin=4; return {o:`She takes a long breath. "Four sessions. Protected admin time. And I get the room with the window." Deal. Nadia stays.`}; } schedule('okoye_goodbye',Math.max(0,9-S.month)); }},
+  {t:'Wish her well and start planning',fx:{you:-2,team:-3},run(){ schedule('okoye_goodbye',Math.max(0,9-S.month)); },o:`You say the right things. Then you go to your room and look at the rota for February for a long time.`}
+ ]},
+
+{id:'okoye_staying',arc:1,who:'okoye',title:'The laminated advert',cond:()=>isActive('okoye')&&S.okoye<60,
+ text:`Nadia drops something in the confidential waste. It's the laminated Perth advert. "This place is mad," she says, "but it's our mad."`,
+ choices:[
+  {t:'Hug her (awkwardly)',fx:{team:3,you:3},o:`It is exactly as awkward as expected. Kayleigh sees and tells everyone. Morale improves.`},
+  {t:'Buy her a proper coffee',fx:{you:2,team:1},o:`Flat white, oat milk, from the good place. Twenty minutes of actual conversation. Neither of you mentions work.`}
+ ]},
+
+{id:'okoye_goodbye',arc:1,who:'okoye',title:'G\'day from the future',cond:()=>isActive('okoye'),
+ text:`Nadia's last day. She leaves a card on your desk: "Sorry, not sorry. Come and visit. The sessions here are FOUR HOURS." Her patients have been asking who their new doctor is.`,
+ choices:[
+  {t:'Send her off with a proper lunch',fx:{team:3,cash:-0.5},o:`She cries in the car park, then drives to the airport. The WhatsApp photos arrive a week later. There is a beach.`},
+  {t:'Get straight back to work',fx:{you:-2},o:`You split her patients across the remaining lists. Nobody gets lunch.`}
+ ],
+ after(){ partnerLeaves('okoye'); }},
+
+{id:'tom_partner',arc:1,who:'tom',title:'Tom has a question',cond:()=>S.staff.salaried>=1&&!S.flags.tomGone&&!isActive('tom'),
+ text:`Tom, your salaried GP, catches you by the kettle. "I've been thinking. I'd like to become a partner." He has been reading the accounts. He has questions about the overdraft.`,
+ choices:[
+  {t:'"Yes. Welcome to the partnership."',fx:{team:4,you:2,cash:10},run(){ S.staff.salaried--; S.partners.tom.status='active'; },o:`Tom buys in with £10k of capital and a bottle of prosecco. He is a partner now. He will take a share of the profits, and of the liability.`},
+  {t:'"Not this year. Let\'s review it in twelve months."',fx:{team:-2},alt:{p:0.5,o:`Tom nods. Six weeks later he hands in his notice. He's joining a practice across town as a partner.`,fx:{team:-3,sched:[['tom_leaves',1]]}},o:`Tom nods slowly. "Fair enough." He stays, but he has stopped volunteering for things.`},
+  {t:'Offer him a pay rise to stay salaried',fx:{team:1},run(){ S.tomRaise=0.8; },o:`An extra £800 a month. He takes it. "No liability, no drawings, no stress," he says. You are briefly jealous of your own employee.`}
+ ]},
+
+{id:'tom_leaves',arc:1,who:'tom',title:'Tom\'s last day',cond:()=>S.staff.salaried>=1&&!S.flags.tomGone&&!isActive('tom'),
+ text:`Tom's last day. He's off to be a partner at the practice on the other side of the ring road. He leaves 40 unfiled results and a thank-you card.`,
+ choices:[{t:'Wish him well',fx:{inbox:40,team:-2},run(){ S.staff.salaried--; S.flags.tomGone=1; },o:`You now have one fewer GP and a new appreciation for how much Tom actually did.`}]},
+
+{id:'partner_advert',who:'bev',title:'Advertise for a partner?',months:[4,5,6,7,8,9],cond:()=>activeOthers()<=1,
+ text:`"We're thin on partners," Bev says. "Do we advertise? The last partnership advert in {place} got no applicants. Well, one. He wanted to work Tuesdays only and bring his dog."`,
+ choices:[
+  {t:'Advertise nationally (£1,500)',fx:{cash:-1.5},alt:{p:0.45,o:`Six weeks. No applicants. The advert gets shared on a GP forum with the caption "LOL, unlimited liability".`,fx:{you:-2}},run(){ if(!S._alt) schedule('partner_applicant',2); },o:`The advert goes out. You check the inbox every morning like it's exam results day.`},
+  {t:'Don\'t bother. Salaried GPs are the future.',fx:{you:1},o:`You tell yourself this is a strategic decision. It is mostly a financial one.`}
+ ]},
+
+{id:'partner_applicant',arc:1,who:'bev',title:'An actual applicant',cond:()=>activeOthers()<=2,
+ text:`Dr Priya Nair, eight years qualified, currently salaried in the city, wants to become a partner. Her conditions: six sessions, no premises liability, and she never, ever does the Christmas Eve duty.`,
+ choices:[
+  {t:'Welcome her aboard',fx:{team:5,you:4,cash:12},run(){ S.partners.priya.status='active'; },o:`Priya starts next month with £12k of capital and a label maker. The partnership has hope again.`},
+  {t:'Decline. The terms are too much.',fx:{you:-1},o:`She joins the practice across the ring road. You see her in Tesco. She looks well rested.`}
+ ]},
+
+{id:'apex_offer',who:'apex',title:'An exciting opportunity',months:[6,7,8,9],w:1.4,
+ text:`A man in a gilet takes you for lunch. Apex Primary Care Ltd would like to "acquire the contract and unlock synergies". They'll pay your share, and you can stay on as a salaried "Clinical Lead". Your lunch is £38. He does not stay for pudding.`,
+ choices:[
+  {t:'Sell. Let someone else hold the liability.',run(){ S.soldOut=1; return {o:`You sign. The papers take three minutes. The phone system changes to a national call centre the following Monday.`}; }},
+  {t:'Politely decline',fx:{you:1},o:`"Totally understand," he says, already typing an email to the practice down the road.`},
+  {t:'Tell him where to put his synergies',fx:{team:4,you:3,patients:1},o:`Kayleigh tells the whole building. Morale is briefly excellent.`}
+ ]},
+
+{id:'cqc_call',who:'bev',title:'The phone call',months:[4,5,6,7,8],w:3,
+ text:`Bev walks in and closes the door. She never closes the door. "CQC just rang. Inspection in two weeks." Somewhere, a fire safety policy last reviewed in 2021 begins to sweat.`,
+ choices:[
+  {t:'All hands: weekend prep marathon',fx:{safety:9,team:-6,you:-5},o:`Policies updated, fridges logged, the emergency drugs box finally has in-date adrenaline. Everyone is exhausted.`},
+  {t:'Hire a CQC consultant (£5,000)',fx:{safety:10,cash:-5,team:-1},o:`Gavin arrives with 400 pages of templates and a lanyard that says "Compliance Is Care".`},
+  {t:'"We are always inspection-ready."',fx:{you:1},o:`You say this with confidence. Bev writes something in her notebook and underlines it twice.`}
+ ],
+ after(){ schedule('cqc_visit',1); }},
+
+{id:'cqc_visit',arc:1,who:'cqc',title:'Inspection day',
+ text:`Patricia Sharpe arrives at 8:29 with a clipboard, a lanyard and an expression you cannot read. She would like to see the fridge logs, the significant event log, the complaints file, and "just how things really are".`,
+ choices:[{t:'Show her how things really are',run(){ return runCQC(); }}]},
+
+{id:'qof_yearend',arc:1,who:'bev',title:'Six weeks to go',
+ text:`"QOF year end is 31st March. We're sitting at {qof}%." Bev has printed the list of patients still missing their reviews. It is the thickness of a paperback.`,
+ choices:[
+  {t:'Saturday recall clinics for the rest of the year',fx:{qof:9,you:-5,team:-4,cash:-1.5},o:`Four Saturdays of spirometry, foot checks and blood pressures. Maureen does her last one wearing a tiara for reasons nobody explains.`},
+  {t:'Text blast plus a push on exception reporting where it\'s justified',fx:{qof:4,safety:-1},o:`The care-coordination team sends 1,100 texts. Twelve people reply "STOP". One replies with a photo of their cat.`},
+  {t:'Accept fate',fx:{you:2},o:`You decide QOF is a construct. The accountant will tell you in June exactly how expensive this construct is.`}
+ ]},
+
+{id:'contract_new',arc:1,who:'dept',title:'Next year\'s contract',
+ text:`The GP contract for next year has been announced. It was trailed in a Sunday newspaper, confirmed on breakfast radio, and reached the practice on 28th March. It starts on 1st April. It is 94 pages long.`,
+ choices:[
+  {t:'Read all 94 pages tonight',fx:{you:-3,safety:2},o:`Page 61 contains a new requirement. Page 88 contains the funding for it, which is less than the cost of doing it.`},
+  {t:'Wait for the LMC summary',fx:{you:2},o:`The LMC summary arrives two days later. It is two pages long and mostly swearing, professionally phrased.`}
+ ]},
+
+{id:'mini_docman',kind:'mini',game:'docman',rep:1,max:3,who:'bev',title:'Docman Dash',w:1.1,
+ text:`The document inbox has {inbox} items in it. Bev asks if you want to blitz some yourself between patients. Letters, results and requests: file it, action it, flag it urgent, or bounce it back to where it belongs.`,
+ choices:[
+  {t:'Grab a coffee and blitz it (45-second game)',play:1},
+  {t:'Delegate: pay the admin team overtime to pre-sort',fx:{inbox:-60,cash:-0.6},o:`They sort 60 items. One urgent potassium sits in "routine" until Thursday. Nobody died. This time.`}
+ ]},
+
+{id:'mini_triage',kind:'mini',game:'triage',rep:1,max:3,who:'kayleigh',title:'The 8am Rush',w:1.1,
+ text:`08:00. The phone queue says 63. The online consultation tool has 41 new requests. Kayleigh looks at you with the eyes of a soldier in a war film. "Can you help triage?"`,
+ choices:[
+  {t:'Take the hot seat (45-second game)',play:1},
+  {t:'Let reception work through the template',fx:{patients:-1,demand:0.5},o:`The template does its best. Three sore throats get GP appointments and a sprained ankle gets a call-back from the paramedic.`}
+ ]}
+);
+/* ===================== EVENTS 2: patients, team, you ===================== */
+EVENTS.push(
+{id:'higgins_list',who:'higgins',title:'The list',
+ text:`Mrs Higgins has brought a list. It is double-sided. Item one is her knee. Item seven is "the thing with my eye, but only on Tuesdays". She has also brought you a tin of shortbread.`,
+ choices:[
+  {t:'Work through all seven items',fx:{patients:5,you:-4},o:`Forty minutes later you are 35 minutes behind, but you now know everything about her eye. The shortbread is excellent.`},
+  {t:'"Let\'s do the two most important today."',fx:{patients:1,you:-1},o:`She chooses the knee and, unexpectedly, item five: "chest feels tight on the stairs". Good call. You arrange an ECG.`},
+  {t:'"One problem per appointment, I\'m afraid."',fx:{patients:-4,you:1},o:`She rebooks for items two to seven. As six separate appointments. On six separate days.`}
+ ]},
+
+{id:'ai_printout',who:'patient',title:'Dr Chatbot',
+ text:`A 34-year-old man arrives with a 12-page printout. "I put my symptoms into an AI. It says Addison's disease, lupus, or a rare parasite from Peru." He has been tired since his baby was born four months ago.`,
+ choices:[
+  {t:'Go through the printout together, properly',fx:{patients:4,you:-3},o:`It takes 25 minutes. He leaves reassured, with bloods booked and a sleep plan. He asks if he can give the AI your feedback.`},
+  {t:'Order every test on the list to settle it',fx:{patients:3,inbox:35,cash:-0.3},o:`Seventeen blood tests. Sixteen are normal. The seventeenth is borderline and generates four more appointments.`},
+  {t:'"The internet is not a doctor."',fx:{patients:-4,you:1},o:`He posts a one-star review: "Dismissive. The AI had better bedside manner." It is hard to argue.`}
+ ]},
+
+{id:'antibiotics',who:'patient',title:'I know my body',months:[6,7,8,9,10],
+ text:`"I've had a cold for four days. I always need antibiotics for it. I know my body." Her chest is clear. Her temperature is 37.1. She has taken the afternoon off work for this.`,
+ choices:[
+  {t:'Explain viral infections and safety-net',fx:{patients:-2,safety:2},o:`She sighs heavily and leaves with a leaflet. She is better by Sunday, which she puts down to the honey.`},
+  {t:'Give a delayed prescription',fx:{patients:1,safety:1},o:`"Only if it's not better in a week." She collects it the same afternoon. You are almost certain.`},
+  {t:'Just give her the amoxicillin',fx:{patients:3,safety:-3},o:`She is delighted. Your antibiotic prescribing data is not. The ICB medicines team will be in touch.`}
+ ]},
+
+{id:'backdated_note',who:'patient',title:'Just a little note',
+ text:`A patient wants a fit note backdated three weeks to cover a cancelled holiday for an insurance claim. "It was stress. From the holiday. That I didn't go on."`,
+ choices:[
+  {t:'Decline. Offer a private letter describing today\'s consultation.',fx:{patients:-2,safety:2},o:`He grumbles about "red tape" and pays the £35 fee. The letter says exactly what happened, which is not what he wanted.`},
+  {t:'Introduce a practice-wide private letter fee list',fx:{patients:-3,team:2},run(){ addMod({id:'fees',label:'Private fee income',months:99,fx:{cash:0.4}}); },o:`Reception gets a laminated fee list. Requests for "a quick letter" drop by half. Income from the rest: about £400 a month.`},
+  {t:'Write it. It\'s easier.',fx:{patients:2,safety:-4},o:`You sign it. Then you lie awake thinking about the phrase "fitness to practise".`}
+ ]},
+
+{id:'facebook',who:'paper',title:'The Facebook group',
+ text:`The {place} Community Chat group has a post: "ANYONE ELSE UNABLE TO GET THROUGH TO {surgery}??? 🤬🤬". It has 312 comments. Someone has posted a photo of your car, parked.`,
+ choices:[
+  {t:'Post a calm explainer about how to get help',fx:{patients:3,you:-2},o:`"Thanks for explaining!!" says one comment. "Typical excuses" says another. Net positive, mostly.`},
+  {t:'Ignore it. Never read the comments.',fx:{patients:-2,you:1},o:`You don't read the comments. Bev does, and summarises them for you at length.`},
+  {t:'Invite the angriest poster to join the patient group',fx:{patients:4,you:-1},alt:{p:0.35,fx:{patients:-3,you:-3},o:`She comes. She brings the other 311 commenters' concerns in a ring binder.`},o:`She comes, listens, and becomes your most ferocious defender online. Nobody saw that coming.`}
+ ]},
+
+{id:'pratt_complaint',who:'pratt',title:'A formal complaint',
+ text:`Mr Pratt has written. Four pages, single spaced, with footnotes. His routine appointment was offered in "an unacceptable" three days. He has copied in the ICB, the Ombudsman and, for reasons unclear, the Archbishop of Canterbury.`,
+ choices:[
+  {t:'Invite him in to talk it through',fx:{you:-3,patients:2},alt:{p:0.3,fx:{you:-5},o:`The meeting lasts 90 minutes. He brings a Dictaphone. He is satisfied in the sense that he now has more material.`},o:`He talks for an hour. At the end he shakes your hand: "First time anyone's listened." He sends Christmas cards now.`},
+  {t:'Send the standard written response',fx:{patients:-1,safety:1},o:`Your response is measured and correct. His reply is longer.`},
+  {t:'Suggest he might be happier registered elsewhere',fx:{you:2},alt:{p:0.6,fx:{patients:-5,sched:[['pratt_mp',1]]},o:`He is not happier. He writes to his MP. And the paper.`},o:`He registers across town. The practice across town sends you a bottle of wine.`}
+ ]},
+
+{id:'pratt_mp',arc:1,who:'mp',title:'A letter from Westminster',
+ text:`Sir Geoffrey Pomfrey MP has written about "serious concerns raised by a constituent". He would be "delighted to visit and see the challenges first-hand", ideally with a photographer.`,
+ choices:[
+  {t:'Invite him to shadow a Monday',fx:{you:-3,patients:4},alt:{p:0.4,fx:{patients:-2,you:-3},o:`He stays 40 minutes, takes a selfie with the flu vaccines, and announces "more funding for GPs" that turns out to be last year's funding.`},o:`He sees the 8am queue, sits in on triage, and goes quiet. He writes a column about it. It is weirdly good.`},
+  {t:'Reply with a factual letter and some statistics',fx:{you:-1,safety:1},o:`His office replies thanking you for your "valuable insights". Nothing else happens, which counts as a win.`}
+ ]},
+
+{id:'abuse',who:'kayleigh',title:'On the front line',
+ text:`A man has been shouting at Kayleigh for ten minutes because his repeat prescription "should have been done already". It was requested 40 minutes ago. Kayleigh is 22. She is shaking.`,
+ choices:[
+  {t:'Zero tolerance: warning letter, then removal',fx:{team:6,patients:-2},o:`The letter goes out. The team notices you backed them. That matters more than you realise.`},
+  {t:'Step out and de-escalate it yourself',fx:{team:3,you:-3,patients:1},o:`You calm him down. It takes 15 minutes you did not have. Kayleigh brings you a tea later without being asked.`},
+  {t:'Fit panic alarms and a proper screen (£2,000)',fx:{team:4,safety:2,cash:-2},o:`The installer asks if you'd like the bulletproof option. You pause for longer than you'd like to admit.`}
+ ]},
+
+{id:'aldi',who:'kayleigh',title:'An offer from Aldi',cond:()=>S.staff.recep>=3,
+ text:`"Aldi have offered me £1.60 an hour more," Kayleigh says, "and nobody at Aldi has ever called me a jumped-up little secretary." She does not want to leave. She also does not want to be poor.`,
+ choices:[
+  {t:'Match it, and rise the whole reception team',fx:{team:8},run(){ S.payX=(S.payX||0)+1.1; },o:`The team gets a raise. It costs about £1,100 a month. Reception morale is the best it has been in years.`},
+  {t:'Match it for Kayleigh only',fx:{team:-2},run(){ S.payX=(S.payX||0)+0.25; },o:`She stays. Everyone finds out within the hour. Reception has a new topic of conversation.`},
+  {t:'Wish her well',fx:{team:-5},run(){ S.staff.recep--; },o:`She goes. The Aldi on the bypass now has the best customer service in the county.`}
+ ]},
+
+{id:'bingo',who:'patient',title:'A home visit request',
+ text:`"Mum can't possibly come to the surgery. She's too frail." The request comes in at 11:40. Kayleigh adds: "She's at bingo on Thursdays though. Won £40 last week."`,
+ choices:[
+  {t:'Visit anyway after morning surgery',fx:{you:-3,patients:2},o:`She's fine. She's also delightful, and she has a leg ulcer nobody knew about. Worth it, on balance.`},
+  {t:'Offer a phone consultation first',fx:{patients:-1},o:`Daughter is outraged. Mum is on speakerphone, and it turns out she only wanted her pills changing.`},
+  {t:'Send the paramedic',need:()=>S.staff.para>0,why:'You don\'t have a paramedic',fx:{patients:1,you:1},o:`The paramedic goes. Mum asks her about bingo tips. They are now friends.`}
+ ]},
+
+{id:'care_home',who:'icb',title:'The care home',
+ text:`The 64-bed care home on Mill Lane has lost its GP practice. The ICB asks if you'll take it on: weekly ward rounds, anticipatory care plans, and around 40 calls a week. They'll pay for it.`,
+ choices:[
+  {t:'Take it on',fx:{list:64,demand:2,patients:2},run(){ addMod({id:'carehome',label:'Care home enhanced service',months:99,fx:{cash:1.4}}); },o:`Ward round on Tuesdays. The care home staff are wonderful. The paperwork is not. £1.4k a month and a lot of phone calls.`},
+  {t:'Decline. You can\'t cover it safely.',fx:{you:1,patients:-1},o:`Jonathan sighs audibly on the call. The home goes to the practice across town, who complain about it at every PCN meeting.`}
+ ]},
+
+{id:'estate',who:'bev',title:'Six hundred new homes',cond:()=>S.practiceKey!=='city',
+ text:`The new estate on the old airfield is finished: 600 homes, one pub, no new surgery. The Section 106 money for "healthcare infrastructure" has been spent on a roundabout.`,
+ choices:[
+  {t:'Register everyone who comes',fx:{list:520,team:-2,patients:2},o:`Five hundred new patients in two months. More money, more demand, and a lot of toddlers with ears.`},
+  {t:'Apply to close the list temporarily',fx:{list:180,team:2},alt:{p:0.5,fx:{list:520,team:-3,you:-2},o:`The ICB refuses. The patients come anyway.`},o:`The ICB agrees to a short closure. Some patients come anyway, via "boundary exceptions" Bev has never heard of.`}
+ ]},
+
+{id:'mounjaro',who:'patient',title:'New year, new jab',months:[8,9,10],
+ text:`It's January. Forty-one online requests this week say some version of "I want Mounjaro". Three attach photos of a friend who "lost four stone". The phased NHS eligibility criteria fit on one page. The demand does not.`,
+ choices:[
+  {t:'Set up a structured weight clinic',fx:{demand:1.5,team:-2,patients:3},run(){ addMod({id:'weight',label:'Weight management clinic',months:3,fx:{cash:0.8}}); },o:`Maureen runs it. Criteria, counselling, follow-up. It is actually good care. It is also a lot of it.`},
+  {t:'Apply the criteria strictly and explain why',fx:{patients:-3,safety:1},o:`Most people understand. One writes to the Daily Mail. The Mail is not interested in the eligibility criteria.`},
+  {t:'Point people to private providers',fx:{patients:-1,you:1,inbox:25},o:`Private prescribing surges. So do the letters asking you to "please monitor".`}
+ ]},
+
+{id:'shared_care',who:'raj',title:'Please could the GP...',
+ text:`Raj has 23 requests from private clinics asking you to take over prescribing and monitoring. There are no commissioned shared care agreements for most of them. "What's our policy?" he asks. You don't have one.`,
+ choices:[
+  {t:'Accept them all to keep patients happy',fx:{patients:3,safety:-4,inbox:40},o:`Twenty-three new monitoring schedules. Six have no baseline bloods. Raj starts a spreadsheet with a skull emoji in the title.`},
+  {t:'Write a policy: no agreement, no shared care',fx:{patients:-3,safety:3,you:1},o:`Patients are unhappy. Some are fairly unhappy. But now there's a clear answer, and it's written down, and Raj stops twitching.`},
+  {t:'Case by case',fx:{you:-3,safety:1},o:`Each one takes 20 minutes. You approve nine. Raj respects you but also looks tired.`}
+ ]},
+
+{id:'google_review',who:'kayleigh',title:'One star',
+ text:`New Google review: "⭐ Receptionist looked at me funny. Doctor was 7 minutes late. Parking a disgrace. Would not recommend." It's the fourth this month. Your average is now 2.1.`,
+ choices:[
+  {t:'Reply publicly and politely',fx:{patients:1,you:-1},alt:{p:0.4,fx:{patients:-2,you:-2},o:`He replies to your reply. Then his cousin does. It becomes a thread.`},o:`"Thank you for your feedback, we're sorry..." It's bland and perfect. Nobody reads it.`},
+  {t:'Ask happy patients to leave reviews',fx:{patients:3,team:2},o:`Mrs Higgins leaves one. It is 600 words long and mentions the shortbread. Your average climbs to 3.4.`},
+  {t:'Never look at Google reviews again',fx:{you:2},o:`Liberating. You mute the notifications and feel ten years younger.`}
+ ]},
+
+{id:'gift',who:'patient',title:'A token of thanks',months:[8],
+ text:`A grateful patient leaves a bottle of 18-year-old single malt at reception with a card: "For the doctor who found my cancer early." It is worth about £120.`,
+ choices:[
+  {t:'Accept, and record it in the gifts register',fx:{you:4,safety:1},o:`You write it in the register, as the rules require. Then you write the patient a card back. You keep that card for years.`},
+  {t:'Raffle it for the staff Christmas fund',fx:{team:4},o:`Maureen wins. She doesn't drink whisky. She sells it to Alan for £60 and buys the team doughnuts.`}
+ ]},
+
+{id:'dna',who:'bev',title:'Did not attend',
+ text:`Last month 186 appointments were booked and not attended. That's about 30 GP sessions. Bev has made a poster. It says "186 PEOPLE WASTED APPOINTMENTS LAST MONTH" in red capital letters.`,
+ choices:[
+  {t:'Automated text reminders with an easy cancel link',fx:{cash:-0.5,demand:-1.5,patients:1},o:`DNAs drop by a third. The text also says "Reply CANCEL". Three people reply "CANCEL MY ACCOUNT". It is not that kind of service.`},
+  {t:'Put the poster up',fx:{patients:-2,demand:-0.5},o:`The people who read the poster are the people who came. They feel told off.`},
+  {t:'Leave it. Some of them had reasons.',fx:{you:1},o:`Fair. Some of them did. Some of them were at bingo.`}
+ ]},
+
+{id:'queue_rain',who:'kayleigh',title:'Queue in the rain',months:[7,8,9,10],
+ text:`It's 7:40am and there are 30 people queuing outside in the rain. Someone has brought a camping chair. You have total triage. They know. They came anyway because "the phones never answer".`,
+ choices:[
+  {t:'Open early, hand out tea, triage at the door',fx:{patients:4,team:-3,you:-2},o:`The camping chair man turns out to have pneumonia. Door triage works. It also takes two receptionists off the phones.`},
+  {t:'Keep the doors shut until 8, stick to the system',fx:{patients:-3,team:1},o:`At 8:00 the doors open and 30 damp, furious people all ask for "just a quick word".`}
+ ]},
+
+{id:'med_student',who:'med',title:'A student for the summer',months:[2,3,4,5],
+ text:`The medical school asks if Oliver, a third-year student, can sit in for four weeks. He is keen, polite, and has never seen a patient over 30 who wasn't in a hospital bed.`,
+ choices:[
+  {t:'Take him. Teaching is why you became a doctor.',fx:{you:2,team:2,cash:0.8},o:`He is brilliant with Mrs Higgins. At the end he says he wants to be a GP. You tell him to think very carefully, and to go ahead.`},
+  {t:'Not this year',fx:{you:1},o:`He goes to dermatology. He sends a photo from the conference in Barcelona.`}
+ ]},
+
+{id:'training',who:'pcn',title:'Become a training practice?',months:[0,1,2],
+ text:`The deanery is desperate for training places. If you become a GP trainer, you'll get a registrar from August. Six months of trainer's course first. "It's rewarding," Clare says. "And the grant helps."`,
+ choices:[
+  {t:'Sign up. Grow your own GPs.',fx:{you:-4,team:2},run(){ addMod({id:'registrar',label:'GP registrar in post',months:8,at:4,capAdd:70,fx:{cash:0.7,you:-1}}); },o:`Trainer's course on Thursday evenings. Dr Ellie Chen will join in August. You buy a book about Balint groups.`},
+  {t:'Not this year',fx:{you:1},o:`Maybe next year. Probably next year. You say that every year.`}
+ ]},
+
+{id:'reg_crisis',who:'reg',title:'A registrar in the doorway',cond:()=>hasMod('registrar')&&S.month>=5,
+ text:`Ellie is in your doorway at 5:50pm. "Sorry. I've got a baby with a temperature and a rash, and I just need to run it past you." The last three times, she was right.`,
+ choices:[
+  {t:'Go and see the baby with her',fx:{you:-2,safety:3,team:2},o:`It's a viral rash. You go through the traffic-light features together. She'll be a very good GP.`},
+  {t:'Talk it through, then trust her judgement',fx:{you:1,safety:1},o:`She's got it right. She wanted to be told. You tell her. That's supervision.`}
+ ]},
+
+{id:'pay_award',who:'bev',title:'The pay award',months:[0,1,2],
+ text:`Staff have seen the news: NHS Agenda for Change staff are getting a pay rise. Your staff aren't on Agenda for Change, but they can read. The contract uplift for staff pay was, in Bev's words, "a joke".`,
+ choices:[
+  {t:'Match it in full',fx:{team:7},run(){ S.payX=(S.payX||0)+1.8; },o:`About £1,800 a month more on the payroll. The team is grateful, and says so. The accountant says something else.`},
+  {t:'Give half',fx:{team:-1},run(){ S.payX=(S.payX||0)+0.9; },o:`It is received with resignation, which is better than resignations.`},
+  {t:'Nothing this year',fx:{team:-9},o:`Maureen asks to see the partners' drawings. You change the subject. She notices.`}
+ ]},
+
+{id:'bev_retire',who:'bev',title:'Bev has news',months:[5,6,7,8,9],
+ text:`Bev sits down. "I'm 64. My husband wants to buy a caravan. I'm thinking of retiring at Christmas." Bev is the only person who knows the password to the payroll system, the smartcard admin and the alarm code.`,
+ choices:[
+  {t:'Offer a retention bonus and three days a week (£3k)',fx:{cash:-3,team:3},o:`She takes it. "Three days. And I'm not doing CQC again." Fair.`},
+  {t:'Recruit a new practice manager',fx:{team:-3,you:-2},run(){ addMod({id:'newpm',label:'New practice manager settling in',months:3,fx:{safety:-2,you:-1}}); },o:`The new manager is sharp and has an MBA. It will take her three months to find where Bev kept everything.`},
+  {t:'Promote Sharon, the deputy',fx:{team:2},alt:{p:0.4,fx:{team:-3,safety:-3},o:`Sharon is overwhelmed by week two. Bev comes in "just on Tuesdays" to help. Unpaid. Somehow it's worse.`},o:`Sharon is brilliant. It turns out she's been doing half of Bev's job for years.`}
+ ]},
+
+{id:'maureen_course',who:'maureen',title:'The diabetes course',
+ text:`Maureen wants to do an advanced diabetes course: two days a month for three months, paid by the practice. "Then I can start insulin myself. I'm fed up of waiting for you lot."`,
+ choices:[
+  {t:'Pay for it (£1,200) and cover her sessions',fx:{cash:-1.2,team:3,qof:4},o:`She comes back with a certificate and a new level of authority, which previously you didn't think possible.`},
+  {t:'Not now, maybe next year',fx:{team:-4},o:`She takes it well. Then she books the course herself and asks for study leave. She knows the rules better than you.`}
+ ]},
+
+{id:'xmas_party',who:'bev',title:'The Christmas do',months:[8],
+ text:`Christmas party. Last year's was a curry and a quiz that ended with the nurses and reception not speaking until February. What's the plan?`,
+ choices:[
+  {t:'Proper night out, practice pays (£2,500)',fx:{team:9,cash:-2.5},o:`A three-course dinner, a DJ and a group photo nobody is allowed to post. Maureen and Kayleigh do the Macarena together. Peace is restored.`},
+  {t:'Secret Santa and mince pies',fx:{team:2},o:`You get a mug that says "I survived a partners' meeting". It's accurate.`},
+  {t:'Cancelled due to winter pressures',fx:{team:-7,cash:0.5},o:`Everyone understands. Everyone also remembers.`}
+ ]},
+
+{id:'fish',who:'maureen',title:'The microwave incident',
+ text:`Somebody has microwaved fish in the staff kitchen. Again. There is an unsigned note on the fridge. There is a counter-note. The counter-note has been annotated.`,
+ choices:[
+  {t:'Buy a second microwave, for fish only (£90)',fx:{team:3,cash:-0.1},o:`The fish microwave gets its own laminated sign. It is the best £90 you spend all year.`},
+  {t:'Write a kitchen policy',fx:{team:-2,safety:1},o:`Policy KIT-01, version 1.0. It is ratified at a staff meeting. It is ignored by Thursday.`},
+  {t:'Stay out of it',fx:{team:-1,you:1},o:`The note war escalates to Post-its on your door. You are Switzerland.`}
+ ]},
+
+{id:'cat',who:'cat',title:'A new team member',
+ text:`A ginger cat has moved into the car park. Staff have named it QOF. It sleeps on the bonnet of whichever car is warmest. Someone has already bought it a bowl.`,
+ choices:[
+  {t:'Adopt QOF. Every practice needs a mascot.',fx:{team:7,safety:-2},o:`QOF gets a collar, a bed in the admin office and an Instagram account with more followers than the practice.`},
+  {t:'Call the cat rescue',fx:{team:-4,safety:1},o:`QOF goes to a lovely home. The staff room is quieter. Someone puts up a "missing you" poster.`},
+  {t:'Unofficially tolerate QOF',fx:{team:3},alt:{p:0.3,fx:{team:2,safety:-4},o:`The CQC report contains the sentence "a cat was observed in the dispensary".`},o:`QOF is fed "by nobody". Four bowls appear. QOF gets fat.`}
+ ]},
+
+{id:'wfh',who:'bev',title:'Working from home',
+ text:`The admin team asks if they can work from home two days a week. "We only type letters and code documents. We could do it in our pyjamas." Two of them already look like they do.`,
+ choices:[
+  {t:'Yes. Laptops and smartcard readers (£1,500)',fx:{team:6,cash:-1.5,inbox:-40},o:`Productivity goes up. Nobody knows why. Everyone suspects the lack of Derek Pratt at the front desk.`},
+  {t:'No. We need people in the building.',fx:{team:-4},o:`They accept it. Two start looking at NHS admin jobs that offer hybrid working.`}
+ ]},
+
+{id:'noro',who:'maureen',title:'Norovirus',months:[7,8,9,10],
+ text:`Norovirus is working its way through the staff. Four people are off. Maureen is in, but green. She insists she's fine, then leaves the room at speed.`,
+ choices:[
+  {t:'Send everyone symptomatic home for 48 hours',fx:{safety:3,team:2},run(){ addMod({id:'noro',label:'Norovirus: staff off sick',months:1,capMul:0.9}); },o:`Capacity drops for the month. The outbreak stops with your staff, not your patients.`},
+  {t:'Soldier on, it\'s winter',fx:{team:-4,safety:-4},alt:{p:0.4,fx:{team:-6,safety:-6,patients:-3},run(){ addMod({id:'noro2',label:'Norovirus outbreak',months:1,capMul:0.8}); },o:`It spreads to three patients and the care home. The outbreak team becomes your pen pal.`},o:`You get away with it. Nobody feels good about it.`}
+ ]},
+
+{id:'whatsapp',who:'kayleigh',title:'WhatsApp',
+ text:`There's a row in the staff WhatsApp group. It started about who restocks the printer paper. It is now about "respect" and "some people". It has 214 messages. You're in the group.`,
+ choices:[
+  {t:'Get the two sides in a room with biscuits',fx:{team:5,you:-2},o:`It turns out nobody knew whose job the printer was. Now Sharon knows. It is Sharon.`},
+  {t:'Mute the group. Forever.',fx:{you:3,team:-2},o:`Blissful silence. You miss the message about the fire drill.`}
+ ]},
+
+{id:'pcn_arrs',who:'pcn',title:'Free staff!',cond:()=>arrsCount()<ARRS_CAP,
+ text:`Clare from the PCN has unspent ARRS budget. "Would you like a mental health practitioner? Fully funded. They start next month." The PCN will pay. The question is where they'll sit.`,
+ choices:[
+  {t:'Yes, find them a room',fx:{staff:{mhp:1},patients:2},o:`They start next month. Patients who needed longer than ten minutes finally get it. You need to find a room.`},
+  {t:'No room at the inn',fx:{you:1},o:`The funding goes to the practice across town, which has a portakabin.`}
+ ]},
+
+{id:'rooms',who:'bev',title:'Room for everyone?',cond:()=>roomsNeeded()>S.rooms,
+ text:`Every consulting room is double booked on Tuesdays. The physio is working in the baby-changing room. "We need more space," Bev says, "or fewer people. And we need the people."`,
+ choices:[
+  {t:'Convert the staff room into a clinic room',fx:{rooms:1,team:-6},o:`The staff room is now Room 11. Lunch is eaten in the corridor. Morale takes it personally.`},
+  {t:'Hire a portakabin for the car park (£14,000)',fx:{rooms:2,cash:-14},o:`It arrives on a lorry. It has air conditioning and a ramp. It is the nicest room in the building.`},
+  {t:'Hot-desk and rota harder',fx:{team:-2,you:-2},o:`Bev builds a room rota on a spreadsheet so complex it becomes self-aware.`}
+ ]},
+
+{id:'pcn_meeting',who:'pcn',title:'Neighbourhood transformation',
+ text:`The PCN board meets Tuesday 1-5pm: "Integrated Neighbourhood Teams: a transformation journey." There will be sticky notes. Your attendance is "strongly encouraged".`,
+ choices:[
+  {t:'Go. Someone has to represent the practice.',fx:{you:-3,cash:0.6,team:1},o:`Four hours of sticky notes. You secure a share of the new frailty funding and eat a surprising number of free biscuits.`},
+  {t:'Send Bev',fx:{team:-1},o:`Bev comes back with a new acronym and a quiet fury.`},
+  {t:'Skip it',fx:{you:2},alt:{p:0.4,fx:{you:1,cash:-1},o:`The PCN divides the new money between practices who turned up.`},o:`Nothing happens. It often doesn't.`}
+ ]},
+
+{id:'pcn_cd',who:'pcn',title:'A promotion?',months:[2,3,4,5,6],
+ text:`Clare is stepping down as PCN Clinical Director. "You'd be great," she says. "It pays for two sessions a week, and you get a lanyard." There are 11 practices in the PCN, and each has opinions.`,
+ choices:[
+  {t:'Accept the role',fx:{team:1},run(){ addMod({id:'cd',label:'PCN Clinical Director',months:99,fx:{cash:1.3,you:-2}}); },o:`You are now responsible for eleven practices' worth of opinions. The money is useful. The meetings are not.`},
+  {t:'Decline',fx:{you:2},o:`Someone else gets the lanyard. You sleep well.`}
+ ]},
+
+{id:'collective',who:'lmc',title:'Collective action',months:[1,2,3,4,5,6,7],
+ text:`The LMC is urging practices to adopt safe working: a cap of 25 patient contacts per clinician per day, with overflow to local hubs. "It's about safety," Steve says. "Also sanity."`,
+ choices:[
+  {t:'Implement the safe working cap',fx:{patients:-3},run(){ addMod({id:'safe',label:'Safe working cap',months:99,capMul:0.94,fx:{you:2,team:1}}); },o:`Lists stop at 25. The overflow goes to the hub, which is full by 10am. But you leave by 7pm for the first time since you qualified.`},
+  {t:'Carry on as normal',fx:{you:-1},o:`You keep going. So does the queue.`}
+ ]},
+
+{id:'survey_bad',who:'paper',title:'GP Patient Survey',months:[3],cond:()=>S.st.patients<50,
+ text:`The GP Patient Survey results are out. {surgery}: "ease of getting through on the phone" is in the bottom 10% nationally. The {paper} has made a league table.`,
+ choices:[
+  {t:'Publish an action plan in the waiting room',fx:{patients:2,you:-2},o:`It's honest, specific and has dates on it. Somebody writes "LOL" on it in biro.`},
+  {t:'Point out that 84 people responded',fx:{patients:-2,you:1},o:`Statistically, you are correct. Emotionally, nobody cares.`}
+ ]},
+
+{id:'survey_good',who:'paper',title:'GP Patient Survey',months:[3],cond:()=>S.st.patients>=50,
+ text:`The GP Patient Survey results are out. {surgery} is above the national average for "overall experience". The {paper} runs it on page 11, next to the marrow.`,
+ choices:[
+  {t:'Buy the team cake',fx:{team:4,cash:-0.1},o:`You tell the team it's their result. It is.`},
+  {t:'Frame the page for reception',fx:{team:2,patients:1},o:`It hangs next to the sign about abusive behaviour. Nice balance.`}
+ ]},
+
+{id:'appraisal',who:'you',title:'Appraisal season',
+ text:`Your appraisal is due. You need a year of CPD reflections, a quality improvement activity, patient feedback and a reflection on a significant event. You have one reflection, written in 2024. It is about burnout.`,
+ choices:[
+  {t:'Spend the weekend on the portfolio',fx:{you:-4,safety:2},o:`Your appraiser praises your "rich reflective practice". You reflect on how much you'd like your weekend back.`},
+  {t:'Ask to defer it three months',fx:{you:2},o:`Deferred. The problem is now in March, alongside QOF, the accounts and the new contract. Great.`}
+ ]},
+
+{id:'nativity',who:'home',title:'The nativity',months:[8],
+ text:`It's the school nativity at 2pm on Thursday. Your child is playing "Third Sheep". They have been practising their "baa" for a week. You have a 14-patient afternoon list.`,
+ choices:[
+  {t:'Cancel the afternoon. You\'re going.',fx:{you:9,patients:-2,team:-1},o:`Third Sheep's "baa" is magnificent. You film all of it. You watch it again at 11pm while doing the results.`},
+  {t:'Ask a partner to cover',need:()=>activeOthers()>0,why:'There\'s nobody left to ask',fx:{you:6,team:-2},o:`They cover. You owe them. You'll be paying that back in February.`},
+  {t:'Stay. Someone has to see the patients.',fx:{you:-9},o:`You get a video on WhatsApp at 2:47pm. You watch it between patients 9 and 10. It's the only good part of the day.`}
+ ]},
+
+{id:'lunch',who:'you',title:'Lunch',
+ text:`You realise you haven't eaten lunch since Tuesday. Today's lunch so far is a Rich Tea biscuit and half a banana a patient's child gave you.`,
+ choices:[
+  {t:'Block 30 minutes every day. Protected.',fx:{you:6,patients:-2},o:`It feels radical. It shouldn't. You eat a sandwich sitting down and nearly cry.`},
+  {t:'Keep going. Lunch is for the weak.',fx:{you:-4,patients:1},o:`You finish the day on four coffees and the other half of the banana.`}
+ ]},
+
+{id:'dinner',who:'home',title:'"Home for dinner?"',
+ text:`"Will you be home for dinner this week?" The question is gentle. The subtext is not. You worked until 8:40pm every night last week.`,
+ choices:[
+  {t:'Promise Wednesday. Mean it.',fx:{you:5},alt:{p:0.35,fx:{you:-5},o:`At 6:15pm Wednesday a patient collapses in the waiting room. You get home at 9. The dinner is in the oven, under foil, with a note.`},o:`You're home at 6:30. There is pasta, and nobody talks about the practice for three whole hours.`},
+  {t:'"After QOF year end. I promise."',fx:{you:-4},o:`It's not the first time you've said it. You notice they don't reply.`}
+ ]},
+
+{id:'gmc',who:'you',title:'A letter from the GMC',w:0.5,
+ text:`A brown envelope. The GMC has received a complaint about you from a patient whose request for a sick note you declined. They are "assessing whether it requires investigation". Your stomach falls through the floor.`,
+ choices:[
+  {t:'Ring your medical defence organisation',fx:{you:-6},run(){ schedule('gmc_closed',2); },o:`The adviser is calm. "We see these all the time. Send me your notes." It helps, a bit.`},
+  {t:'Deal with it yourself',fx:{you:-10},alt:{p:0.5,fx:{you:-12,safety:-2},o:`You write a long, defensive response at 2am. Your defence organisation later calls it "a learning opportunity".`},run(){ schedule('gmc_closed',2); },o:`You draft a careful, factual response. Four drafts. No sleep.`}
+ ]},
+
+{id:'gmc_closed',arc:1,who:'you',title:'Case closed',
+ text:`The GMC writes: "no further action". The complaint did not meet the threshold for investigation. It took eleven weeks. You'll remember them for considerably longer.`,
+ choices:[{t:'Breathe',fx:{you:8},o:`You go for a walk at lunchtime, the first in months. The sky is enormous.`}]}
+);
+/* ===================== EVENTS 3: money, safety, systems ===================== */
+EVENTS.push(
+{id:'fridge',who:'maureen',title:'The vaccine fridge',
+ text:`Monday morning. The vaccine fridge data logger shows it reached 11°C for about six hours over the weekend. Inside: £7,000 of vaccines. Maureen is holding the logger like it's a murder weapon.`,
+ choices:[
+  {t:'Quarantine the stock and ring the manufacturers for stability advice',fx:{you:-2,safety:4,cash:-2.5},o:`About two thirds is fine according to the manufacturers' data. The rest goes in the bin. You write it up as a significant event. The system works.`},
+  {t:'Bin the lot, to be safe',fx:{cash:-7,safety:3},o:`£7,000 into the pharmaceutical waste bin. Safe, expensive and, it turns out, partly unnecessary.`},
+  {t:'"They\'re probably fine."',fx:{safety:-4},alt:{p:0.4,fx:{safety:-16,cash:-7,patients:-5},o:`It comes out at a routine audit. 140 patients need recalling for revaccination. The local paper finds out.`},o:`Nobody ever finds out. You find out every night at about 3am, in your head.`}
+ ]},
+
+{id:'sea_referral',who:'bev',title:'A significant event',
+ text:`A suspected cancer referral you made three weeks ago was never sent. It was sitting in a drafts folder. The patient rang to ask why she hasn't heard anything. She is 58 with a breast lump.`,
+ choices:[
+  {t:'Ring her yourself, apologise, fix it, run a full SEA',fx:{safety:6,you:-4,patients:1},o:`You apologise properly. The referral goes today, with a call to the breast unit. The SEA finds the process gap. You fix it. That's how it's meant to work.`},
+  {t:'Send it now and fix it quietly',fx:{safety:-3},alt:{p:0.35,fx:{safety:-8,patients:-6,you:-6},o:`She complains. The complaint asks why nobody told her what went wrong. It's a fair question.`},o:`The referral goes. Nothing else changes. The drafts folder is still there.`}
+ ]},
+
+{id:'wrong_letter',who:'bev',title:'Wrong address',
+ text:`A hospital letter about Mrs A was scanned into Mrs B's record, then posted to Mrs B. Mrs B has rung to say she has "learned a lot about Mrs A's bowels".`,
+ choices:[
+  {t:'Log it as a data breach and apologise to both',fx:{safety:4,you:-2},o:`You assess it against the reporting criteria, record it properly and apologise to both patients. Mrs A is gracious. Mrs B is enjoying herself.`},
+  {t:'Apologise and move on',fx:{you:1},alt:{p:0.35,fx:{safety:-8,patients:-3},o:`Mrs A complains to the ICO herself. The ICO asks why you didn't.`},o:`It blows over. Probably.`}
+ ]},
+
+{id:'methotrexate',who:'raj',title:'Nine months without bloods',
+ text:`Raj has found a patient on methotrexate who hasn't had a blood test in nine months. He's been issued his repeats every month without anyone noticing. Raj thinks there are more.`,
+ choices:[
+  {t:'Run a full high-risk drug monitoring audit',need:()=>S.staff.pharm>0,why:'You need a clinical pharmacist',fx:{safety:6,inbox:40,team:-1},o:`Raj finds 31 patients overdue monitoring. It takes him a month. Two had significant results. The audit might have saved a life.`},
+  {t:'Block repeats until bloods are done',fx:{safety:3,patients:-3},o:`Thirty-one patients get a text saying "please book a blood test before your next prescription". Twenty-nine do. Two ring reception to shout.`},
+  {t:'Book this one patient and carry on',fx:{safety:-4},o:`He's fine. There are 30 others. You don't know that yet.`}
+ ]},
+
+{id:'defib',who:'maureen',title:'Emergency equipment',
+ text:`Maureen has checked the emergency trolley. The defibrillator pads expired in 2022. The oxygen cylinder is a quarter full. There is a mysterious sandwich in the bottom drawer.`,
+ choices:[
+  {t:'Replace everything, set up weekly checks (£400)',fx:{cash:-0.4,safety:5,team:1},o:`New pads, new cylinder, new checklist. The sandwich is given a respectful burial.`},
+  {t:'Replace the pads only',fx:{cash:-0.1,safety:1},o:`Better than nothing. Just.`}
+ ]},
+
+{id:'legionella',who:'bev',title:'Legionella',
+ text:`The legionella risk assessment is two years overdue. Bev only knows because it's on the CQC pre-inspection checklist she downloaded "for fun".`,
+ choices:[
+  {t:'Book the assessment (£650)',fx:{cash:-0.65,safety:3},o:`A man in overalls runs every tap for two minutes and writes a 30-page report. Water: fine. Showerhead in the staff toilet: condemned.`},
+  {t:'Run the taps a bit more, it\'ll be fine',fx:{safety:-3},o:`You run the taps a bit more. It will almost certainly be fine.`}
+ ]},
+
+{id:'cyber',who:'hospital',title:'Pathology down',
+ text:`The hospital's pathology IT supplier has been hit by a cyberattack. For the next six weeks, only urgent blood tests will be processed. Routine monitoring, QOF bloods and "just checking" tests are off.`,
+ choices:[
+  {t:'Triage every request by risk',fx:{you:-3,safety:2},run(){ addMod({id:'cyber',label:'Pathology outage',months:2,fx:{qof:-2}}); },o:`Every blood form now needs a GP to decide if it's urgent. You make 300 small decisions a week. Nothing falls through.`},
+  {t:'Send everyone to the hospital phlebotomy walk-in',fx:{patients:-4,team:1},run(){ addMod({id:'cyber',label:'Pathology outage',months:2,fx:{qof:-2}}); },o:`The hospital walk-in queue goes out of the door. The hospital writes a stern letter about "inappropriate GP redirection".`}
+ ]},
+
+{id:'it_outage',who:'it',title:'System down',
+ text:`08:04 Monday. The clinical system is down. No records, no prescribing, no appointments. The helpdesk estimates "sometime today". The waiting room is filling up.`,
+ choices:[
+  {t:'Paper day: handwritten notes, scan later',fx:{safety:-2,you:-2,team:3,inbox:60},o:`Maureen finds the paper prescription pads. Alan knows how to do this from 1989. There's a Blitz spirit. Then there's the scanning.`},
+  {t:'Urgent-only service until it\'s back',fx:{patients:-4,you:1},o:`It's back at 1:40pm. You spend the afternoon rebooking the morning.`}
+ ]},
+
+{id:'phones',who:'kayleigh',title:'The phones have died',cond:()=>!S.flags.telephony,
+ text:`08:00:14. The phone system has crashed. It's an analogue system installed in 2008, and the engineer who understood it has retired to Spain. People are ringing 111 to ask why the surgery isn't answering.`,
+ choices:[
+  {t:'Commit to a cloud telephony upgrade',fx:{you:-1,flags:{telephony:1}},o:`You sign the contract. The go-live is now a project you can choose: queue positions, call-backs and data you can actually use.`},
+  {t:'Get it patched up (£900)',fx:{cash:-0.9,patients:-2},o:`It's working by 10am. It will crash again. Everyone knows it will crash again.`}
+ ]},
+
+{id:'roof',who:'bev',title:'Drip',
+ text:`There's water coming through the ceiling of Room 3. It's landing, with some precision, on the examination couch. The flat roof has been "fine for years".`,
+ choices:[
+  {t:'Emergency roofer, today',fx:(()=>S.flags.soldBuilding?{team:1}:{cash:-6,team:1}),o:()=>S.flags.soldBuilding?`It's the landlord's problem now. The roofer arrives in three days. You rediscover the upside of renting.`:`£6,000. The roofer sucks air through his teeth for a full minute before quoting.`},
+  {t:'Buckets and a cone',fx:{safety:-3},run(){ addMod({id:'roof',label:'Room 3 out of action',months:2,rooms:-1}); },o:`Room 3 becomes a storage room with a bucket. You lose a room for two months.`}
+ ]},
+
+{id:'service_charge',who:'landlord',title:'An invoice',cond:()=>!S.flags.soldBuilding,
+ text:`An invoice arrives for "backdated service charges, 2019-2025": £38,412.66. It includes cleaning you've always paid for yourselves, and a £4,000 charge for a lift. The building has one storey.`,
+ choices:[
+  {t:'Dispute it with LMC support',fx:{cash:-1.5,you:-2},alt:{p:0.3,fx:{cash:-12,you:-4},o:`After months of letters you settle for £10,500. The lift charge stays. There is still no lift.`},o:`Eighteen months of correspondence begins. The invoice is "on hold". For a GP practice, that counts as victory.`},
+  {t:'Pay in instalments to make it go away',run(){ addMod({id:'svc',label:'Service charge instalments',months:6,fx:{cash:-4}}); },fx:{you:1},o:`£4k a month for six months. It goes away. So does a meaningful slice of the partners' profit.`},
+  {t:'Ignore it',fx:{you:1},alt:{p:0.5,fx:{you:-6,cash:-20},o:`It goes to a debt recovery agency. The phrase "legal proceedings" appears. You pay part of it and dispute the rest, in a hurry.`},o:`Nothing happens. The invoice is re-sent every quarter, forever, like a ghost.`}
+ ]},
+
+{id:'boiler',who:'bev',title:'Cold',months:[7,8,9,10],
+ text:`The boiler has died. It's 11°C in the waiting room. Mrs Higgins is wearing two coats and has brought a flask. The plumber can do Thursday "maybe".`,
+ choices:[
+  {t:'New boiler (£6,500)',fx:(()=>S.flags.soldBuilding?{cash:-1}:{cash:-6.5}),o:()=>S.flags.soldBuilding?`The landlord pays for the boiler, grumbling. You pay for the plumber's call-out.`:`The new boiler is "A-rated". The invoice is not.`},
+  {t:'Portable heaters until spring',fx:{team:-5,patients:-2,safety:-2,cash:-0.4},o:`Six fan heaters and a tangle of extension leads. The fire risk assessment weeps quietly.`}
+ ]},
+
+{id:'photocopier',who:'rep',title:'A print solution',
+ text:`A sales rep offers a "managed print solution": a photocopier on a seven-year lease at £610 a month. "It scans directly to the cloud." You currently scan to a PC called RECEPTION-OLD-2.`,
+ choices:[
+  {t:'Sign',fx:{team:2,inbox:-20},run(){ addMod({id:'printer',label:'Photocopier lease',months:99,fx:{cash:-0.61}}); },o:`It staples. It hole-punches. It will outlive you, contractually.`},
+  {t:'Decline and buy a £300 scanner',fx:{cash:-0.3},o:`RECEPTION-OLD-2 gets a friend. It's fine.`}
+ ]},
+
+{id:'rep_lunch',who:'rep',title:'Lunch and learn',
+ text:`Chad would love to buy the team lunch at the Wednesday clinical meeting and "share some exciting data" on a new inhaler. The sandwiches are from the good deli. The data is from the good marketing department.`,
+ choices:[
+  {t:'Accept, and critique the data afterwards',fx:{team:3,you:1},o:`The sandwiches are excellent. Raj takes the trial apart slide by slide. Chad takes notes. Everyone learns something.`},
+  {t:'Decline. You follow the local formulary.',fx:{team:-1,safety:1},o:`Principled. Hungry.`}
+ ]},
+
+{id:'locum_offer',who:'agency',title:'A locum is available',
+ text:`The agency has a GP available for two weeks starting tomorrow: £110 an hour, sessions only, "no home visits, no results, no letters". The waiting list for routine appointments is 3 weeks.`,
+ choices:[
+  {t:'Book them (about £4,400)',fx:{cash:-4.4,patients:2},run(){ addMod({id:'locum2',label:'Agency locum in post',months:1,capAdd:60,fx:{inbox:30}}); },o:`Excellent clinician. Leaves every day at 6pm sharp. Also leaves 30 unactioned results in your inbox.`},
+  {t:'No thanks',fx:{you:-1},o:`You look at the three-week wait. It looks back.`}
+ ]},
+
+{id:'research',who:'pcn',title:'Research practice?',
+ text:`The regional research network would like the practice to recruit patients to national studies. They'll fund a research nurse for a day a week, and pay per patient recruited.`,
+ choices:[
+  {t:'Sign up',fx:{team:3,you:-1},run(){ addMod({id:'research',label:'Research network income',months:99,fx:{cash:0.6}}); },o:`Maureen does the training and becomes quietly evangelical. The practice logo appears on a slide at a national conference.`},
+  {t:'Not now',fx:{you:1},o:`Maybe once the building stops leaking.`}
+ ]},
+
+{id:'icb_plan',who:'icb',title:'An access improvement plan',
+ text:`Jonathan from the ICB needs your "access improvement plan" by Friday. There's a template. It is 14 pages. Completion unlocks a payment. Not completing it "will be noted".`,
+ choices:[
+  {t:'Write it (Friday night)',fx:{you:-3,cash:4.5},o:`You write "we will continue to improve access" in eleven different ways. The payment arrives two months later.`},
+  {t:'Bev writes it from last year\'s',fx:{team:-2,cash:4.5},alt:{p:0.3,fx:{team:-2,safety:-2},o:`Bev's version still mentions Dr Hartley and a phone system you replaced. The ICB notices.`},o:`It's accepted without comment. Nobody at the ICB reads it either.`},
+  {t:'Don\'t bother',fx:{you:1},o:`It is noted.`}
+ ]},
+
+{id:'inhaler_switch',who:'icb',title:'A prescribing incentive',
+ text:`The ICB will pay you to switch 400 patients from metered-dose to dry-powder inhalers: greener, cheaper, and a lot of letters. "It's a quick win," says Jonathan, who has never done an inhaler review.`,
+ choices:[
+  {t:'Do it properly, with reviews',fx:{you:-2,cash:3,qof:2,inbox:30},o:`Raj and Maureen check technique for 400 patients. Twelve discover they've never used their inhalers properly. The planet thanks you, quietly.`},
+  {t:'Bulk switch by letter',fx:{cash:3,patients:-3,safety:-2},o:`"I DON'T KNOW HOW TO USE THIS NEW ONE" is the most common phrase on the phones for a month.`},
+  {t:'Decline',fx:{},o:`The inhalers stay the same. So does the funding.`}
+ ]},
+
+{id:'measles',who:'maureen',title:'Measles',months:[3,4,5,6,7,8,9],
+ text:`There's measles at the primary school on Mill Lane. Four confirmed cases. Your MMR uptake at age five is 81%. Maureen has pulled up the list of unvaccinated children. It's long.`,
+ choices:[
+  {t:'Catch-up clinics every evening this week',fx:{team:-3,you:-2,safety:3,qof:2,cash:1.5},o:`Maureen vaccinates 94 children. One mum says "I didn't know it was still a thing". It is still a thing.`},
+  {t:'Send letters and carry on',fx:{safety:-2,patients:-1},o:`Nine families book in. The outbreak team calls to ask what else you're doing.`}
+ ]},
+
+{id:'flu_saturday',who:'maureen',title:'Flu Saturday',months:[5,6],
+ text:`The flu vaccines have arrived. Maureen proposes the traditional Flu Saturday: 1,100 jabs in six hours, a one-way system through the car park and a staff rota with military precision.`,
+ choices:[
+  {t:'Go big: Flu Saturday',fx:{cash:5,team:-3,you:-3,patients:3,safety:1},o:`1,137 vaccines. Someone faints (fine). Someone brings a dog (fine). The pharmacy chain two streets away is quietly furious.`},
+  {t:'Opportunistic jabs only',fx:{cash:1.5,patients:-1},o:`Most of your over-65s get their vaccine at the pharmacy. You lose the income, not the sleep.`}
+ ]},
+
+{id:'heatwave',who:'bev',title:'Heatwave',months:[2,3,4],
+ text:`It's 33°C. The server cupboard is 41°C and making a noise like a hairdryer. The waiting room smells like a bus.`,
+ choices:[
+  {t:'Buy portable air conditioning (£800)',fx:{cash:-0.8,team:3},o:`The server stops wheezing. So does Maureen.`},
+  {t:'Prop the doors and windows open',fx:{safety:-2,team:-1},o:`A pigeon enters Room 5 during a smear. Consent was not obtained, from anyone.`}
+ ]},
+
+{id:'pharmacy_close',who:'chemist',title:'The pharmacy on the high street',
+ text:`Ashok rings. The chain pharmacy on the high street is closing next month. That's 4,000 prescriptions a month looking for somewhere to go, and a lot of Pharmacy First consultations coming back to you.`,
+ choices:[
+  {t:'Work with Ashok on a plan',fx:{you:-2,patients:1,demand:1},o:`Ashok takes on extra staff and a delivery van. You redirect sensibly. It's still busier.`},
+  {t:'Nothing you can do',fx:{demand:2.5,patients:-2},o:`Demand at the surgery goes up. So do complaints about "the chemist".`}
+ ]},
+
+{id:'online_all_day',who:'dept',title:'Open all hours',months:[5,6,7],
+ text:`New requirement: the online consultation tool must stay open all day. At 8:04am on day one there are 212 requests. One says: "Can I have an appointment for next Thursday? Not urgent. Also my wart."`,
+ choices:[
+  {t:'Comply, and add a clinician to triage the flow',fx:{team:-2,cash:-1,demand:1},o:`A GP triages the online flow all morning. It works. It also means one fewer GP seeing patients.`},
+  {t:'Comply with a much better form',fx:{you:-2,demand:1.5},o:`You rewrite the form with Bev. Now it asks "is this urgent?" Everyone ticks yes.`}
+ ]},
+
+{id:'enhanced_access',who:'pcn',title:'Saturday sessions',
+ text:`The PCN needs someone to cover Saturday enhanced access clinics for three months. It pays well. Saturday mornings used to be for parkrun and being a person.`,
+ choices:[
+  {t:'Take them',fx:{you:-3},run(){ addMod({id:'ea',label:'Saturday enhanced access',months:3,capAdd:30,fx:{cash:1.2,you:-1}}); },o:`You do Saturdays. The patients are working people who can't come in the week. They are wonderfully grateful.`},
+  {t:'Decline',fx:{you:1},o:`Parkrun. PB. Worth it.`}
+ ]},
+
+{id:'accountant',who:'accountant',title:'Quarterly figures',months:[3,6,9],
+ text:()=> S.cash<10 ? `Neville from the accountants looks over his glasses. "The partners' drawings are running ahead of profit. At this rate you'll be paying money back in at year end. Personally."` : `Neville from the accountants looks over his glasses. "It's healthier than most. Although your staff costs are rising faster than your income. As everyone's are."`,
+ choices:[
+  {t:'Cut partners\' drawings for three months',fx:{you:-2,okoye:6,cash:6},o:`You all take a pay cut for a quarter. The overdraft breathes out. Your mortgage breathes in.`},
+  {t:'Review every contract and direct debit',fx:{cash:2.5,you:-2},o:`You find £2,500 of savings, including a subscription to a magazine about hospital car parks.`},
+  {t:'Thank Neville and change nothing',fx:{you:1},o:`He nods, in a way that means "I'll send you an email you won't read".`}
+ ]},
+
+{id:'pension',who:'accountant',title:'The pension',
+ text:`Your NHS Pension statement has arrived. It's late, it's wrong, and it says you worked 0 sessions in 2023. The helpline hold music is Vivaldi's Four Seasons. All four.`,
+ choices:[
+  {t:'Spend an evening fixing it',fx:{you:-3},o:`Ninety minutes of hold music later, a lovely woman called Janet fixes it. You nearly send Janet flowers.`},
+  {t:'Future you can deal with it',fx:{you:1},o:`Future you is going to be so annoyed.`}
+ ]},
+
+{id:'hospital_discharge',who:'hospital',title:'The Christmas clear-out',months:[8],
+ text:`It's 23rd December. St Swithin's has discharged 38 of your patients in two days to free beds. Every discharge letter ends "GP to follow up bloods in one week and review medications". The first week of January is going to be busy.`,
+ choices:[
+  {t:'Bounce the inappropriate requests back',fx:{inbox:40,team:1,safety:-1},o:`You send a polite template about the hospital arranging its own tests. Half come back to you anyway, in January.`},
+  {t:'Just do them all',fx:{inbox:80,you:-4,safety:2,patients:2},o:`Raj and you work through them on Christmas Eve. Every one gets done. You eat a mince pie from the reception tin, standing up.`}
+ ]}
+);
+/* ===================== ENGINE ===================== */
+let S = null;
+const SAVE_KEY = 'lps-save-v1', BEST_KEY = 'lps-best-v1';
+const clamp = (v, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, v));
+const r1 = v => Math.round(v * 10) / 10;
+const chance = p => Math.random() < p;
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const val = v => (typeof v === 'function' ? v() : v);
+const P = () => PRACTICES[S.practiceKey];
+const pt = id => S.partners[id];
+const isActive = id => !!S.partners[id] && S.partners[id].status === 'active';
+const activeOthers = () => Object.values(S.partners).filter(p => p.status === 'active').length;
+const hasFlag = f => !!S.flags[f];
+const activeMods = () => S.mods.filter(m => S.month >= m.from);
+const hasMod = id => activeMods().some(m => m.id === id);
+const arrsCount = () => ROLE_ORDER.filter(r => ROLES[r].arrs).reduce((n, r) => n + S.staff[r] + (S.vac[r] || 0), 0);
+const EVMAP = {};
+EVENTS.forEach(e => { EVMAP[e.id] = e; });
+
+function roomsNeeded() {
+  let n = 1 + activeOthers();
+  for (const r of ROLE_ORDER) if (ROLES[r].room) n += S.staff[r];
+  if (S.plan.locum > 0) n += 1;
+  if (hasMod('registrar')) n += 1;
+  return n;
+}
+function roomsAvail() { return S.rooms + activeMods().reduce((a, m) => a + (m.rooms || 0), 0); }
+
+function fill(t) {
+  if (!t) return '';
+  return String(t)
+    .replace(/\{surgery\}/g, P().surgery).replace(/\{place\}/g, P().place).replace(/\{paper\}/g, P().paper)
+    .replace(/\{name\}/g, 'Dr ' + S.name).replace(/\{qof\}/g, Math.round(S.qof)).replace(/\{inbox\}/g, Math.round(S.inbox))
+    .replace(/\{list\}/g, S.list.toLocaleString('en-GB'));
+}
+
+function newGame(practiceKey, name) {
+  const p = PRACTICES[practiceKey];
+  S = {
+    v: 1, practiceKey, name: name || 'Jones', month: 0, phase: 'plan',
+    st: { ...p.st }, cash: p.cash, qof: 0, inbox: 180, list: p.list,
+    demandMod: 0, adminMod: 0, rooms: p.rooms,
+    plan: { clin: 6, admin: 1, mgmt: 1, locum: 0, draw: 'std', project: 'none', leave: false },
+    staff: { ...p.staff }, vac: {},
+    partners: { hartley: { status: 'active', clin: 6 }, okoye: { status: 'active', clin: 5 }, tom: { status: 'salaried', clin: 6 }, priya: { status: 'none', clin: 6 } },
+    okoye: 40, flags: {}, mods: [], sched: [], seen: {}, counts: {}, queue: [], qi: 0,
+    history: [], leaveUsed: 0, drawTotal: 0, aspPaid: 0, loan: 0, premX: 0, payX: 0, tomRaise: 0,
+    cqc: null, cur: null, report: null, soldOut: 0, forceOver: null, over: null, end: null, lastRatio: 1, log: []
+  };
+  [['welcome', 0], ['hartley_retire', 0], ['okoye_email', 1], ['mini_docman', 1], ['mini_triage', 2], ['tom_partner', 3],
+   ['okoye_leaving', 7], ['okoye_staying', 7], ['qof_yearend', 10], ['contract_new', 11]].forEach(([id, m]) => S.sched.push({ id, m }));
+  startMonth();
+  save();
+}
+
+/* ---------- scheduling & modifiers ---------- */
+function schedule(id, n) {
+  if (!EVMAP[id]) return;
+  if (n <= 0 && (S.phase === 'event' || S.phase === 'outcome' || S.phase === 'mini')) { S.queue.splice(S.qi + 1, 0, id); return; }
+  const m = S.month + Math.max(n, S.phase === 'plan' ? 0 : 1);
+  if (m <= 11) S.sched.push({ id, m });
+}
+function addMod(m) {
+  const mod = JSON.parse(JSON.stringify(m));
+  mod.from = Math.max(S.month, m.at != null ? m.at : S.month);
+  delete mod.at;
+  S.mods = S.mods.filter(x => x.id !== mod.id);
+  S.mods.push(mod);
+}
+function partnerLeaves(id) {
+  const q = S.partners[id];
+  if (!q || q.status !== 'active') return;
+  q.status = 'left';
+  S.cash = r1(S.cash - (PARTNERS0[id].capital || 0));
+  S.log.push(`${PARTNERS0[id].name} left the partnership. Capital repaid: £${PARTNERS0[id].capital}k.`);
+}
+
+/* ---------- month flow ---------- */
+function eligible(e, queued) {
+  if (e.arc) return false;
+  if (e.months && !e.months.includes(S.month)) return false;
+  if (!e.rep && S.seen[e.id]) return false;
+  if (e.rep && e.max && (S.counts[e.id] || 0) >= e.max) return false;
+  if (queued.includes(e.id)) return false;
+  if (e.kind === 'mini' && queued.some(id => EVMAP[id] && EVMAP[id].kind === 'mini')) return false;
+  if (e.kind === 'mini' && S.lastMini === e.game) return false;
+  try { if (e.cond && !e.cond()) return false; } catch (err) { return false; }
+  return true;
+}
+function startMonth() {
+  const m = S.month;
+  const q = S.sched.filter(x => x.m === m).map(x => x.id);
+  S.sched = S.sched.filter(x => x.m > m);
+  if (m === 8 && !S.seen.cqc_call && !q.includes('cqc_call')) q.push('cqc_call');
+  const target = (m === 8 || m === 9) ? 4 : 3;
+  let need = Math.max(0, target - q.length);
+  const drawn = [];
+  while (need > 0) {
+    const pool = EVENTS.filter(e => eligible(e, q.concat(drawn)));
+    if (!pool.length) break;
+    const tot = pool.reduce((a, e) => a + (e.w || 1), 0);
+    let r = Math.random() * tot, chosen = pool[0];
+    for (const e of pool) { r -= (e.w || 1); if (r <= 0) { chosen = e; break; } }
+    drawn.push(chosen.id); need--;
+  }
+  // arcs first, one random event slotted in the middle for rhythm
+  S.queue = q.concat(drawn);
+  if (S.queue.length > 2 && drawn.length) { const last = S.queue.pop(); S.queue.splice(1, 0, last); }
+  S.qi = 0;
+  S.plan.leave = false;
+  S.phase = 'plan';
+}
+function beginMonth() {
+  if (S.plan.leave) S.leaveUsed++;
+  S.monthStart = { st: { ...S.st }, cash: S.cash, qof: S.qof, inbox: S.inbox };
+  S.phase = 'event';
+  S.qi = -1;
+  advanceEvent();
+}
+function currentEvent() { return EVMAP[S.queue[S.qi]]; }
+function advanceEvent() {
+  S.qi++;
+  while (S.qi < S.queue.length) {
+    const e = EVMAP[S.queue[S.qi]];
+    let ok = !!e;
+    if (ok && e.cond) { try { ok = !!e.cond(); } catch (err) { ok = false; } }
+    if (ok && !e.rep && S.seen[e.id]) ok = false;
+    if (ok) { S.phase = 'event'; save(); return; }
+    S.qi++;
+  }
+  monthEnd();
+}
+
+function snap() { return { ...S.st, cash: S.cash, qof: S.qof, inbox: S.inbox, list: S.list }; }
+function diffSnap(a, b) {
+  const out = [];
+  for (const k of ['patients', 'team', 'you', 'safety']) { const d = Math.round(b[k] - a[k]); if (d) out.push({ k, d, label: STAT_LABEL[k], txt: (d > 0 ? '+' : '') + d, good: d > 0 }); }
+  const dc = r1(b.cash - a.cash); if (dc) out.push({ k: 'cash', d: dc, label: 'Bank', txt: (dc > 0 ? '+£' : '−£') + Math.abs(dc).toFixed(1) + 'k', good: dc > 0 });
+  const dq = Math.round(b.qof - a.qof); if (dq) out.push({ k: 'qof', d: dq, label: 'QOF', txt: (dq > 0 ? '+' : '') + dq + '%', good: dq > 0 });
+  const di = Math.round(b.inbox - a.inbox); if (di) out.push({ k: 'inbox', d: di, label: 'Inbox', txt: (di > 0 ? '+' : '') + di, good: di < 0 });
+  const dl = b.list - a.list; if (dl) out.push({ k: 'list', d: dl, label: 'List', txt: (dl > 0 ? '+' : '') + dl, neutral: true });
+  return out;
+}
+
+function applyFx(fx) {
+  if (!fx) return;
+  for (const k of STAT_KEYS) if (fx[k]) S.st[k] = clamp(S.st[k] + fx[k]);
+  if (fx.cash) S.cash = r1(S.cash + fx.cash);
+  if (fx.qof) S.qof = clamp(S.qof + fx.qof);
+  if (fx.inbox) S.inbox = Math.max(0, Math.round(S.inbox + fx.inbox));
+  if (fx.list) S.list += fx.list;
+  if (fx.demand) S.demandMod += fx.demand;
+  if (fx.admin) S.adminMod += fx.admin;
+  if (fx.rooms) S.rooms = Math.max(1, S.rooms + fx.rooms);
+  if (fx.okoye) S.okoye = clamp(S.okoye + fx.okoye);
+  if (fx.staff) for (const r in fx.staff) S.staff[r] = Math.max(0, (S.staff[r] || 0) + fx.staff[r]);
+  if (fx.flags) Object.assign(S.flags, fx.flags);
+  if (fx.sched) fx.sched.forEach(([id, n]) => schedule(id, n));
+  if (fx.mod) addMod(fx.mod);
+}
+
+function resolveChoice(i, extra) {
+  const e = currentEvent(); if (!e) return;
+  const c = e.choices[i]; if (!c) return;
+  const before = snap();
+  S._alt = false;
+  let fx = c.fx, o = c.o;
+  if (c.alt && chance(c.alt.p)) { S._alt = true; fx = c.alt.fx; o = c.alt.o; }
+  applyFx(val(fx));
+  let res = null;
+  if (c.run) res = c.run() || null;
+  if (S._alt && c.alt && c.alt.run) c.alt.run();
+  if (extra) applyFx(extra.fx);
+  if (e.after) e.after();
+  S.seen[e.id] = 1; S.counts[e.id] = (S.counts[e.id] || 0) + 1;
+  if (e.kind === 'mini') S.lastMini = e.game;
+  const deltas = diffSnap(before, snap());
+  S.cur = { id: e.id, o: fill((res && res.o) || (extra && extra.o) || val(o) || ''), html: (res && res.html) || (extra && extra.html) || '', deltas, alt: S._alt };
+  delete S._alt;
+  S.phase = 'outcome';
+  save();
+}
+function continueOutcome() {
+  const over = checkOver();
+  if (over) return gameOver(over);
+  if (S.soldOut) return finishYear(true);
+  advanceEvent();
+}
+
+/* ---------- the simulation ---------- */
+function calc() {
+  const p = P(), pl = S.plan, m = Math.min(S.month, 11);
+  const mods = activeMods();
+  const away = new Set(mods.filter(x => x.away).map(x => x.away));
+  const leaveF = pl.leave ? 0.75 : 1;
+  let cap = pl.clin * 14 * leaveF;
+  let clear = (pl.admin * 55 + pl.clin * 5) * leaveF;
+  for (const id in S.partners) {
+    const q = S.partners[id];
+    if (q.status === 'active' && !away.has(id)) { cap += q.clin * 14; clear += 55 + q.clin * 5; }
+  }
+  for (const r of ROLE_ORDER) {
+    const n = S.staff[r], R = ROLES[r]; if (!n) continue;
+    if (R.cap) cap += R.cap * n;
+    if (R.clear) clear += R.clear * n;
+  }
+  cap += pl.locum * 14;
+  clear += 80; // admin workflow team
+  mods.forEach(x => { if (x.capAdd) cap += x.capAdd; });
+  let capMul = 1;
+  mods.forEach(x => { if (x.capMul) capMul *= x.capMul; });
+  const recepNeed = Math.round(S.list / 1400);
+  const recepShort = Math.max(0, recepNeed - S.staff.recep);
+  capMul *= 1 - 0.04 * recepShort;
+  const rNeed = roomsNeeded(), rAvail = roomsAvail();
+  const roomsOver = Math.max(0, rNeed - rAvail);
+  capMul *= 1 - 0.04 * roomsOver;
+  if (S.st.team < 30) capMul *= 0.93;
+  cap = Math.round(cap * capMul);
+  const dm = S.demandMod + mods.reduce((a, x) => a + (x.demand || 0), 0) - 2 * Math.min(S.staff.sp, 2);
+  const demand = Math.round(S.list * p.demandRate * SEASON[m] * (1 + dm / 100));
+  const ratio = demand ? cap / demand : 1;
+  const inflow = Math.round(S.list * p.inboxRate * (1 + S.adminMod / 100) + pl.locum * 6);
+  clear = Math.round(clear);
+  // money, £k per month
+  const partnersN = 1 + activeOthers();
+  const listF = S.list / p.list;
+  const inc = {
+    gs: S.list * p.gsRate,
+    qof: p.qofValue * listF * 0.7 / 12,
+    es: S.list * 0.0007 + FLU_INCOME[m] + S.staff.nurse * 0.5,
+    other: p.other
+  };
+  let modCash = 0; mods.forEach(x => { if (x.fx && x.fx.cash) modCash += x.fx.cash; });
+  let roleCost = 0; for (const r of ROLE_ORDER) roleCost += ROLES[r].cost * S.staff[r];
+  const cost = {
+    staff: roleCost + S.list * 0.0023 + p.overhead + S.payX + S.tomRaise,
+    locum: pl.locum * WEEKS * 0.46,
+    premises: p.premises + S.premX + S.loan,
+    draw: DRAW[pl.draw] * partnersN
+  };
+  const incTot = inc.gs + inc.qof + inc.es + inc.other;
+  const costTot = cost.staff + cost.locum + cost.premises + cost.draw;
+  const net = incTot + modCash - costTot;
+  // your week
+  const sessions = pl.clin + pl.admin + pl.mgmt;
+  const supN = ROLE_ORDER.filter(r => ROLES[r].sup).reduce((a, r) => a + S.staff[r], 0);
+  const qofGain = (1.5 + S.staff.nurse * 1.1 + S.staff.hca * 0.7 + S.staff.pharm * 0.7 + S.staff.cc * 1.8 + pl.mgmt * 1.1) * p.qofEase;
+  return { cap, demand, ratio, inflow, clear, inc, cost, incTot, costTot, modCash, net, sessions, recepNeed, recepShort, rNeed, rAvail, roomsOver, supN, qofGain, partnersN, capMul };
+}
+
+function ratioDelta(r) { return r >= 1.08 ? 4 : r >= 1.0 ? 2 : r >= 0.94 ? 0 : r >= 0.87 ? -3 : r >= 0.8 ? -6 : -10; }
+function sessDelta(s) { return s <= 6 ? 5 : s === 7 ? 3 : s === 8 ? 1 : s === 9 ? -1 : s === 10 ? -4 : s === 11 ? -7 : -10; }
+
+// what the month-end will do to each meter, before events (used by the planner too)
+function forecast(c) {
+  c = c || calc();
+  const pl = S.plan;
+  const inboxEnd = Math.max(0, Math.round(S.inbox + (c.inflow - c.clear) * WEEKS));
+  const ib = inboxEnd > 700 ? 2 : inboxEnd > 400 ? 1 : 0;
+  const d = { patients: 0, team: 0, you: 0, safety: 0 };
+  d.patients = ratioDelta(c.ratio) - c.recepShort - (ib === 2 ? 2 : 0);
+  d.team = -1 + (c.ratio < 0.87 ? -3 : c.ratio < 0.94 ? -1 : 0) + (c.ratio >= 1.05 ? 1 : 0) - 2 * c.recepShort - (c.roomsOver ? 2 : 0);
+  d.you = -1 + sessDelta(c.sessions) + (pl.leave ? 10 : 0) + (ib === 2 ? -5 : ib === 1 ? -2 : 0) + (pl.draw === 'low' ? -2 : pl.draw === 'high' ? 1 : 0)
+    - Math.max(0, c.supN - 2) - (activeOthers() === 0 ? 3 : 0) - (c.ratio < 0.87 ? 2 : 0);
+  d.safety = -1 + Math.min(pl.mgmt, 3) + (ib === 2 ? -5 : ib === 1 ? -2 : 0) - (c.ratio < 0.8 ? 3 : 0);
+  return { d, inboxEnd };
+}
+
+function monthEnd() {
+  const c = calc(), pl = S.plan, p = P();
+  const f = forecast(c);
+  const before = S.monthStart ? { ...S.monthStart.st, cash: S.monthStart.cash, qof: S.monthStart.qof, inbox: S.monthStart.inbox, list: S.list } : snap();
+  const inboxStart = S.inbox;
+  const notes = [];
+  // core running of the practice
+  for (const k of STAT_KEYS) S.st[k] = clamp(S.st[k] + f.d[k]);
+  S.inbox = f.inboxEnd;
+  S.cash = r1(S.cash + c.net);
+  S.aspPaid += c.inc.qof;
+  S.drawTotal += DRAW[pl.draw];
+  S.qof = clamp(S.qof + c.qofGain);
+  // modifiers
+  activeMods().forEach(x => {
+    if (x.fx) { const fx = { ...x.fx }; delete fx.cash; applyFx(fx); }
+  });
+  // project
+  const proj = PROJECTS.find(x => x.id === pl.project) || PROJECTS[0];
+  if (proj.id === 'claims') {
+    const times = S.counts.proj_claims || 0;
+    const found = r1((3 + Math.random() * 6) * Math.pow(0.55, times));
+    S.counts.proj_claims = times + 1;
+    S.cash = r1(S.cash + found);
+    notes.push(`Claims audit found £${found.toFixed(1)}k of unclaimed income.`);
+  } else applyFx(proj.fx);
+  if (proj.once) S.flags['proj_' + proj.id] = 1;
+  if (proj.id !== 'none') notes.unshift(`Project: ${proj.name}.`);
+  // Nadia watches everything
+  S.okoye = clamp(S.okoye + (c.ratio < 0.9 ? 2 : 0) + (S.st.team < 40 ? 2 : 0) - (S.st.team >= 65 ? 2 : 0) + (pl.draw === 'low' ? 4 : pl.draw === 'high' ? -2 : 0));
+  // recruitment
+  const hires = [];
+  for (const r in S.vac) {
+    let n = S.vac[r];
+    while (n > 0) {
+      const pr = Math.min(0.95, ROLES[r].hire * p.hire * (1 + (proj.hireBoost || 0)));
+      if (chance(pr)) { S.staff[r]++; S.vac[r]--; hires.push(`${ROLES[r].name} hired.`); }
+      else hires.push(`${ROLES[r].name}: no suitable applicants yet.`);
+      n--;
+    }
+    if (!S.vac[r]) delete S.vac[r];
+  }
+  // random resignation when morale is on the floor
+  if (S.st.team < 25 && chance(0.4)) {
+    const cands = ['recep', 'nurse', 'hca', 'salaried'].filter(r => S.staff[r] > 0);
+    if (cands.length) { const r = pick(cands); S.staff[r]--; notes.push(`A ${ROLES[r].name.toLowerCase()} resigned. Morale is that bad.`); }
+  }
+  // mods tick down
+  S.mods.forEach(x => { if (S.month >= x.from) x.months--; });
+  const ended = S.mods.filter(x => x.months <= 0).map(x => x.label);
+  S.mods = S.mods.filter(x => x.months > 0);
+  ended.forEach(l => { if (l) notes.push(`Ended: ${l}.`); });
+  S.log.forEach(l => notes.push(l)); S.log = [];
+  if (c.recepShort) notes.push(`Reception is ${c.recepShort} short. The phones are suffering.`);
+  if (c.roomsOver) notes.push(`${c.roomsOver} more clinician${c.roomsOver > 1 ? 's' : ''} than rooms. Someone is consulting in the baby-change.`);
+  if (c.supN > 2) notes.push(`Supervising ${c.supN} ARRS clinicians is eating your evenings.`);
+  if (activeOthers() === 0) notes.push(`You are the only partner left. Every decision, and every liability, is yours.`);
+  // headline
+  const pool = c.ratio < 0.87 ? HEADLINES.bad : c.ratio >= 1.02 ? HEADLINES.good : HEADLINES.ok;
+  const headline = fill(pick(chance(0.25) ? HEADLINES.filler : pool));
+  S.lastRatio = c.ratio;
+  S.report = {
+    month: S.month, c, inboxStart, inboxEnd: S.inbox, headline, notes, hires, project: proj.name,
+    deltas: diffSnap(before, snap()), cashEnd: S.cash
+  };
+  S.history.push({ m: S.month, patients: S.st.patients, team: S.st.team, you: S.st.you, safety: S.st.safety, cash: S.cash, qof: S.qof, ratio: c.ratio });
+  S.phase = 'report';
+  save();
+}
+function nextMonth() {
+  const over = checkOver();
+  if (over) return gameOver(over);
+  if (S.month >= 11) return finishYear(false);
+  S.month++;
+  if ((PROJECTS.find(x => x.id === S.plan.project) || {}).once) S.plan.project = 'none';
+  startMonth();
+  save();
+}
+
+/* ---------- CQC ---------- */
+function rateOf(v) { return v >= 82 ? 'o' : v >= 50 ? 'g' : v >= 32 ? 'ri' : 'i'; }
+const RATE_NAME = { o: 'Outstanding', g: 'Good', ri: 'Requires improvement', i: 'Inadequate' };
+function runCQC(reinspect) {
+  const st = S.st, expected = (S.month / 12) * 85;
+  const dom = {
+    Safe: st.safety,
+    Effective: clamp(50 + (S.qof - expected) * 1.2 + (st.safety - 50) * 0.3),
+    Caring: st.patients * 0.7 + st.team * 0.3,
+    Responsive: clamp(st.patients * 0.6 + (S.lastRatio - 0.8) * 150 + 10),
+    'Well-led': clamp(st.team * 0.55 + st.safety * 0.35 + S.plan.mgmt * 5)
+  };
+  const rates = {}; for (const k in dom) rates[k] = rateOf(dom[k]);
+  const vals = Object.values(rates);
+  const n = t => vals.filter(v => v === t).length;
+  let overall = 'g';
+  if (n('i') >= 2 || rates.Safe === 'i') overall = 'i';
+  else if (n('i') === 1 || n('ri') >= 2) overall = 'ri';
+  else if (n('o') >= 3) overall = 'o';
+  S.cqc = { overall, rates };
+  const fx = { o: { team: 10, you: 8, patients: 4 }, g: { team: 5, you: 4 }, ri: { team: -6, you: -8, safety: 4 }, i: { team: -12, you: -15, patients: -8, safety: 6 } }[overall];
+  applyFx(fx);
+  let o;
+  if (overall === 'o') o = `Outstanding. Patricia almost smiles. Bev has the report framed before it's even published.`;
+  else if (overall === 'g') o = `Good. The report praises "a caring, committed team working under significant pressure". Bev reads that line out loud four times.`;
+  else if (overall === 'ri') o = `Requires improvement. There's an action plan with 23 points. Patricia will be back to check.`;
+  else o = reinspect ? `Still inadequate. The ICB begins the process of terminating the contract.` : `Inadequate. Warning notices, special measures and a re-inspection in three months. The ${P().paper} runs it on the front page.`;
+  if (overall === 'i') { if (reinspect) S.forceOver = 'cqc'; else schedule('cqc_reinspect', 3); }
+  S.flags.cqcDone = 1;
+  const html = `<div class="cqc-card" role="table" aria-label="CQC ratings">${Object.keys(rates).map(k => `<div class="row"><span>${k}</span><span class="rate ${rates[k]}">${RATE_NAME[rates[k]]}</span></div>`).join('')}<div class="row overall"><span>Overall</span><span class="rate">${RATE_NAME[overall]}</span></div></div>`;
+  return { o, html };
+}
+EVENTS.push({ id: 'cqc_reinspect', arc: 1, who: 'cqc', title: 'The re-inspection',
+  text: `Patricia Sharpe is back, three months to the day. She has the action plan. She has your last report. She has, you notice, a new and larger clipboard.`,
+  choices: [{ t: 'Show her what\'s changed', run() { return runCQC(true); } }] });
+EVMAP.cqc_reinspect = EVENTS[EVENTS.length - 1];
+
+/* ---------- game over & year end ---------- */
+function checkOver() {
+  for (const k of STAT_KEYS) if (S.st[k] <= 0) return k;
+  if (S.cash < OVERDRAFT) return 'cash';
+  if (S.forceOver) return S.forceOver;
+  return null;
+}
+const OVER = {
+  patients: { title: 'Contract terminated', stamp: 'Breach notice', text: () => `The complaints became a petition, the petition became a front page, and the front page became a breach notice from the ICB. The contract for ${P().surgery} is handed to Apex Primary Care Ltd, who replace the phone line with a QR code.` },
+  team: { title: 'Nobody came in', stamp: 'Mass resignation', text: () => `Bev resigned on a Monday. By Friday, reception was staffed by a laminated sign reading "PLEASE USE THE APP". Without a team, there is no practice, just a building with a flat roof.` },
+  you: { title: 'Burnt out', stamp: 'Signed off', text: () => `You didn't come in on Tuesday. Or Wednesday. A locum signs you off with burnout. Six months later you're doing four sessions a week in New Zealand, and you have never been happier. The partnership dissolves without you.` },
+  safety: { title: 'Special measures', stamp: 'Inadequate', text: () => `A serious incident, then another. CQC rates the practice inadequate and uses the phrase "systemic failure" eleven times. You get to know your medical defence organisation very, very well.` },
+  cqc: { title: 'Special measures', stamp: 'Inadequate', text: () => `Two inadequate ratings in a row. The ICB terminates the contract. Your patients are dispersed across four practices, none of which are pleased.` },
+  cash: { title: 'Unlimited liability', stamp: 'Account frozen', text: () => `The bank freezes the account. Partners carry unlimited liability, so you remortgage your house to pay the staff their last wages. The practice hands back its contract. Your accountant sends a sympathy card, and an invoice.` }
+};
+function gameOver(k) {
+  S.over = { k, month: S.month };
+  S.phase = 'over';
+  recordBest(null);
+  clearSave();
+}
+
+function finishYear(sold) {
+  const p = P();
+  const qofValue = p.qofValue * (S.list / p.list);
+  const monthsPaid = S.month + 1;
+  const earned = sold ? S.aspPaid : qofValue * S.qof / 100;
+  const balancing = earned - S.aspPaid;
+  const cashFinal = S.cash + balancing;
+  const partnersN = 1 + activeOthers();
+  const surplus = cashFinal - RESERVE;
+  let share = surplus / partnersN;
+  if (sold) share = Math.max(0, share) + 60; // Apex pays for your share of goodwill
+  const takeHome = S.drawTotal + share;
+  const st = S.st;
+  const cqcB = S.cqc ? { o: 40, g: 20, ri: -10, i: -40 }[S.cqc.overall] : 0;
+  const others = activeOthers();
+  let score = st.patients + st.team + st.you + st.safety + S.qof + (takeHome - 100) * 0.8 + cqcB + others * 8 + (others === 0 ? 25 : 0);
+  if (sold) score *= 0.6;
+  score = Math.round(Math.max(0, score));
+  const arche = archetype({ sold, takeHome, others });
+  S.end = { sold, qofValue, earned, balancing, cashFinal, surplus, partnersN, share, takeHome, score, arche, monthsPaid };
+  S.phase = 'end';
+  recordBest(S.end);
+  clearSave();
+}
+function archetype({ sold, takeHome, others }) {
+  const st = S.st, place = P().place;
+  const min = Math.min(st.patients, st.team, st.you, st.safety);
+  if (sold) return { t: 'The Sell-Out', s: 'Sold', d: `You sold to Apex. The money was fine. The phone system is now a national call centre, and your patients call you "the one who sold us". You are a salaried "Clinical Lead" with a lanyard and no say.` };
+  if (others === 0) return { t: 'Last Partner Standing', s: 'Sole partner', d: `Everyone else left. You held the contract, the lease and the overdraft on your own, and you are still here on 31st March. It's either heroic or a cry for help. Possibly both.` };
+  if (st.patients >= 65 && st.team >= 65 && st.you >= 65 && st.safety >= 65 && takeHome >= 125) return { t: 'The Unicorn', s: 'Mythical', d: `Happy patients, happy team, a safe practice, a decent income and your sanity intact. Other partners will not believe you exist. Some will report you to the LMC for showing off.` };
+  if (takeHome >= 160 && st.you < 40) return { t: 'Golden Handcuffs', s: 'Well paid', d: `The accountant is thrilled. You are exhausted. You've made excellent money, and you're too tired to spend it.` };
+  if (st.patients >= 75 && takeHome < 110) return { t: `Patron Saint of ${place}`, s: 'Beloved', d: `The patients adore you. Mrs Higgins has put you in her will (the shortbread tin). Financially, it has been a vocation rather than a business.` };
+  if (st.you >= 75 && st.patients < 45) return { t: 'Master of Boundaries', s: 'Well rested', d: `You leave at 6:30pm, eat lunch sitting down and never read the Facebook group. The patients have noticed. You have noticed that you don't mind.` };
+  if (S.cqc && S.cqc.overall === 'o') return { t: 'The Inspector\'s Darling', s: 'Outstanding', d: `Outstanding. The certificate is in reception, the laminated policies are colour-coded, and Patricia Sharpe uses your practice as an example in training sessions.` };
+  if (st.team >= 80) return { t: 'Everybody\'s Favourite Boss', s: 'Much loved', d: `The team would walk through fire for you. Maureen has stopped threatening to retire. Kayleigh stayed rather than go to Aldi. That's the real prize.` };
+  if (min < 20) return { t: 'Survived. Technically.', s: 'Held together', d: `You made it to 31st March, but only just. Something is always about to break. Next year will be different, you tell yourself, again.` };
+  return { t: 'Still Standing', s: 'Year complete', d: `A solid year. Not glamorous, not a disaster. You kept the doors open, the patients seen and the bank quiet. That's what most partners dream of.` };
+}
+
+/* ---------- storage ---------- */
+function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { } }
+function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) { } }
+function loadSave() { try { const t = localStorage.getItem(SAVE_KEY); if (!t) return null; const s = JSON.parse(t); return s && s.v === 1 && s.phase !== 'end' && s.phase !== 'over' ? s : null; } catch (e) { return null; } }
+function loadBest() { try { const b = JSON.parse(localStorage.getItem(BEST_KEY) || '[]'); return Array.isArray(b) ? b : []; } catch (e) { return []; } }
+function recordBest(end) {
+  const entry = end
+    ? { score: end.score, t: end.arche.t, p: P().label, n: S.name, d: new Date().toISOString().slice(0, 10) }
+    : { score: 0, t: OVER[S.over.k].title + ' (' + MON3[S.over.month] + ')', p: P().label, n: S.name, d: new Date().toISOString().slice(0, 10) };
+  const b = loadBest(); b.push(entry); b.sort((a, c) => c.score - a.score);
+  try { localStorage.setItem(BEST_KEY, JSON.stringify(b.slice(0, 5))); } catch (e) { }
+}
+/* ===================== UI ===================== */
+const $app = document.getElementById('app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmtK = v => (v < 0 ? '−£' : '£') + Math.abs(v).toFixed(1) + 'k';
+const signK = v => (v > 0 ? '+' : v < 0 ? '−' : '') + '£' + Math.abs(v).toFixed(1) + 'k';
+const pct = v => Math.round(v * 100) + '%';
+let UI = { screen: 'title', pickPractice: 'town', nameDraft: '', overlay: null };
+
+const BRIEF = [
+  'The QOF year starts today. Everything resets to zero except the overdraft.',
+  'Spring. Hay fever season, and a lot of "while I\'m here".',
+  'Summer is coming, and so is everyone\'s annual leave request.',
+  'July. The GP Patient Survey lands and the locums go on holiday.',
+  'August. School holidays and the quietest month you will get. Plan for winter now.',
+  'September. Flu vaccines arrive, schools go back, coughs follow.',
+  'October. Flu clinics, clocks go back, demand starts climbing.',
+  'November. Winter is here. Add capacity now or regret it in January.',
+  'December. Christmas, norovirus and the hospital\'s festive discharge spree.',
+  'January. The busiest month of the year. Everyone is ill, including your staff.',
+  'February. Six weeks to QOF year end.',
+  'March. The last month of the QOF year. Accounts, QOF and next year\'s contract.'
+];
+
+function badge(key) {
+  const c = CAST[key] || CAST.you;
+  const name = key === 'paper' ? P().paper : c.name;
+  const m = c.m.length > 2 ? `<span style="font-size:${c.m.length > 3 ? 11 : 13}px">${esc(c.m)}</span>` : esc(c.m);
+  return `<div class="who"><div class="mono-badge" style="background:${c.c}" aria-hidden="true">${m}</div><div><b>${esc(name)}</b><small>${esc(c.role)}</small></div>`;
+}
+
+/* ---------- HUD ---------- */
+function meterClass(k, v) { if (k === 'cash') return v < -20 ? 'crit' : v < 5 ? 'low' : ''; return v <= 20 ? 'crit' : v <= 35 ? 'low' : ''; }
+function hudHTML() {
+  const months = MONTHS.map((_, i) => `<i class="${i < S.month ? 'done' : i === S.month ? 'now' : ''}" title="${MONTHS[i]}"></i>`).join('');
+  const meters = STAT_KEYS.map(k => {
+    const v = Math.round(S.st[k]);
+    return `<div class="meter ${meterClass(k, v)}" data-meter="${k}" title="${STAT_LABEL[k]}: ${v}/100"><span class="hint"></span>${ICON[k]}<div class="lab"><span>${STAT_LABEL[k]}</span><span class="val">${v}</span></div><div class="bar"><b style="width:${v}%"></b></div></div>`;
+  }).join('');
+  const cw = clamp((S.cash - OVERDRAFT) / (120 - OVERDRAFT) * 100);
+  const cashM = `<div class="meter ${meterClass('cash', S.cash)}" data-meter="cash" title="Practice bank balance. The bank pulls the plug below ${fmtK(OVERDRAFT)}."><span class="hint"></span>${ICON.cash}<div class="lab"><span>Bank</span><span class="val">${fmtK(S.cash)}</span></div><div class="bar"><b style="width:${cw}%"></b></div></div>`;
+  const others = Object.keys(S.partners).filter(id => isActive(id)).map(id => PARTNERS0[id].short);
+  const ib = S.inbox > 700 ? 'badv' : S.inbox > 400 ? 'warnv' : '';
+  return `<header class="hud"><div class="wrap">
+    <div class="hud-top">
+      <div><div class="hud-name">${esc(P().surgery)}</div><div class="hud-sub">Dr ${esc(S.name)}, partner · ${esc(P().place)}</div></div>
+      <div class="month-label">${MONTHS[Math.min(S.month, 11)]} · month ${Math.min(S.month, 11) + 1} of 12</div>
+      <div class="months" aria-hidden="true">${months}</div>
+      <button class="icon-btn" data-act="menu" aria-label="Menu" title="Menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+    <div class="meters">${meters}${cashM}</div>
+    <div class="ledger">
+      <span>QOF <b>${Math.round(S.qof)}%</b></span>
+      <span>Inbox <b class="${ib}">${Math.round(S.inbox)}</b></span>
+      <span>List <b>${S.list.toLocaleString('en-GB')}</b></span>
+      <span>Partners <b>You${others.length ? ', ' + others.join(', ') : ' alone'}</b></span>
+    </div>
+  </div></header>`;
+}
+
+/* ---------- title ---------- */
+function renderTitle() {
+  const saved = loadSave();
+  const best = loadBest();
+  const pc = Object.values(PRACTICES).map(p => `<button class="pcard" data-act="pick" data-arg="${p.key}" aria-pressed="${UI.pickPractice === p.key}">
+      <b>${esc(p.surgery)}</b><span class="diff">${p.diff}</span>
+      <span class="d">${esc(p.label)}. ${esc(p.blurb)}</span>
+      <span class="facts">${p.list.toLocaleString('en-GB')} patients · bank ${fmtK(p.cash)} · ${Object.values(p.staff).reduce((a, b) => a + b, 0) + 3} staff</span></button>`).join('');
+  $app.innerHTML = `<main class="title-screen"><div class="wrap title-grid">
+    <section>
+      <div class="eyebrow">A general practice survival game</div>
+      <h1 class="logo" style="margin-top:12px">Last<br>Partner<span class="rx">Rx</span><br><span class="under">Standing</span></h1>
+      <p class="tagline">One QOF year. Twelve months. Five things to keep alive, including you.</p>
+      <div class="memo"><b>Your year as a new GP partner</b>
+        <ul>
+          <li>Each month, set your week, your cover, your team and one project.</li>
+          <li>Then deal with what lands on your desk: patients, staff, the ICB, CQC, the roof.</li>
+          <li>If Patients, Team, You or Safety hits zero, or the bank goes past ${fmtK(OVERDRAFT)}, it's over.</li>
+          <li>Survive to 31st March and the accountant tells you what it was all worth.</li>
+        </ul>
+      </div>
+    </section>
+    <section class="setup" aria-label="New game">
+      <label class="field" for="docname">Your name
+        <div class="name-row"><span>Dr</span><input id="docname" maxlength="24" autocomplete="off" placeholder="Surname" value="${esc(UI.nameDraft)}"></div>
+      </label>
+      <div class="field" style="display:grid;gap:8px"><b>Choose your practice</b><div class="pcards">${pc}</div></div>
+      <div class="setup-actions">
+        <button class="btn primary" data-act="start">Sign the partnership agreement</button>
+        ${saved ? `<button class="btn" data-act="continue">Continue: ${esc(PRACTICES[saved.practiceKey].surgery)}, ${MONTHS[Math.min(saved.month, 11)]}</button>` : ''}
+      </div>
+      ${best.length ? `<div class="best"><div class="eyebrow">Your best years</div><ol style="margin:6px 0 0;padding-left:1.2em">${best.map(b => `<li>${b.score} · ${esc(b.t)} · ${esc(b.p)}</li>`).join('')}</ol></div>` : ''}
+    </section>
+  </div></main>`;
+  const inp = document.getElementById('docname');
+  if (inp) inp.addEventListener('input', () => { UI.nameDraft = inp.value; });
+}
+
+/* ---------- planning ---------- */
+function stepper(act, v, minusOff, plusOff, label) {
+  return `<div class="stepper" role="group" aria-label="${esc(label)}"><button data-act="${act}" data-arg="-1" ${minusOff ? 'disabled' : ''} aria-label="Fewer">−</button><output>${v}</output><button data-act="${act}" data-arg="1" ${plusOff ? 'disabled' : ''} aria-label="More">+</button></div>`;
+}
+function renderPlan() {
+  const pl = S.plan, c = calc(), f = forecast(c);
+  const total = pl.clin + pl.admin + pl.mgmt;
+  const bar = [];
+  for (let i = 0; i < pl.clin; i++) bar.push('c');
+  for (let i = 0; i < pl.admin; i++) bar.push('a');
+  for (let i = 0; i < pl.mgmt; i++) bar.push('m');
+  const sessBar = bar.map((t, i) => `<i class="${t}${i >= 9 ? ' over' : ''}"></i>`).join('');
+  const leaveLeft = 6 - S.leaveUsed;
+  const projs = PROJECTS.filter(x => !x.need || S.flags[x.need]).map(x => {
+    const done = x.once && S.flags['proj_' + x.id];
+    return `<button class="proj" data-act="proj" data-arg="${x.id}" aria-pressed="${pl.project === x.id}" ${done ? 'disabled' : ''}><b>${esc(x.name)}${done ? ' (done)' : ''}</b><small>${esc(x.desc)}</small></button>`;
+  }).join('');
+  const roles = ROLE_ORDER.map(r => {
+    const R = ROLES[r], n = S.staff[r], vac = S.vac[r] || 0;
+    const arrsFull = R.arrs && arrsCount() >= ARRS_CAP;
+    const costTxt = R.arrs ? 'PCN-funded' : `£${R.cost.toFixed(1)}k/mo each`;
+    return `<div class="role"><div class="l"><b>${esc(R.name)}</b>${R.arrs ? '<span class="tag arrs">ARRS</span>' : ''}${vac ? `<span class="tag vac">${vac} advertised</span>` : ''}<small>${esc(R.desc)} ${costTxt}.</small></div>
+      <span class="n" aria-label="${n} in post">${n}</span>
+      <div class="acts">${vac ? `<button data-act="unvac" data-arg="${r}">Withdraw ad</button>` : ''}<button data-act="hire" data-arg="${r}" ${arrsFull ? 'disabled title="PCN ARRS budget is fully used"' : ''}>Recruit</button><button data-act="fire" data-arg="${r}" ${n ? '' : 'disabled'}>Let go</button></div></div>`;
+  }).join('');
+  const ratio = c.ratio;
+  const gcls = ratio >= 0.94 ? '' : ratio >= 0.85 ? 'warn' : 'bad';
+  const ratioWord = ratio >= 1.05 ? 'Comfortable' : ratio >= 0.97 ? 'Just about' : ratio >= 0.9 ? 'Stretched' : ratio >= 0.8 ? 'Overwhelmed' : 'Collapse';
+  const inboxCls = f.inboxEnd > 700 ? 'bad-t' : f.inboxEnd > 400 ? 'warn-t' : 'good-t';
+  const net = c.net;
+  const drift = STAT_KEYS.map(k => { const d = f.d[k]; return `<span class="chip">${ICON[k]}<span class="${d > 0 ? 'good-t' : d < 0 ? 'bad-t' : ''}">${d > 0 ? '+' : ''}${d}</span></span>`; }).join('');
+  $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap">
+    <div class="plan-head"><div><div class="eyebrow">Month plan</div><h1>${MONTHS[S.month]}</h1></div><p class="brief">${esc(BRIEF[S.month])} ${S.queue.length} things will land on your desk this month.</p></div>
+    <div class="plan-grid">
+      <div class="col">
+        <section class="panel" aria-labelledby="h-week">
+          <h3 id="h-week">Your week <small>${total} sessions. Eight is a full week; past nine you'll feel it.</small></h3>
+          <div class="sessbar" aria-hidden="true">${sessBar}</div>
+          <div class="legend"><span style="--c:var(--accent)">Clinical: ${pl.clin * 14} appointments</span><span style="--c:var(--hilite)">Admin: clears inbox</span><span style="--c:var(--stamp)">Management: QOF and safety</span></div>
+          <div class="steps">
+            <div class="step"><div class="l"><b>Clinical sessions</b><small>Surgeries, triage, visits. 14 appointments each.</small></div>${stepper('clin', pl.clin, pl.clin <= 0, total >= 12, 'Clinical sessions')}</div>
+            <div class="step"><div class="l"><b>Admin sessions</b><small>Results, letters, scripts. About 55 items each.</small></div>${stepper('admin', pl.admin, pl.admin <= 0, total >= 12, 'Admin sessions')}</div>
+            <div class="step"><div class="l"><b>Management sessions</b><small>Running the business: QOF, CQC readiness, governance.</small></div>${stepper('mgmt', pl.mgmt, pl.mgmt <= 0, total >= 12, 'Management sessions')}</div>
+          </div>
+          <label class="toggle" for="leave"><input type="checkbox" id="leave" ${pl.leave ? 'checked' : ''} ${leaveLeft <= 0 && !pl.leave ? 'disabled' : ''}> Take a week of annual leave this month <span class="muted">(${leaveLeft} of 6 weeks left)</span></label>
+          <div class="step" style="border:0"><div class="l"><b>Partners' drawings</b><small>What every partner takes home each month, on account.</small></div>
+            <div class="seg" role="group" aria-label="Drawings">${['low', 'std', 'high'].map(k => `<button data-act="draw" data-arg="${k}" aria-pressed="${pl.draw === k}">${k === 'low' ? 'Lean' : k === 'std' ? 'Standard' : 'Generous'} £${DRAW[k]}k</button>`).join('')}</div></div>
+        </section>
+        <section class="panel" aria-labelledby="h-locum">
+          <h3 id="h-locum">Locum cover <small>£460 a session. They see patients. They do not do paperwork.</small></h3>
+          <div class="step" style="border:0"><div class="l"><b>Locum sessions per week</b><small>${pl.locum ? `${pl.locum * 14} extra appointments, about ${fmtK(pl.locum * WEEKS * 0.46)} this month` : 'None booked'}</small></div>${stepper('locum', pl.locum, pl.locum <= 0, pl.locum >= 8, 'Locum sessions')}</div>
+        </section>
+        <section class="panel" aria-labelledby="h-proj">
+          <h3 id="h-proj">This month's project <small>Pick one.</small></h3>
+          <div class="projects">${projs}</div>
+        </section>
+        <section class="panel" aria-labelledby="h-team">
+          <h3 id="h-team">Team <small>ARRS ${arrsCount()}/${ARRS_CAP} · rooms ${c.rNeed}/${c.rAvail} used · reception needs ${c.recepNeed}</small></h3>
+          <p class="fc-note">Recruiting opens an advert; results come at month end. ARRS roles cost the practice almost nothing but need a room, and clinicians need your supervision.</p>
+          <div class="roles">${roles}</div>
+        </section>
+      </div>
+      <aside class="panel forecast" aria-labelledby="h-fc">
+        <h3 id="h-fc">Forecast <small>before whatever happens this month</small></h3>
+        <div class="fc-row"><div class="top"><span>Appointments per week</span><b>${c.cap} / ${c.demand}</b></div>
+          <div class="gauge ${gcls}"><b style="width:${Math.min(100, ratio * 80)}%"></b><i style="left:80%"></i></div>
+          <div class="fc-note"><span class="${gcls === 'bad' ? 'bad-t' : gcls === 'warn' ? 'warn-t' : 'good-t'}"><b>${ratioWord}</b></span>: offering ${pct(ratio)} of what patients will ask for. The line marks 100%.</div></div>
+        <div class="fc-row"><div class="top"><span>Inbox</span><b>${Math.round(S.inbox)} → <span class="${inboxCls}">${f.inboxEnd}</span></b></div>
+          <div class="fc-note">${c.inflow} in and ${c.clear} cleared each week. Over 400 it starts to hurt; over 700 it gets dangerous.</div></div>
+        <div class="fc-row"><div class="top"><span>Cash this month</span><b class="${net >= 0 ? 'good-t' : 'bad-t'}">${signK(net)}</b></div>
+          <div class="fc-note">Income ${fmtK(c.incTot + Math.max(0, c.modCash))} · staff ${fmtK(c.cost.staff)} · locums ${fmtK(c.cost.locum)} · premises ${fmtK(c.cost.premises)} · drawings ${fmtK(c.cost.draw)}${c.modCash < 0 ? ' · schemes ' + fmtK(c.modCash) : ''}</div></div>
+        <div class="fc-row"><div class="top"><span>QOF</span><b>${Math.round(S.qof)}% → ${Math.round(Math.min(100, S.qof + c.qofGain))}%</b></div>
+          <div class="fc-note">Nurses, HCAs, pharmacists, care coordinators and your management time all push QOF. You need to be near 90% by March.</div></div>
+        <div class="fc-row"><div class="top"><span>Drift by month end</span></div><div class="chips">${drift}</div></div>
+        ${c.roomsOver ? `<p class="fc-note bad-t">${c.roomsOver} more clinician${c.roomsOver > 1 ? 's' : ''} than rooms. Capacity and morale will suffer.</p>` : ''}
+        ${c.recepShort ? `<p class="fc-note bad-t">Reception is ${c.recepShort} short for a list this size.</p>` : ''}
+        <button class="btn primary" data-act="begin" style="justify-self:start">Start ${MONTHS[S.month]} →</button>
+      </aside>
+    </div>
+  </div></main>`;
+  const lv = document.getElementById('leave');
+  if (lv) lv.addEventListener('change', () => { S.plan.leave = lv.checked; save(); keepScroll(renderPlan); });
+}
+function keepScroll(fn) { const y = window.scrollY; fn(); window.scrollTo(0, y); }
+
+/* ---------- event cards ---------- */
+function hintFor(c) {
+  const out = {};
+  const add = fx => {
+    if (!fx) return;
+    try { fx = val(fx); } catch (e) { return; }
+    if (!fx) return;
+    for (const k of STAT_KEYS) if (fx[k]) out[k] = Math.max(out[k] || 0, Math.abs(fx[k]));
+    if (fx.cash) out.cash = Math.max(out.cash || 0, Math.abs(fx.cash) * 1.2);
+    if (fx.qof) out.qof = Math.max(out.qof || 0, Math.abs(fx.qof));
+    if (fx.inbox) out.inbox = Math.max(out.inbox || 0, Math.abs(fx.inbox) / 10);
+  };
+  add(c.fx); if (c.alt) add(c.alt.fx);
+  return out;
+}
+function chipsFor(c) {
+  if (c.play) return `<div class="chips"><span class="chip">Mini-game: your skill decides the effect</span></div>`;
+  const h = hintFor(c);
+  const parts = [];
+  for (const k of ['patients', 'team', 'you', 'safety', 'cash']) if (h[k]) parts.push(`<span class="chip" title="Affects ${STAT_LABEL[k]}">${ICON[k]}<span class="dot${h[k] >= 6 ? ' big' : ''}"></span></span>`);
+  if (h.qof) parts.push(`<span class="chip">QOF<span class="dot${h.qof >= 6 ? ' big' : ''}"></span></span>`);
+  if (h.inbox) parts.push(`<span class="chip">Inbox<span class="dot${h.inbox >= 6 ? ' big' : ''}"></span></span>`);
+  if (c.alt) parts.push(`<span class="chip risk" title="The outcome is uncertain">Gamble</span>`);
+  if (!parts.length && c.run) parts.push(`<span class="chip">Consequences to follow</span>`);
+  return parts.length ? `<div class="chips">${parts.join('')}</div>` : '';
+}
+function renderEvent() {
+  const e = currentEvent();
+  if (!e) { advanceEvent(); return render(); }
+  const n = S.qi + 1, tot = S.queue.length;
+  const choices = e.choices.map((c, i) => {
+    let ok = true; try { ok = !c.need || c.need(); } catch (err) { ok = false; }
+    const h = JSON.stringify(hintFor(c));
+    return `<button class="choice" data-act="choose" data-arg="${i}" data-hint='${esc(h)}' ${ok ? '' : 'disabled'}><span class="t"><span class="kbd">${i + 1}</span> ${esc(fill(c.t))}</span>${ok ? chipsFor(c) : `<span class="why">${esc(c.why || 'Not available')}</span>`}</button>`;
+  }).join('');
+  $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap">
+    <article class="card" aria-live="polite">${badge(e.who)}<span class="stampno">${MON3[S.month]} · ${Math.min(n, tot)}/${tot}</span></div>
+      <h2>${esc(fill(e.title))}</h2>
+      <div class="text"><p>${esc(fill(val(e.text)))}</p></div>
+      <div class="choices">${choices}</div>
+    </article></div></main>`;
+}
+function deltaChips(ds) {
+  if (!ds || !ds.length) return '<p class="muted" style="margin-top:14px;font-size:14px">No immediate effect.</p>';
+  return `<div class="deltas">${ds.map(d => `<span class="delta ${d.neutral ? 'neutral' : d.good ? 'up' : 'down'}">${esc(d.label)} ${esc(d.txt)}</span>`).join('')}</div>`;
+}
+function renderOutcome() {
+  const e = EVMAP[S.cur.id] || {};
+  const over = checkOver();
+  $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap">
+    <article class="card outcome">${badge(e.who || 'you')}<span class="stampno">${S.cur.alt ? 'Gamble lost' : 'Outcome'}</span></div>
+      <h2>${esc(fill(e.title || ''))}</h2>
+      <div class="text"><p>${esc(S.cur.o)}</p></div>
+      ${S.cur.html || ''}
+      ${deltaChips(S.cur.deltas)}
+      <div class="card-foot"><span class="muted">Press Enter to continue</span><button class="btn primary" data-act="cont" autofocus>${over ? 'Uh oh…' : S.soldOut ? 'Sign the papers' : 'Continue'}</button></div>
+    </article></div></main>`;
+  pulse(S.cur.deltas);
+}
+function pulse(ds) {
+  (ds || []).forEach(d => {
+    const m = document.querySelector(`[data-meter="${d.k}"]`);
+    if (m) { m.classList.add(d.good ? 'pulse-up' : 'pulse-down'); setTimeout(() => m.classList.remove('pulse-up', 'pulse-down'), 1400); }
+  });
+}
+
+/* ---------- month report ---------- */
+function statLines(extra) {
+  return `<div class="statlines">${STAT_KEYS.map(k => {
+    const v = Math.round(S.st[k]); const d = extra ? extra[k] : null;
+    return `<div class="statline">${ICON[k]}<span>${STAT_LABEL[k]}</span><div class="bar"><b style="width:${v}%;${v <= 20 ? 'background:var(--bad)' : v <= 35 ? 'background:var(--warn)' : ''}"></b></div><span class="d">${v}${d != null ? ` <span class="${d > 0 ? 'good-t' : d < 0 ? 'bad-t' : 'muted'}">${d > 0 ? '+' : ''}${d}</span>` : ''}</span></div>`;
+  }).join('')}</div>`;
+}
+function renderReport() {
+  const R = S.report, c = R.c;
+  const dmap = {}; R.deltas.forEach(d => { dmap[d.k] = d.d; });
+  const last = S.month >= 11;
+  const notes = R.hires.concat(R.notes);
+  $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap report">
+    <div class="clip"><div class="masthead"><span>${esc(P().paper)}</span><span>${MONTHS[R.month]} edition</span></div>
+      <h2>${esc(R.headline)}</h2><p>${c.cap} appointments offered a week against ${c.demand} requested (${pct(c.ratio)}).</p></div>
+    <div class="rgrid">
+      <section class="panel"><h3>The month in numbers</h3>
+        <dl class="kv">
+          <dt>Appointments offered / week</dt><dd>${c.cap}</dd>
+          <dt>Appointments requested / week</dt><dd>${c.demand}</dd>
+          <dt>Inbox: start → end</dt><dd>${R.inboxStart} → ${R.inboxEnd}</dd>
+          <dt>QOF achievement</dt><dd>${Math.round(S.qof)}%</dd>
+          <dt>List size</dt><dd>${S.list.toLocaleString('en-GB')}</dd>
+        </dl>
+        <h3 style="margin-top:6px">How everyone's feeling</h3>
+        ${statLines(dmap)}
+      </section>
+      <section class="panel"><h3>The money</h3>
+        <dl class="kv">
+          <dt>Global sum</dt><dd>${fmtK(c.inc.gs)}</dd>
+          <dt>QOF aspiration payment</dt><dd>${fmtK(c.inc.qof)}</dd>
+          <dt>Enhanced services</dt><dd>${fmtK(c.inc.es)}</dd>
+          <dt>Private and other income</dt><dd>${fmtK(c.inc.other)}</dd>
+          ${c.modCash ? `<dt>Schemes, leases and extras</dt><dd>${signK(c.modCash)}</dd>` : ''}
+          <dt>Staff</dt><dd>−${fmtK(c.cost.staff)}</dd>
+          ${c.cost.locum ? `<dt>Locums</dt><dd>−${fmtK(c.cost.locum)}</dd>` : ''}
+          <dt>Premises and running costs</dt><dd>−${fmtK(c.cost.premises)}</dd>
+          <dt>Partners' drawings (${c.partnersN})</dt><dd>−${fmtK(c.cost.draw)}</dd>
+          <dt class="sum">Net from running the practice</dt><dd class="sum">${signK(c.net)}</dd>
+          <dt>Bank balance now</dt><dd>${fmtK(S.cash)}</dd>
+        </dl>
+        ${notes.length ? `<h3 style="margin-top:6px">Notes</h3><ul class="notes">${notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
+      </section>
+    </div>
+    <div class="plan-go"><button class="btn primary" data-act="next" autofocus>${checkOver() ? 'Uh oh…' : last ? 'See the year-end accounts →' : `On to ${MONTHS[S.month + 1]} →`}</button></div>
+  </div></main>`;
+}
+
+/* ---------- endings ---------- */
+function chartSVG() {
+  const H = S.history; if (H.length < 2) return '';
+  const W = 640, Ht = 220, L = 34, Rr = 76, T = 12, B = 28;
+  const x = i => L + (W - L - Rr) * (i / 11), y = v => T + (Ht - T - B) * (1 - v / 100);
+  const cols = { patients: 'var(--s1)', team: 'var(--s2)', you: 'var(--s3)', safety: 'var(--s4)' };
+  let g = '';
+  [0, 25, 50, 75, 100].forEach(v => { g += `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--rule)" stroke-width="1"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="var(--ink-2)" font-family="IBM Plex Mono, monospace">${v}</text>`; });
+  MON3.forEach((m, i) => { if (i % 2 === 0) g += `<text x="${x(i)}" y="${Ht - 8}" text-anchor="middle" font-size="11" fill="var(--ink-2)" font-family="IBM Plex Mono, monospace">${m}</text>`; });
+  const labelsY = [];
+  STAT_KEYS.forEach(k => {
+    const pts = H.map(h => `${x(h.m).toFixed(1)},${y(h[k]).toFixed(1)}`).join(' ');
+    const lastH = H[H.length - 1];
+    g += `<polyline points="${pts}" fill="none" stroke="${cols[k]}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${x(lastH.m)}" cy="${y(lastH[k])}" r="4" fill="${cols[k]}"/>`;
+    let ly = y(lastH[k]) + 4; while (labelsY.some(v => Math.abs(v - ly) < 13)) ly += 13; labelsY.push(ly);
+    g += `<text x="${x(lastH.m) + 9}" y="${ly}" font-size="12" font-weight="700" fill="${cols[k]}" font-family="Atkinson Hyperlegible, sans-serif">${STAT_LABEL[k]}</text>`;
+  });
+  return `<svg class="chart" viewBox="0 0 ${W} ${Ht}" role="img" aria-label="Patients, team, you and safety across the year">${g}</svg>`;
+}
+function shareText() {
+  const E = S.end;
+  return `I survived a year as a GP partner at ${P().surgery} (${P().label.toLowerCase()}): "${E.arche.t}". QOF ${Math.round(S.qof)}%, CQC ${S.cqc ? RATE_NAME[S.cqc.overall] : 'not inspected'}, take-home £${Math.round(E.takeHome)}k, wellbeing ${Math.round(S.st.you)}/100. Score ${E.score}. Last Partner Standing.`;
+}
+function renderEnd() {
+  const E = S.end;
+  const best = loadBest();
+  $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap ending">
+    <section class="verdict"><div class="eyebrow">${E.sold ? MONTHS[S.month] : '31st March'} · ${esc(P().surgery)}</div><span class="bigstamp">${esc(E.arche.s)}</span>
+      <h1>${esc(E.arche.t)}</h1><p class="lede">${esc(E.arche.d)}</p>
+      <div class="score"><span>Score <b>${E.score}</b></span><span>Take-home <b>£${Math.round(E.takeHome)}k</b></span><span>QOF <b>${Math.round(S.qof)}%</b></span><span>CQC <b>${S.cqc ? RATE_NAME[S.cqc.overall] : '—'}</b></span></div>
+    </section>
+    <div class="rgrid">
+      <section class="panel"><h3>The accounts</h3>
+        <dl class="kv">
+          <dt>Your drawings through the year</dt><dd>${fmtK(S.drawTotal)}</dd>
+          <dt>QOF earned (${Math.round(S.qof)}% achieved)</dt><dd>${fmtK(E.earned)}</dd>
+          <dt>QOF aspiration already paid</dt><dd>−${fmtK(S.aspPaid)}</dd>
+          <dt>QOF balancing payment</dt><dd class="${E.balancing < 0 ? 'bad-t' : 'good-t'}">${signK(E.balancing)}</dd>
+          <dt>Bank after balancing</dt><dd>${fmtK(E.cashFinal)}</dd>
+          <dt>Kept back as working capital</dt><dd>−${fmtK(RESERVE)}</dd>
+          <dt>Your share of what's left (÷${E.partnersN})</dt><dd class="${E.share < 0 ? 'bad-t' : ''}">${signK(E.share)}${E.sold ? ' incl. Apex payout' : ''}</dd>
+          <dt class="sum">Your pre-tax income for the year</dt><dd class="sum">£${E.takeHome.toFixed(1)}k</dd>
+        </dl>
+        ${E.share < 0 ? '<p class="fc-note bad-t">The partnership ended the year short. You pay your share back in, personally.</p>' : ''}
+      </section>
+      <section class="panel"><h3>The practice</h3>
+        ${statLines(null)}
+        ${S.cqc ? `<div class="cqc-card">${Object.keys(S.cqc.rates).map(k => `<div class="row"><span>${k}</span><span class="rate ${S.cqc.rates[k]}">${RATE_NAME[S.cqc.rates[k]]}</span></div>`).join('')}<div class="row overall"><span>Overall</span><span class="rate">${RATE_NAME[S.cqc.overall]}</span></div></div>` : '<p class="fc-note">CQC never came. Enjoy it while it lasts.</p>'}
+      </section>
+    </div>
+    <section class="panel"><h3>Your year</h3>${chartSVG()}</section>
+    <div class="end-actions"><button class="btn primary" data-act="again">Another year</button><button class="btn" data-act="share">Copy my result</button><button class="btn ghost" data-act="home">Title screen</button></div>
+    ${best.length ? `<div class="best"><div class="eyebrow">Your best years</div><ol style="margin:6px 0 0;padding-left:1.2em">${best.map(b => `<li>${b.score} · ${esc(b.t)} · ${esc(b.p)}</li>`).join('')}</ol></div>` : ''}
+  </div></main>`;
+}
+function renderOver() {
+  const O = OVER[S.over.k];
+  $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap ending">
+    <section class="verdict over"><div class="eyebrow">${MONTHS[S.over.month]} · ${esc(P().surgery)}</div><span class="bigstamp">${esc(O.stamp)}</span>
+      <h1>${esc(O.title)}</h1><p class="lede">${esc(O.text())}</p>
+      <div class="score"><span>You lasted <b>${S.over.month + 1}</b> of 12 months</span></div></section>
+    <section class="panel"><h3>Where it ended</h3>${statLines(null)}<p class="fc-note">Bank ${fmtK(S.cash)} · QOF ${Math.round(S.qof)}% · Inbox ${Math.round(S.inbox)}</p></section>
+    ${S.history.length > 1 ? `<section class="panel"><h3>How it went</h3>${chartSVG()}</section>` : ''}
+    <div class="end-actions"><button class="btn primary" data-act="again">Try again</button><button class="btn ghost" data-act="home">Title screen</button></div>
+  </div></main>`;
+}
+
+/* ---------- overlays ---------- */
+function openOverlay(html) { closeOverlay(); const d = document.createElement('div'); d.className = 'overlay'; d.id = 'overlay'; d.innerHTML = `<div class="dialog" role="dialog" aria-modal="true">${html}</div>`; document.body.appendChild(d); const b = d.querySelector('button'); if (b) b.focus(); }
+function closeOverlay() { const o = document.getElementById('overlay'); if (o) o.remove(); }
+function howHTML() {
+  return `<h2>How it works</h2><ul>
+    <li><b>Four meters and a bank balance.</b> Patients, Team, You and Safety run from 0 to 100. If any hits zero, or the bank drops below ${fmtK(OVERDRAFT)}, the game ends.</li>
+    <li><b>Plan each month.</b> Your sessions set capacity, the inbox and your own wellbeing. Locums add appointments but cost money and do no paperwork. Recruit or let staff go. Pick one project.</li>
+    <li><b>Demand is seasonal.</b> Winter is brutal. Recruitment takes time and can fail, so plan in the summer.</li>
+    <li><b>Decisions.</b> Dots under each choice show which meters it touches and roughly how much, but not which way. "Gamble" choices can go wrong.</li>
+    <li><b>QOF.</b> You're paid 70% of expected QOF monthly. At year end, what you achieved is reconciled against it. Under-achieve and you pay it back.</li>
+    <li><b>Keyboard.</b> 1, 2, 3 to choose. Enter to continue. The mini-games use number keys too.</li>
+  </ul><div class="row-actions"><button class="btn primary" data-act="close">Got it</button></div>`;
+}
+function menuHTML() {
+  return `<h2>Menu</h2><p class="muted">Your game saves automatically after every decision, in this browser only.</p>
+  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
+}
+function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); }
+
+/* ---------- render ---------- */
+function render() {
+  if (!S || UI.screen === 'title') { renderTitle(); return; }
+  switch (S.phase) {
+    case 'plan': return renderPlan();
+    case 'event': return renderEvent();
+    case 'outcome': return renderOutcome();
+    case 'mini': return renderMini();
+    case 'report': return renderReport();
+    case 'end': return renderEnd();
+    case 'over': return renderOver();
+  }
+}
+function go(fn) { fn(); render(); window.scrollTo(0, 0); }
+
+/* ---------- input ---------- */
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-act]'); if (!b || b.disabled) return;
+  const a = b.dataset.act, arg = b.dataset.arg;
+  if (ev.target.classList && ev.target.classList.contains('overlay')) return;
+  switch (a) {
+    case 'pick': UI.pickPractice = arg; keepScroll(renderTitle); break;
+    case 'start': { const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; go(() => newGame(UI.pickPractice, nm)); break; }
+    case 'continue': { const s = loadSave(); if (s) { S = s; UI.screen = 'game'; go(() => { }); } break; }
+    case 'menu': openOverlay(menuHTML()); break;
+    case 'how': openOverlay(howHTML()); break;
+    case 'close': closeOverlay(); break;
+    case 'theme': { const r = document.documentElement; const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; closeOverlay(); break; }
+    case 'restart-ask': openOverlay(`<h2>Resign?</h2><p>This ends the current year. Your progress will be lost.</p><div class="row-actions"><button class="btn" data-act="close">Stay</button><button class="btn primary" data-act="restart">Resign</button></div>`); break;
+    case 'restart': closeOverlay(); clearSave(); S = null; UI.screen = 'title'; go(() => { }); break;
+    case 'clin': case 'admin': case 'mgmt': {
+      const d = +arg, pl = S.plan, tot = pl.clin + pl.admin + pl.mgmt;
+      if (d > 0 && tot >= 12) break; if (d < 0 && pl[a] <= 0) break;
+      pl[a] += d; save(); keepScroll(renderPlan); break;
+    }
+    case 'locum': S.plan.locum = clamp(S.plan.locum + +arg, 0, 8); save(); keepScroll(renderPlan); break;
+    case 'draw': S.plan.draw = arg; save(); keepScroll(renderPlan); break;
+    case 'proj': S.plan.project = arg; save(); keepScroll(renderPlan); break;
+    case 'hire': {
+      const R = ROLES[arg]; if (R.arrs && arrsCount() >= ARRS_CAP) break;
+      const cost = arg === 'salaried' ? 1.5 : arg === 'nurse' ? 0.8 : R.arrs ? 0 : 0.4;
+      S.vac[arg] = (S.vac[arg] || 0) + 1; S.cash = r1(S.cash - cost); save(); keepScroll(renderPlan);
+      toast(`${R.name} advertised${cost ? ` (${fmtK(cost)})` : ''}. Results at month end.`); break;
+    }
+    case 'unvac': if (S.vac[arg]) { S.vac[arg]--; if (!S.vac[arg]) delete S.vac[arg]; save(); keepScroll(renderPlan); } break;
+    case 'fire': {
+      if (!S.staff[arg]) break;
+      S.staff[arg]--; const big = ['salaried', 'nurse'].includes(arg);
+      S.st.team = clamp(S.st.team - (big ? 6 : 3)); save(); keepScroll(renderPlan);
+      toast(`${ROLES[arg].name} let go. Team morale ${big ? '−6' : '−3'}.`); break;
+    }
+    case 'begin': go(beginMonth); break;
+    case 'choose': chooseAt(+arg); break;
+    case 'cont': go(continueOutcome); break;
+    case 'next': go(nextMonth); break;
+    case 'again': { const k = S.practiceKey, n = S.name; go(() => newGame(k, n)); break; }
+    case 'home': S = null; UI.screen = 'title'; go(() => { }); break;
+    case 'share': {
+      const txt = shareText();
+      const done = () => toast('Copied. Go and humblebrag in the practice WhatsApp.');
+      const fallback = () => openOverlay(`<h2>Your result</h2><textarea id="sharebox" rows="5" style="width:100%;font-family:var(--mono);font-size:13px;padding:8px;border-radius:8px;border:1.5px solid var(--rule);background:var(--sheet-2)">${esc(txt)}</textarea><div class="row-actions"><button class="btn primary" data-act="close">Done</button></div>`);
+      try { navigator.clipboard.writeText(txt).then(done, () => { fallback(); const t = document.getElementById('sharebox'); if (t) t.select(); }); } catch (e) { fallback(); }
+      break;
+    }
+    default: if (typeof miniAction === 'function') miniAction(a, arg);
+  }
+});
+document.addEventListener('click', ev => { if (ev.target.id === 'overlay') closeOverlay(); });
+function chooseAt(i) {
+  const e = currentEvent(); if (!e) return;
+  const c = e.choices[i]; if (!c) return;
+  try { if (c.need && !c.need()) return; } catch (err) { return; }
+  if (c.play) { startMini(e.game, i); return; }
+  go(() => resolveChoice(i));
+}
+document.addEventListener('mouseover', ev => {
+  const b = ev.target.closest('.choice'); if (!b) return;
+  let h = {}; try { h = JSON.parse(b.dataset.hint || '{}'); } catch (e) { }
+  document.querySelectorAll('.meter').forEach(m => { const k = m.dataset.meter, dot = m.querySelector('.hint'); if (!dot) return; dot.classList.toggle('on', !!h[k]); dot.classList.toggle('big', (h[k] || 0) >= 6); });
+});
+document.addEventListener('mouseout', ev => { if (ev.target.closest('.choice')) document.querySelectorAll('.meter .hint').forEach(d => d.classList.remove('on', 'big')); });
+document.addEventListener('keydown', ev => {
+  if (document.getElementById('overlay')) { if (ev.key === 'Escape') closeOverlay(); return; }
+  if (!S || UI.screen === 'title') return;
+  if (ev.target && /input|textarea/i.test(ev.target.tagName)) return;
+  if (S.phase === 'mini') { if (typeof miniKey === 'function') miniKey(ev); return; }
+  if (S.phase === 'event' && /^[1-4]$/.test(ev.key)) { ev.preventDefault(); chooseAt(+ev.key - 1); }
+  else if (ev.key === 'Enter' && !(ev.target && ev.target.closest && ev.target.closest('button'))) {
+    if (S.phase === 'outcome') go(continueOutcome); else if (S.phase === 'report') go(nextMonth);
+  }
+});
+/* ===================== MINI-GAMES ===================== */
+const MINI = {
+  docman: {
+    name: 'Docman Dash', dur: 45000, items: DOCS,
+    blurb: 'Documents arrive one at a time. Sort each one before the timer runs out. Wrong answers cost two seconds.',
+    rules: ['<b>File</b>: normal, or already dealt with.', '<b>Action</b>: needs doing, but not today: a referral, a medication change, a form.', '<b>Urgent</b>: a same-day problem. Missing one of these hurts Safety.', '<b>Bounce</b>: someone else\'s job. Send it back where it belongs.'],
+    bins: [{ k: 'file', l: 'File', s: 'No action' }, { k: 'action', l: 'Action', s: 'Needs doing' }, { k: 'urgent', l: 'Urgent', s: 'Same day' }, { k: 'bounce', l: 'Bounce', s: 'Not your job' }]
+  },
+  triage: {
+    name: 'The 8am Rush', dur: 45000, items: TRIAGE,
+    blurb: 'Online requests flood in. Send each patient to the right place. Wrong answers cost two seconds.',
+    rules: ['<b>999 / A&E</b>: life-threatening, right now.', '<b>GP today</b>: needs a clinician the same day.', '<b>Routine</b>: book an appointment with the right person.', '<b>Pharmacy</b>: Pharmacy First conditions and self-care.', '<b>Physio</b>: musculoskeletal problems without red flags.'],
+    bins: [{ k: '999', l: '999 / A&E', s: 'Emergency' }, { k: 'gp', l: 'GP today', s: 'Same day' }, { k: 'routine', l: 'Routine', s: 'Book in' }, { k: 'pharm', l: 'Pharmacy', s: 'Pharmacy First' }, { k: 'physio', l: 'Physio', s: 'First contact' }]
+  }
+};
+let MG = null;
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function startMini(game, choiceIdx) {
+  S.phase = 'mini';
+  MG = { game, choiceIdx, stage: 'intro', items: shuffle(MINI[game].items), idx: 0, score: 0, correct: 0, wrong: 0, danger: 0, streak: 0, best: 0, t0: 0, penalty: 0, left: MINI[game].dur, timer: null, last: null };
+  save(); render(); window.scrollTo(0, 0);
+}
+function ensureMG() {
+  if (MG) return true;
+  const e = currentEvent();
+  if (!e || e.kind !== 'mini') { S.phase = 'event'; return false; }
+  MG = { game: e.game, choiceIdx: e.choices.findIndex(c => c.play), stage: 'intro', items: shuffle(MINI[e.game].items), idx: 0, score: 0, correct: 0, wrong: 0, danger: 0, streak: 0, best: 0, t0: 0, penalty: 0, left: MINI[e.game].dur, timer: null, last: null };
+  return true;
+}
+function renderMini() {
+  if (!ensureMG()) return render();
+  const G = MINI[MG.game];
+  let body = '';
+  if (MG.stage === 'intro') {
+    body = `<div class="card mini-intro"><div class="eyebrow">Mini-game · 45 seconds</div><h2>${G.name}</h2><p class="text">${G.blurb}</p><ul>${G.rules.map(r => `<li>${r}</li>`).join('')}</ul>
+      <p class="muted" style="font-size:14px">Use the buttons, or number keys 1 to ${G.bins.length}.</p>
+      <div class="card-foot"><button class="btn primary" data-act="mini-start" autofocus>Start the clock</button></div></div>`;
+  } else if (MG.stage === 'play') {
+    const it = MG.items[MG.idx % MG.items.length];
+    const docHead = MG.game === 'docman' ? `<div class="kind"><span>${esc(it.k)}</span><span>${esc(it.f)}</span></div>` : `<div class="kind"><span>Online request</span><span>#${4100 + MG.idx}</span></div>`;
+    const fb = MG.last ? (MG.last.ok ? `<b class="ok">Right.</b> ${esc(MG.last.w)}` : `<b class="no">Not quite: ${esc(MG.last.ans)}.</b> ${esc(MG.last.w)}`) : '&nbsp;';
+    body = `<div class="mini-top"><h2>${G.name}</h2><div class="mini-score"><span>Sorted <b>${MG.correct}</b></span><span>Streak <b>${MG.streak}</b></span><span id="mg-secs">${Math.ceil(MG.left / 1000)}s</span></div></div>
+      <div class="timer" id="mg-timer"><b style="width:${(MG.left / G.dur) * 100}%"></b></div>
+      <div class="doc ${MG.game === 'triage' ? 'sms' : ''}" id="mg-doc">${docHead}<div class="body">${esc(it.b)}</div></div>
+      <div class="bins ${G.bins.length === 5 ? 'five' : ''}" style="--n:${G.bins.length}">${G.bins.map((b, i) => `<button class="bin" data-act="bin" data-arg="${b.k}" id="bin-${b.k}"><span class="kbd">${i + 1}</span>${esc(b.l)}<small>${esc(b.s)}</small></button>`).join('')}</div>
+      <p class="lastfb" aria-live="polite">${fb}</p>`;
+  } else {
+    const R = miniResult();
+    body = `<div class="card"><div class="eyebrow">${G.name} · results</div><h2>${esc(R.grade)}</h2>
+      <p class="text">${esc(R.text)}</p>
+      <dl class="kv" style="margin-top:14px"><dt>Sorted correctly</dt><dd>${MG.correct}</dd><dt>Wrong</dt><dd>${MG.wrong}</dd><dt>Accuracy</dt><dd>${Math.round(R.acc * 100)}%</dd><dt>Best streak</dt><dd>${MG.best}</dd><dt>${MG.game === 'docman' ? 'Urgent results missed' : 'Dangerous misroutes'}</dt><dd class="${MG.danger ? 'bad-t' : ''}">${MG.danger}</dd></dl>
+      <div class="card-foot"><button class="btn primary" data-act="mini-done" autofocus>Back to the practice</button></div></div>`;
+  }
+  $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap mini">${body}</div></main>`;
+}
+function miniResult() {
+  const n = MG.correct + MG.wrong, acc = n ? MG.correct / n : 0;
+  let grade, fx, text;
+  if (MG.game === 'docman') {
+    grade = acc >= 0.9 && MG.correct >= 12 ? 'Docman Deity' : acc >= 0.75 ? 'Safe Pair of Hands' : acc >= 0.5 ? 'Needs a Second Look' : 'Please Step Away From the Inbox';
+    fx = { inbox: -MG.correct * 9, safety: (acc >= 0.85 ? 3 : acc >= 0.65 ? 1 : -2) - MG.danger * 3, you: MG.correct >= 12 ? 1 : -1 };
+    text = `You cleared ${MG.correct * 9} items' worth of the backlog.` + (MG.danger ? ` ${MG.danger} urgent result${MG.danger > 1 ? 's' : ''} went to the wrong pile. Someone will have to ring those patients this afternoon.` : ' Nothing dangerous slipped through.');
+  } else {
+    grade = acc >= 0.9 && MG.correct >= 10 ? 'Care Navigation Legend' : acc >= 0.75 ? 'Sensible Triager' : acc >= 0.5 ? 'Sends Everyone to the GP' : 'Chaos Coordinator';
+    const cut = Math.min(6, r1(MG.correct * 0.4));
+    fx = { patients: acc >= 0.85 ? 4 : acc >= 0.65 ? 2 : -2, safety: (acc >= 0.85 ? 2 : 0) - MG.danger * 4, you: -1, mod: cut > 0 ? { id: 'nav' + S.month, label: 'Good care navigation', months: 1, demand: -cut } : null };
+    text = `Good routing takes ${cut}% off this month's demand for appointments.` + (MG.danger ? ` ${MG.danger} patient${MG.danger > 1 ? 's' : ''} who needed urgent help got sent somewhere slower. That's a significant event.` : ' Every red flag went to the right place.');
+  }
+  return { acc, grade, fx, text };
+}
+function miniStart() {
+  MG.stage = 'play'; MG.t0 = performance.now(); MG.penalty = 0; MG.left = MINI[MG.game].dur;
+  clearInterval(MG.timer);
+  MG.timer = setInterval(miniTick, 100);
+  renderMini();
+}
+function miniTick() {
+  if (!MG || MG.stage !== 'play') return;
+  const G = MINI[MG.game];
+  MG.left = Math.max(0, G.dur - (performance.now() - MG.t0) - MG.penalty);
+  const tb = document.querySelector('#mg-timer b'), tt = document.getElementById('mg-timer'), secs = document.getElementById('mg-secs');
+  if (tb) tb.style.width = (MG.left / G.dur * 100) + '%';
+  if (tt) tt.classList.toggle('hurry', MG.left < 10000);
+  if (secs) secs.textContent = Math.ceil(MG.left / 1000) + 's';
+  if (MG.left <= 0) { clearInterval(MG.timer); MG.stage = 'result'; renderMini(); }
+}
+function miniAnswer(k) {
+  if (!MG || MG.stage !== 'play') return;
+  const G = MINI[MG.game];
+  const it = MG.items[MG.idx % MG.items.length];
+  const ok = it.a.includes(k);
+  const label = kk => (G.bins.find(b => b.k === kk) || {}).l || kk;
+  if (ok) { MG.correct++; MG.streak++; MG.best = Math.max(MG.best, MG.streak); }
+  else {
+    MG.wrong++; MG.streak = 0; MG.penalty += 2000;
+    if (MG.game === 'docman' && it.a[0] === 'urgent') MG.danger++;
+    if (MG.game === 'triage' && (it.a.includes('999') || it.a[0] === 'gp') && ['pharm', 'physio', 'routine'].includes(k)) MG.danger++;
+  }
+  MG.last = { ok, w: it.w, ans: it.a.map(label).join(' or ') };
+  MG.idx++;
+  if (MG.idx % MG.items.length === 0) MG.items = shuffle(MG.items);
+  renderMini();
+  const b = document.getElementById('bin-' + k);
+  if (b) { b.classList.add(ok ? 'flash-ok' : 'flash-no'); setTimeout(() => b.classList.remove('flash-ok', 'flash-no'), 300); }
+  miniTick();
+}
+function miniDone() {
+  const R = miniResult();
+  const idx = MG.choiceIdx;
+  clearInterval(MG.timer);
+  const fx = { ...R.fx }; const mod = fx.mod; delete fx.mod;
+  MG = null;
+  go(() => { if (mod) addMod(mod); resolveChoice(idx, { fx, o: `${R.grade}. ${R.text}` }); });
+}
+function miniAction(a, arg) {
+  if (a === 'mini-start') miniStart();
+  else if (a === 'bin') miniAnswer(arg);
+  else if (a === 'mini-done') miniDone();
+}
+function miniKey(ev) {
+  if (!MG) return;
+  if (MG.stage === 'intro' && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); miniStart(); return; }
+  if (MG.stage === 'result' && ev.key === 'Enter') { ev.preventDefault(); miniDone(); return; }
+  if (MG.stage === 'play' && /^[1-5]$/.test(ev.key)) {
+    const b = MINI[MG.game].bins[+ev.key - 1];
+    if (b) { ev.preventDefault(); miniAnswer(b.k); }
+  }
+}
+
+/* ===================== BOOT ===================== */
+function boot(data) {
+  try { if (data && data.S && data.S.v === 1) { S = data.S; UI.screen = data.screen || 'game'; } } catch (e) { }
+  render();
+}
+try { if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({ S, screen: UI.screen })); } catch (e) { }
+if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(boot);
+else boot((window.claude && window.claude.hot && window.claude.hot.data) || {});
+</script>

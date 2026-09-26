@@ -240,7 +240,7 @@ EVENTS.push(
  info:'In a 2025 BMA survey, only half of practices said their premises were suitable for present needs and 83% said they couldn\'t meet future demand. 42% of bids for improvement funding since 2022 were rejected.',
  text:`Every consulting room is double booked on Tuesdays. The physio is working in the baby-changing room. "We need more space," Bev says, "or fewer people. And we need the people."`,
  choices:[
-  {t:'Convert the staff room into a clinic room',fx:{rooms:1,team:-5,aim:{team:-2}},o:`The staff room is now Room 11. Lunch is eaten in the corridor. Morale takes it personally.`},
+  {t:'Convert the staff room into a clinic room',fx:{rooms:1,team:-5,aim:{team:-2}},o:`The staff room is now a clinic room. Lunch is eaten in the corridor. Morale takes it personally.`},
   {t:'Hire a portakabin for the car park (£14,000)',fx:{rooms:2,cash:-14},o:`It arrives on a lorry. It has air conditioning and a ramp. It's the nicest room in the building.`},
   {t:'Bid for improvement funding (£3,000 for the architect)',fx:{cash:-3},run(){ const ok=chance(0.45+(S.icb-55)/150); plant({in:5,fx:ok?{rooms:2,team:5}:{team:-2},note:ok?'The premises improvement bid was approved. Two new consulting rooms by spring.':'The premises improvement bid was rejected: "insufficient strategic priority".'}); },o:`The architect draws two extra rooms. The decision will take about five months, and the ICB's opinion of you matters.`}
  ]},

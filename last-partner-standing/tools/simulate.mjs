@@ -46,7 +46,7 @@ function smartPlan(S) {
   pl.draw = S.cash < S.overdraft / 2 ? 'low' : 'std';
   let c = L.calc();
   if (S.month >= 1 && S.month <= 7) {
-    const roomFree = L.roomsNeeded() < L.roomsAvail();
+    const roomFree = L.roomsNeeded() + 8 <= L.roomsAvail();
     if (roomFree && L.arrsCount() < 6) for (const r of ['physio', 'para', 'mhp']) if (!S.staff[r] && !S.vac[r]) { S.vac[r] = 1; break; }
     if (c.ratio < 1.02 && !S.vac.salaried && S.staff.salaried < 3 && S.cash > S.overdraft + 50) { S.vac.salaried = 1; S.cash -= 1.5; }
     if (c.recepShort && !S.vac.recep) S.vac.recep = 1;

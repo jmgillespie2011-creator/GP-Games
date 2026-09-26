@@ -20,15 +20,32 @@ EVENTS.forEach(e => { EVMAP[e.id] = e; });
 const DRIFT = { patients: 0.3, team: 0.22, you: 0.25, safety: 0.2 };
 const qofHeadroom = () => clamp((100 - S.qof) / 35, 0.2, 1); // the last patients on the recall list are the hardest to reach
 
+// rooms are booked by the session: part-timers share, and receptionists on headsets need none
 function roomsNeeded() {
-  let n = 1 + activeOthers();
-  for (const r of ROLE_ORDER) if (ROLES[r].room) n += S.staff[r];
-  if (S.plan.locum > 0) n += 1;
-  if (hasMod('registrar')) n += 1;
-  if (hasMod('scheme')) n += 1;
+  let n = S.plan.clin;
+  for (const id in S.partners) if (isActive(id)) n += S.partners[id].clin;
+  for (const r of ROLE_ORDER) if (ROLES[r].room) n += ROLES[r].room * S.staff[r];
+  n += S.plan.locum;
+  if (hasMod('registrar')) n += 7;
+  if (hasMod('scheme')) n += 2;
   return n;
 }
-function roomsAvail() { return S.rooms + activeMods().reduce((a, m) => a + (m.rooms || 0), 0); }
+function roomsAvail() { return ROOM_SESSIONS * (S.rooms + activeMods().reduce((a, m) => a + (m.rooms || 0), 0)); }
+// headcount and FTE against the England averages for a list this size
+function benchmark() {
+  const k = S.list / BENCH.patients;
+  let gpSess = S.plan.clin + S.plan.admin + S.plan.mgmt + 6 * S.staff.salaried;
+  for (const id in S.partners) if (isActive(id)) gpSess += S.partners[id].clin + 1;
+  if (hasMod('scheme')) gpSess += 2;
+  const office = S.list * CORE_ADMIN / OFFICE_COST;
+  const other = ['hca', 'pharm', 'physio', 'para', 'mhp', 'cc', 'sp', 'gpa'].reduce((a, r) => a + S.staff[r], 0);
+  return [
+    ['GPs (FTE, excluding trainees)', gpSess / GP_FTE_SESSIONS, BENCH.gp * k, 'Your sessions and your partners\', salaried GPs\' and scheme sessions, at 9 a week each'],
+    ['Practice nurses', S.staff.nurse, BENCH.nurse * k, ''],
+    ['Other clinical staff', other, BENCH.dpc * k, 'Nationally this counts practice staff only. PCN-funded ARRS roles come on top.'],
+    ['Admin and reception', S.staff.recep + office, BENCH.admin * k, `${S.staff.recep} receptionists and about ${office.toFixed(1)} office staff`]
+  ];
+}
 function weightedList() {
   const p = prac();
   const nr = S.newRegs.reduce((a, r) => a + (S.month < r.until ? r.n : 0), 0);
@@ -255,11 +272,11 @@ function calc() {
   mods.forEach(x => { if (x.capAdd) cap += x.capAdd; });
   let capMul = 1;
   mods.forEach(x => { if (x.capMul) capMul *= x.capMul; });
-  const recepNeed = Math.round(S.list / 1400);
+  const recepNeed = Math.round(S.list / 1600); // about 6 per 10,000 patients: within the national 12.3 admin staff per 10,000 [S58]
   const recepShort = Math.max(0, recepNeed - S.staff.recep);
   capMul *= 1 - 0.04 * recepShort;
   const rNeed = roomsNeeded(), rAvail = roomsAvail();
-  const roomsOver = Math.max(0, rNeed - rAvail);
+  const roomsOver = Math.max(0, rNeed - rAvail) / ROOM_SESSIONS; // in rooms' worth of sessions
   capMul *= 1 - 0.04 * roomsOver;
   if (S.st.team < 30) capMul *= 0.93;
   cap = Math.round(cap * capMul);
@@ -465,7 +482,7 @@ function monthEnd() {
   ended.forEach(l => { if (l) notes.push(`Ended: ${l}.`); });
   S.log.forEach(l => notes.push(l)); S.log = [];
   if (c.recepShort) notes.push(`Reception is ${c.recepShort} short for a list this size.`);
-  if (c.roomsOver) notes.push(`${c.roomsOver} more clinician${c.roomsOver > 1 ? 's' : ''} than rooms. Someone is consulting in the baby-change.`);
+  if (c.roomsOver) notes.push(`${c.rNeed - c.rAvail} clinic sessions a week had no room. Someone is consulting in the baby-change.`);
   if (activeOthers() === 0) notes.push('You are the only partner. Every decision, and every liability, is yours.');
   const pool = c.ratio < 0.87 ? HEADLINES.bad : c.ratio >= 1.02 ? HEADLINES.good : HEADLINES.ok;
   const headline = fill(pick(chance(0.25) ? HEADLINES.filler : pool));

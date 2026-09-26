@@ -504,21 +504,21 @@ const PRACTICES = {
     key:'suburb',label:'Leafy suburb',diff:'Gentle',surgery:'Oakfield Surgery',place:'Little Oakfield',paper:'The Oakfield Courier',
     blurb:'Healthy, wealthy and extremely well-informed. They have read the NICE guidance. All of it.',
     list:7200,weight:1.02,prev:0.95,lastQof:96,cash:70,overdraft:-70,st:{patients:58,team:64,you:72,safety:62},
-    demandRate:0.089,inboxRate:0.05,qofEase:1.08,hire:1.1,rooms:10,premNet:1.5,overhead:0,priv:4.1,
+    demandRate:0.089,inboxRate:0.05,qofEase:1.08,hire:1.1,rooms:7,premNet:1.5,overhead:0,priv:4.1,
     staff:{recep:5,nurse:2,hca:1,salaried:1,pharm:0,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0}
   },
   town:{
     key:'town',label:'Market town',diff:'Standard',surgery:'Riverside Surgery',place:'Bramleigh',paper:'The Bramleigh Bugle',
     blurb:'A proper mix: farms, a new estate, a care home and one very active local Facebook group.',
     list:8200,weight:1.0,prev:1.0,lastQof:94,cash:45,overdraft:-80,st:{patients:52,team:56,you:68,safety:55},
-    demandRate:0.093,inboxRate:0.048,qofEase:1.0,hire:1.0,rooms:10,premNet:2.5,overhead:0,priv:2.9,
-    staff:{recep:6,nurse:2,hca:1,salaried:1,pharm:1,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0}
+    demandRate:0.093,inboxRate:0.048,qofEase:1.0,hire:1.0,rooms:7,premNet:2.5,overhead:0,priv:2.9,
+    staff:{recep:5,nurse:2,hca:1,salaried:1,pharm:1,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0}
   },
   city:{
     key:'city',label:'Inner city',diff:'Brutal',surgery:'Canal Street Medical Centre',place:'Hollowbrook',paper:'The Hollowbrook Herald',
     blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold.',
     list:10400,weight:0.96,prev:0.9,lastQof:88,cash:40,overdraft:-110,st:{patients:44,team:50,you:64,safety:50},
-    demandRate:0.097,inboxRate:0.046,qofEase:0.88,hire:0.9,rooms:11,premNet:3.5,overhead:1.5,priv:1.8,
+    demandRate:0.097,inboxRate:0.046,qofEase:0.88,hire:0.9,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,
     staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0}
   }
 };
@@ -530,19 +530,25 @@ const RUNNING = 0.00154;    // £k per patient a month: office, clinical supplie
 // cost in £k a month including employer NI and pension. cap = appointments a week. clear = inbox items cleared a week.
 const ROLES = {
   recep:{name:'Receptionist',cost:empCostK(24690,0.7),hire:0.8,desc:'Takes the 8am calls and the abuse. Knows everyone\'s nan.'},
-  nurse:{name:'Practice nurse',cost:empCostK(35884,0.85),cap:104,qof:1.2,room:1,hire:0.4,desc:'Chronic disease reviews, smears, imms. Your QOF engine.'},
-  hca:{name:'Healthcare assistant',cost:empCostK(24500,0.7),cap:120,qof:0.8,room:1,hire:0.6,desc:'Bloods, blood pressures, ECGs, health checks.'},
-  salaried:{name:'Salaried GP',cost:empCostK(P.salaried*6/9,1),cap:84,clear:50,room:1,hire:0.4,desc:'Six sessions a week. Doesn\'t have to think about the overdraft.'},
-  pharm:{name:'Clinical pharmacist',arrs:1,sup:1,cost:0.35,cap:60,clear:40,qof:0.8,room:1,hire:0.65,desc:'Med reviews, scripts, and queries about the queries.'},
-  physio:{name:'First contact physio',arrs:1,sup:1,cost:0.35,cap:80,room:1,hire:0.6,desc:'Backs, knees and shoulders, straight to the right person.'},
-  para:{name:'Paramedic',arrs:1,sup:1,cost:0.35,cap:55,room:1,hire:0.5,desc:'Home visits and same-day minor illness.'},
-  mhp:{name:'Mental health practitioner',arrs:1,sup:1,cost:0.35,cap:40,room:1,hire:0.45,desc:'Longer appointments for the patients who need them most.'},
+  nurse:{name:'Practice nurse',cost:empCostK(35884,0.85),cap:104,qof:1.2,room:8,hire:0.4,desc:'Chronic disease reviews, smears, imms. Your QOF engine.'},
+  hca:{name:'Healthcare assistant',cost:empCostK(24500,0.7),cap:120,qof:0.8,room:9,hire:0.6,desc:'Bloods, blood pressures, ECGs, health checks.'},
+  salaried:{name:'Salaried GP',cost:empCostK(P.salaried*6/9,1),cap:84,clear:50,room:6,hire:0.4,desc:'Six sessions a week. Doesn\'t have to think about the overdraft.'},
+  pharm:{name:'Clinical pharmacist',arrs:1,sup:1,cost:0.35,cap:60,clear:40,qof:0.8,room:4,hire:0.65,desc:'Med reviews, scripts, and queries about the queries.'},
+  physio:{name:'First contact physio',arrs:1,sup:1,cost:0.35,cap:80,room:9,hire:0.6,desc:'Backs, knees and shoulders, straight to the right person.'},
+  para:{name:'Paramedic',arrs:1,sup:1,cost:0.35,cap:55,room:4,hire:0.5,desc:'Home visits and same-day minor illness.'},
+  mhp:{name:'Mental health practitioner',arrs:1,sup:1,cost:0.35,cap:40,room:8,hire:0.45,desc:'Longer appointments for the patients who need them most.'},
   cc:{name:'Care coordinator',arrs:1,cost:0.35,qof:2,hire:0.75,desc:'Recalls, care plans, chasing. QOF loves them.'},
   sp:{name:'Social prescriber',arrs:1,cost:0.35,demand:-2,hire:0.75,desc:'Loneliness, debt, housing. Fewer frequent attenders.'},
   gpa:{name:'GP assistant',arrs:1,cost:0.35,clear:80,hire:0.7,desc:'Codes letters, preps results, tames the inbox.'}
 };
 const ROLE_ORDER = ['salaried','nurse','hca','recep','pharm','physio','para','mhp','cc','sp','gpa'];
 const ARRS_CAP = 6;
+// A consulting room gives about 9 bookable half-day sessions a week (10, less clashes, cleaning and meetings).
+const ROOM_SESSIONS = 9;
+const GP_FTE_SESSIONS = 9; // a full-time GP is about nine sessions a week
+// England, 31 August 2026, per 10,000 registered patients (63.0m) [S58,S59]
+const BENCH = { gp: 29057, nurse: 16644, dpc: 18082, admin: 77287, patients: 63.0e6 };
+const OFFICE_COST = empCostK(26500, 0.6); // a typical practice office post, all in
 
 const PARTNERS0 = {
   hartley:{name:'Dr Alan Hartley',short:'Alan',clin:6,capital:25},
@@ -689,6 +695,8 @@ const SOURCES = {
   S39:['GPonline: practice manager fraud case, £450k','https://www.gponline.com/practice-manager-handed-three-year-jail-term-450000-fraud/article/1954151','B'],
   S40:['BMA: state-backed GP indemnity (CNSGP)','https://www.bma.org.uk/advice-and-support/medical-indemnity/medical-indemnity/state-backed-gp-indemnity-scheme','B'],
   S43:['BMA Law: avoid being the last partner standing','https://bmalaw.co.uk/resources/avoid-being-the-last-partner-standing/','B'],
+  S58:['NHS England Digital: General Practice Workforce, 31 August 2026','https://digital.nhs.uk/data-and-information/publications/statistical/general-and-personal-medical-services/31-august-2026','A'],
+  S59:['BMA: Pressures in general practice, data analysis','https://www.bma.org.uk/advice-and-support/nhs-delivery-and-workforce/pressures/pressures-in-general-practice-data-analysis','B'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
   S46:['CQC: GP mythbuster 1, emergency care in general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-1-emergency-care-general-practice','A'],
@@ -1250,7 +1258,7 @@ EVENTS.push(
  info:'In a 2025 BMA survey, only half of practices said their premises were suitable for present needs and 83% said they couldn\'t meet future demand. 42% of bids for improvement funding since 2022 were rejected.',
  text:`Every consulting room is double booked on Tuesdays. The physio is working in the baby-changing room. "We need more space," Bev says, "or fewer people. And we need the people."`,
  choices:[
-  {t:'Convert the staff room into a clinic room',fx:{rooms:1,team:-5,aim:{team:-2}},o:`The staff room is now Room 11. Lunch is eaten in the corridor. Morale takes it personally.`},
+  {t:'Convert the staff room into a clinic room',fx:{rooms:1,team:-5,aim:{team:-2}},o:`The staff room is now a clinic room. Lunch is eaten in the corridor. Morale takes it personally.`},
   {t:'Hire a portakabin for the car park (£14,000)',fx:{rooms:2,cash:-14},o:`It arrives on a lorry. It has air conditioning and a ramp. It's the nicest room in the building.`},
   {t:'Bid for improvement funding (£3,000 for the architect)',fx:{cash:-3},run(){ const ok=chance(0.45+(S.icb-55)/150); plant({in:5,fx:ok?{rooms:2,team:5}:{team:-2},note:ok?'The premises improvement bid was approved. Two new consulting rooms by spring.':'The premises improvement bid was rejected: "insufficient strategic priority".'}); },o:`The architect draws two extra rooms. The decision will take about five months, and the ICB's opinion of you matters.`}
  ]},
@@ -1870,15 +1878,32 @@ EVENTS.forEach(e => { EVMAP[e.id] = e; });
 const DRIFT = { patients: 0.3, team: 0.22, you: 0.25, safety: 0.2 };
 const qofHeadroom = () => clamp((100 - S.qof) / 35, 0.2, 1); // the last patients on the recall list are the hardest to reach
 
+// rooms are booked by the session: part-timers share, and receptionists on headsets need none
 function roomsNeeded() {
-  let n = 1 + activeOthers();
-  for (const r of ROLE_ORDER) if (ROLES[r].room) n += S.staff[r];
-  if (S.plan.locum > 0) n += 1;
-  if (hasMod('registrar')) n += 1;
-  if (hasMod('scheme')) n += 1;
+  let n = S.plan.clin;
+  for (const id in S.partners) if (isActive(id)) n += S.partners[id].clin;
+  for (const r of ROLE_ORDER) if (ROLES[r].room) n += ROLES[r].room * S.staff[r];
+  n += S.plan.locum;
+  if (hasMod('registrar')) n += 7;
+  if (hasMod('scheme')) n += 2;
   return n;
 }
-function roomsAvail() { return S.rooms + activeMods().reduce((a, m) => a + (m.rooms || 0), 0); }
+function roomsAvail() { return ROOM_SESSIONS * (S.rooms + activeMods().reduce((a, m) => a + (m.rooms || 0), 0)); }
+// headcount and FTE against the England averages for a list this size
+function benchmark() {
+  const k = S.list / BENCH.patients;
+  let gpSess = S.plan.clin + S.plan.admin + S.plan.mgmt + 6 * S.staff.salaried;
+  for (const id in S.partners) if (isActive(id)) gpSess += S.partners[id].clin + 1;
+  if (hasMod('scheme')) gpSess += 2;
+  const office = S.list * CORE_ADMIN / OFFICE_COST;
+  const other = ['hca', 'pharm', 'physio', 'para', 'mhp', 'cc', 'sp', 'gpa'].reduce((a, r) => a + S.staff[r], 0);
+  return [
+    ['GPs (FTE, excluding trainees)', gpSess / GP_FTE_SESSIONS, BENCH.gp * k, 'Your sessions and your partners\', salaried GPs\' and scheme sessions, at 9 a week each'],
+    ['Practice nurses', S.staff.nurse, BENCH.nurse * k, ''],
+    ['Other clinical staff', other, BENCH.dpc * k, 'Nationally this counts practice staff only. PCN-funded ARRS roles come on top.'],
+    ['Admin and reception', S.staff.recep + office, BENCH.admin * k, `${S.staff.recep} receptionists and about ${office.toFixed(1)} office staff`]
+  ];
+}
 function weightedList() {
   const p = prac();
   const nr = S.newRegs.reduce((a, r) => a + (S.month < r.until ? r.n : 0), 0);
@@ -2105,11 +2130,11 @@ function calc() {
   mods.forEach(x => { if (x.capAdd) cap += x.capAdd; });
   let capMul = 1;
   mods.forEach(x => { if (x.capMul) capMul *= x.capMul; });
-  const recepNeed = Math.round(S.list / 1400);
+  const recepNeed = Math.round(S.list / 1600); // about 6 per 10,000 patients: within the national 12.3 admin staff per 10,000 [S58]
   const recepShort = Math.max(0, recepNeed - S.staff.recep);
   capMul *= 1 - 0.04 * recepShort;
   const rNeed = roomsNeeded(), rAvail = roomsAvail();
-  const roomsOver = Math.max(0, rNeed - rAvail);
+  const roomsOver = Math.max(0, rNeed - rAvail) / ROOM_SESSIONS; // in rooms' worth of sessions
   capMul *= 1 - 0.04 * roomsOver;
   if (S.st.team < 30) capMul *= 0.93;
   cap = Math.round(cap * capMul);
@@ -2315,7 +2340,7 @@ function monthEnd() {
   ended.forEach(l => { if (l) notes.push(`Ended: ${l}.`); });
   S.log.forEach(l => notes.push(l)); S.log = [];
   if (c.recepShort) notes.push(`Reception is ${c.recepShort} short for a list this size.`);
-  if (c.roomsOver) notes.push(`${c.roomsOver} more clinician${c.roomsOver > 1 ? 's' : ''} than rooms. Someone is consulting in the baby-change.`);
+  if (c.roomsOver) notes.push(`${c.rNeed - c.rAvail} clinic sessions a week had no room. Someone is consulting in the baby-change.`);
   if (activeOthers() === 0) notes.push('You are the only partner. Every decision, and every liability, is yours.');
   const pool = c.ratio < 0.87 ? HEADLINES.bad : c.ratio >= 1.02 ? HEADLINES.good : HEADLINES.ok;
   const headline = fill(pick(chance(0.25) ? HEADLINES.filler : pool));
@@ -2610,7 +2635,7 @@ function renderPlan() {
   const roles = ROLE_ORDER.map(r => {
     const R = ROLES[r], n = S.staff[r], vac = S.vac[r] || 0;
     const arrsFull = R.arrs && arrsCount() >= ARRS_CAP;
-    const costTxt = R.arrs ? 'PCN-funded' : `£${(R.cost * 12).toFixed(1)}k a year each, all in`;
+    const costTxt = (R.arrs ? 'PCN-funded' : `£${(R.cost * 12).toFixed(1)}k a year each, all in`) + (R.room ? `, ${R.room} room sessions a week` : r === 'recep' ? ', no clinic room' : '');
     return `<div class="role"><div class="l"><b>${esc(R.name)}</b>${R.arrs ? '<span class="tag arrs">ARRS</span>' : ''}${vac ? `<span class="tag vac">${vac} advertised</span>` : ''}<small>${esc(R.desc)} ${costTxt}.</small></div>
       <span class="n" aria-label="${n} in post">${n}</span>
       <div class="acts">${vac ? `<button data-act="unvac" data-arg="${r}">Withdraw ad</button>` : ''}<button data-act="hire" data-arg="${r}" ${arrsFull ? 'disabled title="The PCN\'s additional-roles budget is fully used"' : ''}>Recruit</button><button data-act="fire" data-arg="${r}" ${n ? '' : 'disabled'}>Let go</button></div></div>`;
@@ -2666,8 +2691,9 @@ function renderPlan() {
           ${explain('How projects work', '<p>Effects land at the end of the month. Most are one-off boosts that fade as meters drift back toward where the practice\'s situation is taking them. A few change the situation itself: a mock CQC inspection leaves lasting improvements, and cloud telephony keeps patients happier for good.</p><p>Chasing unclaimed income finds less each time you do it.</p>')}
         </section>
         <section class="panel" aria-labelledby="h-team">
-          <h3 id="h-team">Team <small>ARRS ${arrsCount()}/${ARRS_CAP} · rooms ${c.rNeed}/${c.rAvail} used · reception needs ${c.recepNeed}</small></h3>
-          ${explain('Staff costs, ARRS and recruitment', `<p>Every salary carries 15% employer NI above £5,000. GP practices can't claim the Employment Allowance that offsets NI for most small employers. Staff in the NHS Pension Scheme also cost 14.38% employer pension.</p><p>ARRS roles (pharmacists, physios, paramedics and others) are reimbursed through the PCN up to a cap for each role, so they cost the practice little. Each clinician still needs a room, and supervising more than two adds to your hours.</p><p>Recruiting opens an advert. Results come at month end and can fail. Low morale and a poor local reputation make it harder. Letting someone go hurts morale.</p>${srcLinks(['S19', 'S20', 'S22', 'S4'])}`)}
+          <h3 id="h-team">Team <small>ARRS ${arrsCount()}/${ARRS_CAP} · room sessions ${c.rNeed} of ${c.rAvail} booked · receptionists ${S.staff.recep} of ${c.recepNeed} needed</small></h3>
+          ${explain('Staff costs, ARRS and recruitment', `<p>Every salary carries 15% employer NI above £5,000. GP practices can't claim the Employment Allowance that offsets NI for most small employers. Staff in the NHS Pension Scheme also cost 14.38% employer pension.</p><p>ARRS roles (pharmacists, physios, paramedics and others) are reimbursed through the PCN up to a cap for each role, so they cost the practice little. Clinicians still need somewhere to see patients, and supervising more than two adds to your hours.</p><p><b>Rooms are booked by the session.</b> Your ${S.rooms + activeMods().reduce((a, m) => a + (m.rooms || 0), 0)} consulting and treatment rooms give about ${ROOM_SESSIONS} bookable sessions a week each. A GP books a room for each clinical session. A nurse books about 8 a week, a pharmacist or paramedic about 4 (the rest is phone work or home visits). Receptionists work on headsets at the front desk, and care coordinators, social prescribers and GP assistants don't need a clinic room.</p><p>Recruiting opens an advert. Results come at month end and can fail. Low morale and a poor local reputation make it harder. Letting someone go hurts morale.</p>${srcLinks(['S19', 'S20', 'S22', 'S4'])}`)}
+          ${explain('How you compare with England', `<dl class="kv small">${benchmark().map(([l, you, nat, how]) => `<dt>${esc(l)}${how ? `<small>${esc(how)}</small>` : ''}</dt><dd><b class="${you < nat * 0.85 ? 'warn-t' : ''}">${you.toFixed(1)}</b> <span class="muted">vs ${nat.toFixed(1)}</span></dd>`).join('')}</dl><p>England averages for ${S.list.toLocaleString('en-GB')} patients, from the August 2026 workforce figures: about 4.6 fully qualified GPs, 2.6 nurses, 2.9 other clinical staff and 12.3 admin and reception staff per 10,000 patients. That's about ${Math.round(BENCH.patients / BENCH.gp).toLocaleString('en-GB')} patients per full-time GP. Averages aren't targets: an older or poorer list needs more.</p>${srcLinks(['S58', 'S59'])}`)}
           <details class="rolebox"${narrow() ? '' : ' open'}><summary>Staff, vacancies and recruitment</summary><div class="roles">${roles}</div></details>
         </section>
       </div>
@@ -2686,7 +2712,7 @@ function renderPlan() {
         <div class="fc-row"><div class="top"><span>Where things are heading</span></div>
           <div class="headings">${headingHTML(c)}</div>
           ${explain('How the meters move', '<p>Each month, every meter moves part of the way toward where your practice\'s situation is taking it: capacity against demand, the inbox, staffing, pay, rooms, your hours and your reputation. Open a meter above to see why.</p><p>Decisions give one-off jolts that fade, unless they change the situation. Hiring, pay, policies, rooms and hours change where things settle. Some decisions come back months later.</p>')}</div>
-        ${c.roomsOver ? `<p class="fc-note bad-t">${c.roomsOver} more clinician${c.roomsOver > 1 ? 's' : ''} than rooms. Capacity and morale will suffer.</p>` : ''}
+        ${c.roomsOver ? `<p class="fc-note bad-t">${c.rNeed - c.rAvail} clinic sessions a week have no room. Capacity and morale will suffer.</p>` : ''}
         ${c.recepShort ? `<p class="fc-note bad-t">Reception is ${c.recepShort} short for a list this size.</p>` : ''}
         <button class="btn primary" data-act="begin" style="justify-self:start">Start ${MONTHS[S.month]} →</button>
       </aside>
@@ -3052,7 +3078,7 @@ document.addEventListener('keydown', ev => {
  and table constraints reject silly values. Scores are worked out in the browser, so they can be faked.
  If BOARD.url is empty, or the network is blocked (as inside a Claude Artifact), the board says so and the game carries on.
 */
-const BOARD = { url: 'https://rttvlxawjidhneljhglk.supabase.co', key: 'sb_publishable_Zj804D7rgJdWCl2QTNJWGw_RBPYmCWT', table: 'lps_scores', version: 'v3' };
+const BOARD = { url: 'https://rttvlxawjidhneljhglk.supabase.co', key: 'sb_publishable_Zj804D7rgJdWCl2QTNJWGw_RBPYmCWT', table: 'lps_scores', version: 'v4' };
 const BOARD_NAME_KEY = 'lps-board-name-v1';
 const PRAC_SHORT = { suburb: 'Suburb', town: 'Town', city: 'City' };
 let BD = { tab: 'all', rows: null, err: '', loading: false, posting: false, posted: null, rank: null };

@@ -44,21 +44,21 @@ const PRACTICES = {
     key:'suburb',label:'Leafy suburb',diff:'Gentle',surgery:'Oakfield Surgery',place:'Little Oakfield',paper:'The Oakfield Courier',
     blurb:'Healthy, wealthy and extremely well-informed. They have read the NICE guidance. All of it.',
     list:7200,weight:1.02,prev:0.95,lastQof:96,cash:70,overdraft:-70,st:{patients:58,team:64,you:72,safety:62},
-    demandRate:0.089,inboxRate:0.05,qofEase:1.08,hire:1.1,rooms:10,premNet:1.5,overhead:0,priv:4.1,
+    demandRate:0.089,inboxRate:0.05,qofEase:1.08,hire:1.1,rooms:7,premNet:1.5,overhead:0,priv:4.1,
     staff:{recep:5,nurse:2,hca:1,salaried:1,pharm:0,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0}
   },
   town:{
     key:'town',label:'Market town',diff:'Standard',surgery:'Riverside Surgery',place:'Bramleigh',paper:'The Bramleigh Bugle',
     blurb:'A proper mix: farms, a new estate, a care home and one very active local Facebook group.',
     list:8200,weight:1.0,prev:1.0,lastQof:94,cash:45,overdraft:-80,st:{patients:52,team:56,you:68,safety:55},
-    demandRate:0.093,inboxRate:0.048,qofEase:1.0,hire:1.0,rooms:10,premNet:2.5,overhead:0,priv:2.9,
-    staff:{recep:6,nurse:2,hca:1,salaried:1,pharm:1,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0}
+    demandRate:0.093,inboxRate:0.048,qofEase:1.0,hire:1.0,rooms:7,premNet:2.5,overhead:0,priv:2.9,
+    staff:{recep:5,nurse:2,hca:1,salaried:1,pharm:1,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0}
   },
   city:{
     key:'city',label:'Inner city',diff:'Brutal',surgery:'Canal Street Medical Centre',place:'Hollowbrook',paper:'The Hollowbrook Herald',
     blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold.',
     list:10400,weight:0.96,prev:0.9,lastQof:88,cash:40,overdraft:-110,st:{patients:44,team:50,you:64,safety:50},
-    demandRate:0.097,inboxRate:0.046,qofEase:0.88,hire:0.9,rooms:11,premNet:3.5,overhead:1.5,priv:1.8,
+    demandRate:0.097,inboxRate:0.046,qofEase:0.88,hire:0.9,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,
     staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0}
   }
 };
@@ -70,19 +70,25 @@ const RUNNING = 0.00154;    // £k per patient a month: office, clinical supplie
 // cost in £k a month including employer NI and pension. cap = appointments a week. clear = inbox items cleared a week.
 const ROLES = {
   recep:{name:'Receptionist',cost:empCostK(24690,0.7),hire:0.8,desc:'Takes the 8am calls and the abuse. Knows everyone\'s nan.'},
-  nurse:{name:'Practice nurse',cost:empCostK(35884,0.85),cap:104,qof:1.2,room:1,hire:0.4,desc:'Chronic disease reviews, smears, imms. Your QOF engine.'},
-  hca:{name:'Healthcare assistant',cost:empCostK(24500,0.7),cap:120,qof:0.8,room:1,hire:0.6,desc:'Bloods, blood pressures, ECGs, health checks.'},
-  salaried:{name:'Salaried GP',cost:empCostK(P.salaried*6/9,1),cap:84,clear:50,room:1,hire:0.4,desc:'Six sessions a week. Doesn\'t have to think about the overdraft.'},
-  pharm:{name:'Clinical pharmacist',arrs:1,sup:1,cost:0.35,cap:60,clear:40,qof:0.8,room:1,hire:0.65,desc:'Med reviews, scripts, and queries about the queries.'},
-  physio:{name:'First contact physio',arrs:1,sup:1,cost:0.35,cap:80,room:1,hire:0.6,desc:'Backs, knees and shoulders, straight to the right person.'},
-  para:{name:'Paramedic',arrs:1,sup:1,cost:0.35,cap:55,room:1,hire:0.5,desc:'Home visits and same-day minor illness.'},
-  mhp:{name:'Mental health practitioner',arrs:1,sup:1,cost:0.35,cap:40,room:1,hire:0.45,desc:'Longer appointments for the patients who need them most.'},
+  nurse:{name:'Practice nurse',cost:empCostK(35884,0.85),cap:104,qof:1.2,room:8,hire:0.4,desc:'Chronic disease reviews, smears, imms. Your QOF engine.'},
+  hca:{name:'Healthcare assistant',cost:empCostK(24500,0.7),cap:120,qof:0.8,room:9,hire:0.6,desc:'Bloods, blood pressures, ECGs, health checks.'},
+  salaried:{name:'Salaried GP',cost:empCostK(P.salaried*6/9,1),cap:84,clear:50,room:6,hire:0.4,desc:'Six sessions a week. Doesn\'t have to think about the overdraft.'},
+  pharm:{name:'Clinical pharmacist',arrs:1,sup:1,cost:0.35,cap:60,clear:40,qof:0.8,room:4,hire:0.65,desc:'Med reviews, scripts, and queries about the queries.'},
+  physio:{name:'First contact physio',arrs:1,sup:1,cost:0.35,cap:80,room:9,hire:0.6,desc:'Backs, knees and shoulders, straight to the right person.'},
+  para:{name:'Paramedic',arrs:1,sup:1,cost:0.35,cap:55,room:4,hire:0.5,desc:'Home visits and same-day minor illness.'},
+  mhp:{name:'Mental health practitioner',arrs:1,sup:1,cost:0.35,cap:40,room:8,hire:0.45,desc:'Longer appointments for the patients who need them most.'},
   cc:{name:'Care coordinator',arrs:1,cost:0.35,qof:2,hire:0.75,desc:'Recalls, care plans, chasing. QOF loves them.'},
   sp:{name:'Social prescriber',arrs:1,cost:0.35,demand:-2,hire:0.75,desc:'Loneliness, debt, housing. Fewer frequent attenders.'},
   gpa:{name:'GP assistant',arrs:1,cost:0.35,clear:80,hire:0.7,desc:'Codes letters, preps results, tames the inbox.'}
 };
 const ROLE_ORDER = ['salaried','nurse','hca','recep','pharm','physio','para','mhp','cc','sp','gpa'];
 const ARRS_CAP = 6;
+// A consulting room gives about 9 bookable half-day sessions a week (10, less clashes, cleaning and meetings).
+const ROOM_SESSIONS = 9;
+const GP_FTE_SESSIONS = 9; // a full-time GP is about nine sessions a week
+// England, 31 August 2026, per 10,000 registered patients (63.0m) [S58,S59]
+const BENCH = { gp: 29057, nurse: 16644, dpc: 18082, admin: 77287, patients: 63.0e6 };
+const OFFICE_COST = empCostK(26500, 0.6); // a typical practice office post, all in
 
 const PARTNERS0 = {
   hartley:{name:'Dr Alan Hartley',short:'Alan',clin:6,capital:25},
@@ -229,6 +235,8 @@ const SOURCES = {
   S39:['GPonline: practice manager fraud case, £450k','https://www.gponline.com/practice-manager-handed-three-year-jail-term-450000-fraud/article/1954151','B'],
   S40:['BMA: state-backed GP indemnity (CNSGP)','https://www.bma.org.uk/advice-and-support/medical-indemnity/medical-indemnity/state-backed-gp-indemnity-scheme','B'],
   S43:['BMA Law: avoid being the last partner standing','https://bmalaw.co.uk/resources/avoid-being-the-last-partner-standing/','B'],
+  S58:['NHS England Digital: General Practice Workforce, 31 August 2026','https://digital.nhs.uk/data-and-information/publications/statistical/general-and-personal-medical-services/31-august-2026','A'],
+  S59:['BMA: Pressures in general practice, data analysis','https://www.bma.org.uk/advice-and-support/nhs-delivery-and-workforce/pressures/pressures-in-general-practice-data-analysis','B'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
   S46:['CQC: GP mythbuster 1, emergency care in general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-1-emergency-care-general-practice','A'],

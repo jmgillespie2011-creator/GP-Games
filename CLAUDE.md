@@ -102,11 +102,14 @@ The last run of `tools/simulate.mjs 300` covered 1,800 years:
 
 | Practice | Random play survived | Sensible play survived | Sensible play profit share | Sensible play take-home | Sensible play QOF |
 |---|---|---|---|---|---|
-| Suburb | 61% | 100% | £155k | £75k | 94% |
-| Town | 55% | 100% | £146k | £72k | 93% |
-| City | 50% | 100% | £134k | £68k | 96% |
+| Suburb | 65% | 100% | £151k | £73k | 94% |
+| Town | 55% | 100% | £153k | £74k | 93% |
+| City | 47% | 100% | £135k | £68k | 96% |
 
 - Burnout in January and February is the most common game over.
 - The city was rebalanced in September 2026: it starts with a care coordinator and a social prescriber, £40k in the bank against a £110k overdraft, lower overheads and slightly lower demand. It also carries a small extra drag on You. Sensible play now ends with patients around 39, mostly Good from CQC (about a third Requires improvement) and the bank within its overdraft.
 - Random-play survival moves by about 5 points between runs.
+- Staffing is calibrated to the England workforce figures for August 2026 (per 10,000 patients: about 4.6 fully qualified GPs, 2.6 nurses, 2.9 other practice clinical staff and 12.3 admin and reception staff). The Team panel's "How you compare with England" shows the player's practice against these averages (`BENCH` and `benchmark()`). Receptionists are needed at 1 per 1,600 patients.
+- Rooms are booked by the session. Each consulting room gives 9 sessions a week (`ROOM_SESSIONS`). `ROLES[r].room` is the room sessions a role books each week: GPs one per clinical session, nurses 8, pharmacists and paramedics 4. Receptionists, care coordinators, social prescribers and GP assistants book none. Starting rooms: suburb 7, town 7, city 8.
+- A strategy test with the simulator (town, sensible play): filling the ARRS cap instead of hiring a salaried GP raises the profit share by about £10k but costs about 10 points of patient satisfaction. A third nurse helps patients and the city's CQC rating most for little money. Skipping ARRS costs about £10k.
 - The real 2024/25 average partner profit was £164,200.

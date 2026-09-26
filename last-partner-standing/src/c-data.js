@@ -11,6 +11,7 @@ const RESERVE = 25; // £k working capital kept back at year end [S44]
 
 /* Real 2026/27 England GMS figures. Source IDs point at SOURCES below. */
 const P = {
+  arrs: 27.668,        // ARRS sum per weighted patient a year, paid to the PCN [S4,S84]
   gs: 130.07,          // global sum per weighted patient a year [S2,S3]
   ooh: 0.047,          // out-of-hours opt-out deduction [S3]
   qofPts: 582,         // QOF points available [S3]
@@ -76,16 +77,17 @@ const ROLES = {
   nurse:{name:'Practice nurse',cost:empCostK(35884,0.85),cap:104,qof:1.2,room:8,hire:0.4,desc:'Chronic disease reviews, smears, imms. Your QOF engine.'},
   hca:{name:'Healthcare assistant',cost:empCostK(24500,0.7),cap:120,qof:0.8,room:9,hire:0.6,desc:'Bloods, blood pressures, ECGs, health checks.'},
   salaried:{name:'Salaried GP',cost:empCostK(P.salaried*6/9,1),cap:84,clear:50,room:6,hire:0.4,desc:'Six sessions a week. Doesn\'t have to think about the overdraft.'},
-  pharm:{name:'Clinical pharmacist',arrs:1,sup:1,cost:0.35,cap:60,clear:40,qof:0.8,room:4,hire:0.65,desc:'Med reviews, scripts, and queries about the queries.'},
-  physio:{name:'First contact physio',arrs:1,sup:1,cost:0.35,cap:80,room:9,hire:0.6,desc:'Backs, knees and shoulders, straight to the right person.'},
-  para:{name:'Paramedic',arrs:1,sup:1,cost:0.35,cap:55,room:4,hire:0.5,desc:'Home visits and same-day minor illness.'},
-  mhp:{name:'Mental health practitioner',arrs:1,sup:1,cost:0.35,cap:40,room:8,hire:0.45,desc:'Longer appointments for the patients who need them most.'},
-  cc:{name:'Care coordinator',arrs:1,cost:0.35,qof:2,hire:0.75,desc:'Recalls, care plans, chasing. QOF loves them.'},
-  sp:{name:'Social prescriber',arrs:1,cost:0.35,demand:-2,hire:0.75,desc:'Loneliness, debt, housing: the things a prescription can\'t fix.'},
-  gpa:{name:'GP assistant',arrs:1,cost:0.35,clear:80,hire:0.7,desc:'Codes letters, preps results, tames the inbox.'}
+  pharm:{name:'Clinical pharmacist',arrs:1,claim:78,band:'Band 7 to 8a',sup:1,cost:0.35,cap:60,clear:40,qof:0.8,room:4,hire:0.65,desc:'Med reviews, scripts, and queries about the queries.'},
+  physio:{name:'First contact physio',arrs:1,claim:78,band:'Band 7 to 8a',sup:1,cost:0.35,cap:80,room:9,hire:0.6,desc:'Backs, knees and shoulders, straight to the right person.'},
+  para:{name:'Paramedic',arrs:1,claim:78,band:'Band 7 to 8a',sup:1,cost:0.35,cap:55,room:4,hire:0.5,desc:'Home visits and same-day minor illness.'},
+  mhp:{name:'Mental health practitioner',arrs:1,claim:72,band:'Band 7',sup:1,cost:0.35,cap:40,room:8,hire:0.45,desc:'Longer appointments for the patients who need them most.'},
+  cc:{name:'Care coordinator',arrs:1,claim:40,band:'Band 4',cost:0.35,qof:2,hire:0.75,desc:'Recalls, care plans, chasing. QOF loves them.'},
+  sp:{name:'Social prescriber',arrs:1,claim:50,band:'Band 5',cost:0.35,demand:-2,hire:0.75,desc:'Loneliness, debt, housing: the things a prescription can\'t fix.'},
+  gpa:{name:'GP assistant',arrs:1,claim:40,band:'Band 4',cost:0.35,clear:80,hire:0.7,desc:'Codes letters, preps results, tames the inbox.'}
 };
 const ROLE_ORDER = ['salaried','nurse','hca','recep','pharm','physio','para','mhp','cc','sp','gpa'];
-const ARRS_CAP = 6;
+// ARRS roles are claimed from the PCN's additional-roles budget (P.arrs per weighted patient; the practice's share is modelled).
+// `claim` is our estimate of each role's maximum reimbursement, £k a year: the top of its Agenda for Change band plus employer NI and pension.
 // A consulting room gives about 9 bookable half-day sessions a week (10, less clashes, cleaning and meetings).
 const ROOM_SESSIONS = 9;
 const GP_FTE_SESSIONS = 9; // a full-time GP is about nine sessions a week
@@ -265,6 +267,7 @@ const SOURCES = {
   S81:['SEEK: General Practitioner salary in Perth','https://au.seek.com/career-advice/role/general-practitioner/salary/in-perth','C'],
   S82:['Alecto Australia: GP salary in Australia (a recruiter)','https://www.alectoaustralia.com/gp-jobs-australia/gp-salary-australia/','C'],
   S83:['Institute for Government: Performance Tracker 2025, general practice','https://www.instituteforgovernment.org.uk/publication/performance-tracker-2025/nhs/general-practice','B'],
+  S84:['THC Primary Care: What has changed in the PCN DES 2026/27?','https://www.thcprimarycare.co.uk/post/whats-changed-in-the-pcn-des-2026-27','B'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
   S46:['CQC: GP mythbuster 1, emergency care in general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-1-emergency-care-general-practice','A'],
@@ -287,7 +290,7 @@ const GLOSSARY = [
   ['Weighted list (Carr-Hill)','Your list adjusted for need: age, sex, care-home residence (1.43x), new registration (1.46x for a year), rurality and staff costs. The global sum is paid on this, not on headcount.',['S3']],
   ['QOF','The Quality and Outcomes Framework. 582 points in 2026/27, each worth £227.95 for an average-sized practice, scaled for list size and disease prevalence.',['S3']],
   ['Aspiration payment','80% of last year\'s QOF value, paid monthly during the year. The balance for what you actually achieved is due by the end of the following June. Under-achieve and you pay some back.',['S3']],
-  ['ARRS','The Additional Roles Reimbursement Scheme. Your PCN is reimbursed for pharmacists, physios, paramedics, care coordinators and others, up to a cap for each role. The practice still has to find the room and the supervision.',['S4']],
+  ['ARRS','The Additional Roles Reimbursement Scheme. Each PCN gets a budget of £27.668 per weighted patient a year (2026/27) and claims back the pay of pharmacists, physios, paramedics, care coordinators and others, up to a maximum for each role. From 2026/27 GPs can be claimed too, up to £152,900 a year with on-costs. Staff beyond the budget are paid for by the practices. The practice still has to find the room and the supervision.',['S4','S84']],
   ['PCN','Primary Care Network: a group of neighbouring practices working together under the Network Contract DES. Practices get £1.761 per weighted patient for taking part.',['S4']],
   ['ICB','Integrated Care Board: the NHS body that commissions and pays practices in your area, and issues remedial and breach notices.',[]],
   ['CQC','The Care Quality Commission, which inspects and rates practices on five questions: safe, effective, caring, responsive and well-led. About 5% of practices are rated Requires Improvement or Inadequate.',['S33']],

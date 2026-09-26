@@ -49,6 +49,11 @@ const hasFlag = f => !!S.flags[f];
 const activeMods = () => S.mods.filter(m => S.month >= m.from);
 const hasMod = id => activeMods().some(m => m.id === id);
 const arrsCount = () => ROLE_ORDER.filter(r => ROLES[r].arrs).reduce((n, r) => n + S.staff[r] + (S.vac[r] || 0), 0);
+// the PCN's additional-roles budget, as the practice's share (£k a year); pay grows faster than the budget in later years
+const arrsBudget = () => weightedList() * P.arrs / 1000 * (1 + YEAR_FUNDING * ((S && S.yr) || 0));
+const arrsClaimOf = r => (ROLES[r].claim || 0) * (1 + YEAR_STAFF * ((S && S.yr) || 0));
+const arrsSpend = withAdverts => ROLE_ORDER.filter(r => ROLES[r].arrs).reduce((a, r) => a + arrsClaimOf(r) * (S.staff[r] + (withAdverts ? (S.vac[r] || 0) : 0)), 0);
+const arrsLeft = () => arrsBudget() - arrsSpend(true);
 const EVMAP = {};
 EVENTS.forEach(e => { EVMAP[e.id] = e; });
 const DRIFT = { patients: 0.3, team: 0.22, you: 0.25, safety: 0.2 };
@@ -386,10 +391,12 @@ function calc() {
     locum: pl.locum * WEEKS * LOCUM_SESSION + (pl.extra || 0) * WEEKS * OT_SESSION,
     running: (S.list * RUNNING + p.premNet + p.overhead) * (1 + YEAR_RUNNING * yr) + S.premX + S.loan,
     // neglect costs money: sickness cover when morale is low, incident handling when care is unsafe
-    cover: Math.max(0, 45 - S.st.team) * 0.25 + Math.max(0, 35 - S.st.safety) * 0.2
+    cover: Math.max(0, 45 - S.st.team) * 0.25 + Math.max(0, 35 - S.st.safety) * 0.2,
+    // additional-roles staff beyond the PCN budget are paid by the practice
+    arrs: Math.max(0, arrsSpend(false) - arrsBudget()) / 12
   };
   const incTot = Object.values(inc).reduce((a, b) => a + b, 0);
-  const costTot = cost.staff + cost.locum + cost.running + cost.cover;
+  const costTot = cost.staff + cost.locum + cost.running + cost.cover + cost.arrs;
   const profit = incTot + modCash - costTot;
   const estShare = Math.max(0, profit * 12 / partnersN * 1000);
   const penEach = estShare * 0.95 * pensionRate(estShare * 0.95) / 12 / 1000;

@@ -230,8 +230,8 @@ EVENTS.push(
   {t:'Mute the group. Forever.',fx:{you:3,team:-2},o:`Blissful silence. You miss the message about the fire drill.`}
  ]},
 
-{id:'pcn_arrs',who:'pcn',title:'Free staff!',cond:()=>arrsCount()<ARRS_CAP,tag:'real',src:['S4'],
- info:'The PCN is reimbursed for additional roles up to a cap for each role. The practice gets the clinician, but has to provide a room, induction and clinical supervision.',
+{id:'pcn_arrs',who:'pcn',title:'Free staff!',cond:()=>arrsLeft()>=arrsClaimOf('mhp'),tag:'real',src:['S4','S84'],
+ info:'Each PCN gets an additional-roles budget of £27.668 per weighted patient a year and is reimbursed for each role up to a maximum. The practice gets the clinician, but has to provide a room, induction and clinical supervision.',
  text:`Clare from the PCN has unspent additional-roles budget. "Would you like a mental health practitioner? Fully funded. They start next month." The PCN pays. The question is where they'll sit.`,
  choices:[
   {t:'Yes, find them a room',fx:{staff:{mhp:1},patients:2},o:`Patients who need longer than ten minutes will finally get it. You need to find a room, and an hour a week to supervise.`},

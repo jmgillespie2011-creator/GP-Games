@@ -45,6 +45,7 @@ function renderReport() {
           <dt>Staff</dt><dd>−${fmtK(c.cost.staff)}</dd>
           ${c.cost.locum ? `<dt>Locums and overtime</dt><dd>−${fmtK(c.cost.locum)}</dd>` : ''}
           ${c.cost.cover ? `<dt>Sickness cover and incidents</dt><dd>−${fmtK(c.cost.cover)}</dd>` : ''}
+          ${c.cost.arrs ? `<dt>Additional roles over the PCN budget</dt><dd>−${fmtK(c.cost.arrs)}</dd>` : ''}
           <dt>Running costs and premises</dt><dd>−${fmtK(c.cost.running)}</dd>
           <dt class="sum">Profit this month</dt><dd class="sum">${signK(c.profit)}</dd>
           <dt>Partners' drawings (${c.partnersN})</dt><dd>−${fmtK(c.out.draw)}</dd>
@@ -246,11 +247,11 @@ document.addEventListener('click', ev => {
     case 'draw': S.plan.draw = arg; save(); keepScroll(renderPlan); break;
     case 'proj': S.plan.project = arg; save(); keepScroll(renderPlan); break;
     case 'hire': {
-      const R = ROLES[arg]; if (R.arrs && arrsCount() >= ARRS_CAP) break;
+      const R = ROLES[arg]; const overK = R.arrs ? Math.max(0, Math.min(arrsClaimOf(arg), arrsClaimOf(arg) - arrsLeft())) : 0;
       if (arg === 'salaried' && gpHeadroom() < 6) { toast(`No GP will apply. ${prac().place} already has one GP per ${prac().gpCap.toLocaleString('en-GB')} patients and the local GPs are all taken.`); break; }
       const cost = arg === 'salaried' ? 1.5 : arg === 'nurse' ? 0.8 : R.arrs ? 0 : 0.4;
       S.vac[arg] = (S.vac[arg] || 0) + 1; S.cash = r1(S.cash - cost); save(); keepScroll(renderPlan);
-      toast(`${R.name} advertised${cost ? ` (${fmtK(cost)})` : ''}. Results at month end.`); break;
+      toast(`${R.name} advertised${cost ? ` (${fmtK(cost)})` : ''}. Results at month end.${overK > 0.5 ? ` Over the PCN budget: about £${Math.round(overK)}k a year from the practice.` : ''}`); break;
     }
     case 'unvac': if (S.vac[arg]) { S.vac[arg]--; if (!S.vac[arg]) delete S.vac[arg]; save(); keepScroll(renderPlan); } break;
     case 'fire': {

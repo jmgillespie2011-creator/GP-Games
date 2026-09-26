@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const FILES = ['c-data.js', 'c2-minidata.js', 'd-events1.js', 'e-events2.js', 'f-events3.js', 'f2-events4.js', 'f3-events5.js', 'f4-events6.js', 'f5-events7.js', 'g-engine.js', 'g2-endings.js'];
 const code = FILES.map(f => readFileSync(path.join(dir, '..', 'src', f), 'utf8')).join('\n') +
-  '\n;globalThis.__lps = { newGame, gpHeadroom, locumMax, beginMonth, currentEvent, resolveChoice, continueOutcome, nextMonth, continueYear, calc, activeOthers, arrsCount, roomsNeeded, roomsAvail, ROLES, STAT_KEYS, val, S: () => S };';
+  '\n;globalThis.__lps = { newGame, gpHeadroom, locumMax, beginMonth, currentEvent, resolveChoice, continueOutcome, nextMonth, continueYear, calc, arrsLeft, arrsClaimOf, activeOthers, arrsCount, roomsNeeded, roomsAvail, ROLES, STAT_KEYS, val, S: () => S };';
 const ctx = vm.createContext({ console, Math, JSON, Date });
 vm.runInContext(code, ctx, { filename: 'lps.js' });
 const L = ctx.__lps;
@@ -49,11 +49,12 @@ function smartPlan(S) {
   let c = L.calc();
   if (S.month >= 1 && S.month <= 7) {
     const roomFree = L.roomsNeeded() + 8 <= L.roomsAvail();
-    if (roomFree && L.arrsCount() < 6) for (const r of ['physio', 'para', 'mhp']) if (!S.staff[r] && !S.vac[r]) { S.vac[r] = 1; break; }
+    // within the PCN budget, or paying the excess when the bank can stand it
+    if (roomFree) for (const r of ['physio', 'para', 'mhp']) if (!S.staff[r] && !S.vac[r] && (L.arrsLeft() >= L.arrsClaimOf(r) || S.cash > S.overdraft + 60)) { S.vac[r] = 1; break; }
     if (c.ratio < 1.02 && L.gpHeadroom() >= 6 && !S.vac.salaried && S.staff.salaried < 3 && S.cash > S.overdraft + 50) { S.vac.salaried = 1; S.cash -= 1.5; }
     if (c.recepShort && !S.vac.recep) S.vac.recep = 1;
   }
-  if (L.activeOthers() <= 1 && L.arrsCount() < 6 && !S.staff.gpa && !S.vac.gpa) S.vac.gpa = 1;
+  if (L.activeOthers() <= 1 && L.arrsLeft() >= L.arrsClaimOf('gpa') && !S.staff.gpa && !S.vac.gpa) S.vac.gpa = 1;
   c = L.calc();
   while (c.inboxEnd > 380 && pl.admin < 3) { pl.admin++; c = L.calc(); }
   pl.extra = 0;

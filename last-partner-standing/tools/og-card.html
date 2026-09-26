@@ -1,0 +1,52 @@
+<!doctype html>
+<!-- The link preview card (1200x630) for Twitter/X, Facebook, WhatsApp and Slack.
+     Rendered to ../og.png by tools/og-card.mjs. Colours and type match the game's title screen. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=block">
+<style>
+:root{--paper:#E3EDE1;--sheet:#F8FBF6;--ink:#15241C;--ink-2:#4A5E52;--ink-3:#6F8577;--rule:#BCCFBF;--accent:#1D6A4D;--stamp:#BF3A2C;--hilite:#F2D449;--good:#2C8656;--warn:#C27C12;--bad:#BF3A2C}
+*{box-sizing:border-box}
+html,body{margin:0;width:1200px;height:630px;overflow:hidden}
+body{background:var(--paper);background-image:repeating-linear-gradient(135deg,rgba(29,106,77,.05) 0 2px,transparent 2px 14px);color:var(--ink);font-family:'Atkinson Hyperlegible',sans-serif;
+  display:grid;grid-template-columns:1.12fr 1fr;gap:56px;padding:40px 72px 80px;align-items:center}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:17px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-variation-settings:"opsz" 96;font-size:104px;letter-spacing:-.035em;line-height:.88;margin:18px 0 0}
+.rx{display:inline-block;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:.3em;letter-spacing:0;vertical-align:.95em;color:var(--stamp);border:3px solid var(--stamp);border-radius:8px;padding:.05em .3em;transform:rotate(-8deg);margin-left:.15em}
+.under{display:inline-block;padding:0 .04em .1em;background:linear-gradient(var(--hilite),var(--hilite)) left bottom/100% .13em no-repeat}
+.tag{font-size:25px;line-height:1.35;color:var(--ink-2);margin:24px 0 0;max-width:30ch}
+.panel{background:var(--sheet);border:1.5px solid var(--rule);border-radius:16px;padding:26px 30px 24px;box-shadow:0 10px 30px rgba(21,36,28,.12);transform:rotate(1.2deg)}
+.panel h2{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:30px;margin:0 0 4px}
+.panel .sub{font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:18px}
+.m{display:grid;grid-template-columns:100px 1fr 96px;align-items:center;gap:14px;margin:12px 0;font-size:22px}
+.bar{height:12px;border-radius:6px;background:#DCE7DA;overflow:hidden}
+.bar b{display:block;height:100%;background:var(--accent);border-radius:6px}
+.bar.low b{background:var(--warn)} .bar.crit b{background:var(--bad)}
+.v{font-family:'IBM Plex Mono',monospace;font-weight:600;text-align:right;white-space:nowrap}
+.v.crit{color:var(--bad)}
+.note{margin-top:16px;padding-top:14px;border-top:1.5px dashed var(--rule);font-size:19px;color:var(--ink-2)}
+.note b{color:var(--bad)}
+.url{position:absolute;left:72px;bottom:34px;font-family:'IBM Plex Mono',monospace;font-size:19px;color:var(--ink-2)}
+.url b{color:var(--accent)}
+</style>
+</head>
+<body>
+<div>
+  <div class="eyebrow">A general practice survival game</div>
+  <h1>Last<br>Partner<span class="rx">Rx</span><br><span class="under">Standing</span></h1>
+  <p class="tag">One year as a new GP partner, on the real 2026/27 contract. Keep five things alive, including you.</p>
+</div>
+<div class="panel">
+  <h2>January</h2>
+  <div class="sub">Month 10 of 12 · Canal Street</div>
+  <div class="m"><span>Patients</span><span class="bar low"><b style="width:31%"></b></span><span class="v">31</span></div>
+  <div class="m"><span>Team</span><span class="bar"><b style="width:54%"></b></span><span class="v">54</span></div>
+  <div class="m"><span>You</span><span class="bar crit"><b style="width:19%"></b></span><span class="v crit">19</span></div>
+  <div class="m"><span>Safety</span><span class="bar"><b style="width:58%"></b></span><span class="v">58</span></div>
+  <div class="m"><span>Bank</span><span class="bar crit"><b style="width:12%"></b></span><span class="v crit">−£71k</span></div>
+  <div class="note">Your average week: <b>57 hours</b>. The inbox has 412 items. CQC rang.</div>
+</div>
+<div class="url">Free, in your browser · <b>last-partner-standing.vercel.app</b></div>
+</body>
+</html>

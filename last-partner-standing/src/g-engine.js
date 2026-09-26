@@ -331,7 +331,7 @@ function targets(c) {
     [-5 * c.recepShort, 'Reception short: nobody answers the phone'],
     [ib > 700 ? -8 : ib > 400 ? -3 : 0, 'Results and letters waiting too long'],
     [WINTER.includes(m) ? -4 : 0, 'Winter: everyone is ill at once'],
-    [p.key === 'city' ? -4 : 0, 'High need and a transient list']
+    [p.key === 'city' ? -3 : 0, 'High need and a transient list']
   ]);
   build('team', 58, [
     [-clamp(90 * (0.97 - r), 0, 30), 'Short of appointments: everyone is firefighting'],
@@ -346,7 +346,8 @@ function targets(c) {
     [WINTER.includes(m) ? -3 : 0, 'Winter'],
     [S.plan.draw === 'low' ? -3 : S.plan.draw === 'high' ? 2 : 0, S.plan.draw === 'low' ? 'Lean drawings: the mortgage' : 'Generous drawings'],
     [S.plan.leave ? 8 : 0, 'A week off'],
-    [activeOthers() === 0 ? -4 : 0, 'Carrying it alone']
+    [activeOthers() === 0 ? -4 : 0, 'Carrying it alone'],
+    [p.key === 'city' ? -2 : 0, 'Interpreter line on hold, again']
   ]);
   build('safety', 56, [
     [Math.min(S.plan.mgmt, 3) * 4, 'Management time for governance'],

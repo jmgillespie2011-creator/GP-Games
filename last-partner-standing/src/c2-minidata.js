@@ -71,3 +71,32 @@ const TRIAGE = [
   {b:'Shoulder has been stiff and sore for two months.',a:['physio'],w:'First contact physio.'},
   {b:'Tennis elbow from my new padel obsession.',a:['physio'],w:'First contact physio.'}
 ];
+
+/* ---------------- The Walkround items ---------------- */
+// fix (a real risk, sort it today) / log (fine if you can prove you check it) / assess (fine with a written risk assessment) / myth (CQC doesn't require it)
+const WALK = [
+  {k:'Treatment room',f:'Emergency kit',b:'The adrenaline in the anaphylaxis kit went out of date last month.',a:['fix'],w:'Expired emergency drugs are a classic inspection finding. Replace them today.'},
+  {k:'Nurse\'s room',f:'Sharps',b:'The sharps bin is filled past the line and the lid won\'t close.',a:['fix'],w:'An overfilled sharps bin is a needlestick injury waiting to happen. Seal it and swap it.'},
+  {k:'Corridor',f:'Fire',b:'The fire exit is blocked by twelve boxes of flu vaccine delivery packaging.',a:['fix'],w:'Blocked fire exits get fixed now, not risk-assessed.'},
+  {k:'Waiting room',f:'Children',b:'A looped blind cord hangs at toddler height next to the children\'s corner.',a:['fix'],w:'Looped blind cords can strangle small children. Cut it or tie it up high, today.'},
+  {k:'Treatment room',f:'Clinical waste',b:'The clinical waste bin has no lid. It\'s a cardboard box with a yellow bag in it.',a:['fix'],w:'In clinical areas CQC expects lidded, foot-operated bins.'},
+  {k:'Patient toilet',f:'COSHH',b:'Bleach and drain cleaner are in an unlocked cupboard under the sink.',a:['fix'],w:'Hazardous chemicals must be locked away from patients and children.'},
+  {k:'Vaccine fridge',f:'Cold chain',b:'The thermometer reads 11°C. The door seal has come away at the corner.',a:['fix'],w:'Outside 2 to 8°C: quarantine the stock and follow the cold-chain process now.'},
+  {k:'Emergency trolley',f:'Oxygen',b:'The oxygen cylinder gauge is in the red.',a:['fix'],w:'An empty cylinder is no use in an emergency. Replace it.'},
+  {k:'Vaccine fridge',f:'Cold chain',b:'5°C, door shut, stock tidy. "When was this last checked, and where is it written down?"',a:['log'],w:'CQC expects fridge temperatures recorded at least daily, preferably twice a day.'},
+  {k:'Reception',f:'Defibrillator',b:'The defibrillator is on the wall with its pads attached. "Who checks this, and how often?"',a:['log'],w:'Fine, as long as there\'s a record of regular checks.'},
+  {k:'Emergency trolley',f:'Emergency drugs',b:'Everything is in date. "How will you know it\'s still in date next month?"',a:['log'],w:'A monthly checklist is the evidence.'},
+  {k:'Upstairs toilet',f:'Water',b:'A hot tap in a toilet that nobody uses. "Is this flushed through regularly?"',a:['log','assess'],w:'Little-used outlets need regular flushing, recorded, to control legionella.'},
+  {k:'Staff room',f:'Fire',b:'The fire alarm panel. "When was the alarm last tested, and the last fire drill?"',a:['log'],w:'Weekly alarm tests and regular drills, written down.'},
+  {k:'Nurse\'s room',f:'Staff',b:'"Can you show me the hepatitis B immunity status of your clinical staff?"',a:['log'],w:'Practices should hold staff immunisation records.'},
+  {k:'Waiting room',f:'Aquarium',b:'Gerald, a goldfish, lives in a 60-litre tank beside the children\'s corner.',a:['assess'],w:'Water, electricity and glass at toddler height. Fish tanks can also carry Mycobacterium marinum. Write it down, lid it, carry on.'},
+  {k:'Emergency trolley',f:'Emergency drugs',b:'There is no furosemide in the emergency drugs box.',a:['assess','myth'],w:'CQC\'s suggested list isn\'t mandatory. Justify gaps in a risk assessment.'},
+  {k:'Treatment room',f:'Flooring',b:'Beige carpet in the room where bloods and dressings are done.',a:['assess','fix'],w:'Carpet shouldn\'t be where spills of body fluids are likely. Plan to replace it and risk-assess in the meantime.'},
+  {k:'Branch surgery',f:'Staff',b:'One receptionist opens the branch surgery alone on Saturday mornings.',a:['assess'],w:'Lone working needs a risk assessment and a way to call for help.'},
+  {k:'Car park',f:'Wildlife',b:'A car park cat, QOF, sleeps on the bonnet of the practice manager\'s car.',a:['myth','assess'],w:'Not a regulated activity. QOF is outside CQC\'s remit.'},
+  {k:'Waiting room',f:'Flooring',b:'"The waiting room is carpeted. Surely that\'s not allowed?"',a:['myth'],w:'CQC says carpet is fine where spills are unlikely, such as waiting rooms.'},
+  {k:'Consulting room',f:'Curtains',b:'"The couch curtains must be changed every six months exactly, whatever they look like."',a:['myth'],w:'CQC: no set frequency. Curtains must be visibly clean, and changed straight away if soiled.'},
+  {k:'Children\'s corner',f:'Toys',b:'"You need a written toy-cleaning policy stating the frequency."',a:['myth'],w:'CQC expects toys to be clean. It doesn\'t expect a specific policy.'},
+  {k:'Office',f:'Recruitment',b:'"DBS checks expire after three years, so everyone needs a new one."',a:['myth'],w:'A DBS check has no expiry date. Re-checking is the employer\'s risk-based decision.'},
+  {k:'Reception',f:'Uniform',b:'"Receptionists can\'t wear wristwatches. Bare below the elbows."',a:['myth'],w:'Bare below the elbows is for clinical care, not the front desk.'}
+];

@@ -464,9 +464,9 @@ const PRACTICES = {
   city:{
     key:'city',label:'Inner city',diff:'Brutal',surgery:'Canal Street Medical Centre',place:'Hollowbrook',paper:'The Hollowbrook Herald',
     blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold.',
-    list:10400,weight:0.96,prev:0.9,lastQof:88,cash:25,overdraft:-90,st:{patients:44,team:50,you:64,safety:50},
-    demandRate:0.1,inboxRate:0.046,qofEase:0.88,hire:0.9,rooms:11,premNet:4.5,overhead:3,priv:1.8,
-    staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:0,sp:0,gpa:0}
+    list:10400,weight:0.96,prev:0.9,lastQof:88,cash:40,overdraft:-110,st:{patients:44,team:50,you:64,safety:50},
+    demandRate:0.097,inboxRate:0.046,qofEase:0.88,hire:0.9,rooms:11,premNet:3.5,overhead:1.5,priv:1.8,
+    staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0}
   }
 };
 // income per registered patient a year, £ (scaled from the 2026/27 reference practice) [S8,S9]
@@ -554,7 +554,9 @@ const CAST = {
   coroner:{name:'Coroner\'s officer',role:'HM Coroner',m:'HMC',c:'#303845'},
   pcse:{name:'Pension administration',role:'Primary care support services',m:'PEN',c:'#6D6A75'},
   insurer:{name:'SunSafe Travel Insurance',role:'Claims department',m:'INS',c:'#2E6E8E'},
-  jobs:{name:'Job alert',role:'GP vacancies near you',m:'JOB',c:'#3F7D6C'}
+  jobs:{name:'Job alert',role:'GP vacancies near you',m:'JOB',c:'#3F7D6C'},
+  gavin:{name:'Gavin Lusk',role:'CQC compliance consultant, £750 a day',m:'GL',c:'#8C3B5E'},
+  gerald:{name:'Gerald',role:'Waiting-room goldfish. Unregistered.',m:'G',c:'#D9822B'}
 };
 
 // line icons for the meters (stroke uses currentColor)
@@ -634,7 +636,20 @@ const SOURCES = {
   S39:['GPonline: practice manager fraud case, £450k','https://www.gponline.com/practice-manager-handed-three-year-jail-term-450000-fraud/article/1954151','B'],
   S40:['BMA: state-backed GP indemnity (CNSGP)','https://www.bma.org.uk/advice-and-support/medical-indemnity/medical-indemnity/state-backed-gp-indemnity-scheme','B'],
   S43:['BMA Law: avoid being the last partner standing','https://bmalaw.co.uk/resources/avoid-being-the-last-partner-standing/','B'],
-  S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C']
+  S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
+  S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
+  S46:['CQC: GP mythbuster 1, emergency care in general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-1-emergency-care-general-practice','A'],
+  S47:['CQC: GP mythbuster 6, privacy curtains','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbuster-6-guidance-about-privacy-curtains','A'],
+  S48:['CQC: Nigel\'s surgery 5, carpets in GP practices','https://www.cqc.org.uk/guidance-providers/gps/nigels-surgery-5-carpets-gp-practices','A'],
+  S49:['CQC: GP mythbuster 17, vaccine storage and fridges','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-17-vaccine-storage-fridges-gp-practices','A'],
+  S50:['CQC: GP mythbuster 27, legionella','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-27-legionella','A'],
+  S51:['CQC: GP mythbuster 2, DBS checks','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters/gp-mythbuster-2-who-should-have-disclosure-barring-service-dbs-check','A'],
+  S52:['GPonline: GPs demand end to "culture of fear" around CQC inspections','https://www.gponline.com/gps-demand-end-culture-fear-around-cqc-inspections/article/1709862','B'],
+  S53:['Pulse: practice overturns CQC rating','https://www.pulsetoday.co.uk/news/regulation/practice-overturns-cqc-rating-despite-its-concerns-being-dismissed-by-chief-inspector/','B'],
+  S54:['CQC: GP mythbuster 99, infection prevention and control','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters/gp-mythbuster-99-infection-prevention-control-general-practice','A'],
+  S55:['CQC: GP mythbuster 15, chaperones','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-15-chaperones','A'],
+  S56:['Mycobacterium marinum in fish and people: a review','https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6831007/','A'],
+  S57:['Child Accident Prevention Trust: blind cords','https://capt.org.uk/blind-cords/','B']
 };
 
 /* ---------------- glossary ---------------- */
@@ -663,6 +678,9 @@ const GLOSSARY = [
   ['Notional rent','For partner-owned buildings the NHS reimburses a rent set by a valuer, reviewed every three years.',['S30']],
   ['State-backed indemnity (CNSGP)','Covers NHS clinical negligence claims. It doesn\'t cover GMC cases, inquests or complaints, so GPs still pay a defence organisation.',['S40']],
   ['Significant event analysis','A structured, blame-free review of something that went wrong or nearly did, and what changes as a result.',[]],
+  ['GP mythbusters','CQC\'s own series of over a hundred short guides saying what inspectors do and don\'t expect, written because practices kept doing expensive things nobody required.',['S45']],
+  ['Risk assessment','A written record of a hazard, who it could harm and what you do about it. CQC often accepts a reasoned risk assessment where a practice has chosen not to do something, such as stocking a particular emergency drug.',['S45','S46']],
+  ['Factual accuracy check','Before a CQC report is published the practice gets a draft and can challenge factual errors, with evidence.',['S53']],
   ['Suspected cancer referral','An urgent referral when cancer is a possibility. It used to be called the two-week wait.',[]]
 ];
 /* ---------------- Docman Dash items ---------------- */
@@ -737,6 +755,35 @@ const TRIAGE = [
   {b:'Knee pain for six weeks after five-a-side.',a:['physio'],w:'First contact physio.'},
   {b:'Shoulder has been stiff and sore for two months.',a:['physio'],w:'First contact physio.'},
   {b:'Tennis elbow from my new padel obsession.',a:['physio'],w:'First contact physio.'}
+];
+
+/* ---------------- The Walkround items ---------------- */
+// fix (a real risk, sort it today) / log (fine if you can prove you check it) / assess (fine with a written risk assessment) / myth (CQC doesn't require it)
+const WALK = [
+  {k:'Treatment room',f:'Emergency kit',b:'The adrenaline in the anaphylaxis kit went out of date last month.',a:['fix'],w:'Expired emergency drugs are a classic inspection finding. Replace them today.'},
+  {k:'Nurse\'s room',f:'Sharps',b:'The sharps bin is filled past the line and the lid won\'t close.',a:['fix'],w:'An overfilled sharps bin is a needlestick injury waiting to happen. Seal it and swap it.'},
+  {k:'Corridor',f:'Fire',b:'The fire exit is blocked by twelve boxes of flu vaccine delivery packaging.',a:['fix'],w:'Blocked fire exits get fixed now, not risk-assessed.'},
+  {k:'Waiting room',f:'Children',b:'A looped blind cord hangs at toddler height next to the children\'s corner.',a:['fix'],w:'Looped blind cords can strangle small children. Cut it or tie it up high, today.'},
+  {k:'Treatment room',f:'Clinical waste',b:'The clinical waste bin has no lid. It\'s a cardboard box with a yellow bag in it.',a:['fix'],w:'In clinical areas CQC expects lidded, foot-operated bins.'},
+  {k:'Patient toilet',f:'COSHH',b:'Bleach and drain cleaner are in an unlocked cupboard under the sink.',a:['fix'],w:'Hazardous chemicals must be locked away from patients and children.'},
+  {k:'Vaccine fridge',f:'Cold chain',b:'The thermometer reads 11°C. The door seal has come away at the corner.',a:['fix'],w:'Outside 2 to 8°C: quarantine the stock and follow the cold-chain process now.'},
+  {k:'Emergency trolley',f:'Oxygen',b:'The oxygen cylinder gauge is in the red.',a:['fix'],w:'An empty cylinder is no use in an emergency. Replace it.'},
+  {k:'Vaccine fridge',f:'Cold chain',b:'5°C, door shut, stock tidy. "When was this last checked, and where is it written down?"',a:['log'],w:'CQC expects fridge temperatures recorded at least daily, preferably twice a day.'},
+  {k:'Reception',f:'Defibrillator',b:'The defibrillator is on the wall with its pads attached. "Who checks this, and how often?"',a:['log'],w:'Fine, as long as there\'s a record of regular checks.'},
+  {k:'Emergency trolley',f:'Emergency drugs',b:'Everything is in date. "How will you know it\'s still in date next month?"',a:['log'],w:'A monthly checklist is the evidence.'},
+  {k:'Upstairs toilet',f:'Water',b:'A hot tap in a toilet that nobody uses. "Is this flushed through regularly?"',a:['log','assess'],w:'Little-used outlets need regular flushing, recorded, to control legionella.'},
+  {k:'Staff room',f:'Fire',b:'The fire alarm panel. "When was the alarm last tested, and the last fire drill?"',a:['log'],w:'Weekly alarm tests and regular drills, written down.'},
+  {k:'Nurse\'s room',f:'Staff',b:'"Can you show me the hepatitis B immunity status of your clinical staff?"',a:['log'],w:'Practices should hold staff immunisation records.'},
+  {k:'Waiting room',f:'Aquarium',b:'Gerald, a goldfish, lives in a 60-litre tank beside the children\'s corner.',a:['assess'],w:'Water, electricity and glass at toddler height. Fish tanks can also carry Mycobacterium marinum. Write it down, lid it, carry on.'},
+  {k:'Emergency trolley',f:'Emergency drugs',b:'There is no furosemide in the emergency drugs box.',a:['assess','myth'],w:'CQC\'s suggested list isn\'t mandatory. Justify gaps in a risk assessment.'},
+  {k:'Treatment room',f:'Flooring',b:'Beige carpet in the room where bloods and dressings are done.',a:['assess','fix'],w:'Carpet shouldn\'t be where spills of body fluids are likely. Plan to replace it and risk-assess in the meantime.'},
+  {k:'Branch surgery',f:'Staff',b:'One receptionist opens the branch surgery alone on Saturday mornings.',a:['assess'],w:'Lone working needs a risk assessment and a way to call for help.'},
+  {k:'Car park',f:'Wildlife',b:'A car park cat, QOF, sleeps on the bonnet of the practice manager\'s car.',a:['myth','assess'],w:'Not a regulated activity. QOF is outside CQC\'s remit.'},
+  {k:'Waiting room',f:'Flooring',b:'"The waiting room is carpeted. Surely that\'s not allowed?"',a:['myth'],w:'CQC says carpet is fine where spills are unlikely, such as waiting rooms.'},
+  {k:'Consulting room',f:'Curtains',b:'"The couch curtains must be changed every six months exactly, whatever they look like."',a:['myth'],w:'CQC: no set frequency. Curtains must be visibly clean, and changed straight away if soiled.'},
+  {k:'Children\'s corner',f:'Toys',b:'"You need a written toy-cleaning policy stating the frequency."',a:['myth'],w:'CQC expects toys to be clean. It doesn\'t expect a specific policy.'},
+  {k:'Office',f:'Recruitment',b:'"DBS checks expire after three years, so everyone needs a new one."',a:['myth'],w:'A DBS check has no expiry date. Re-checking is the employer\'s risk-based decision.'},
+  {k:'Reception',f:'Uniform',b:'"Receptionists can\'t wear wristwatches. Bare below the elbows."',a:['myth'],w:'Bare below the elbows is for clinical care, not the front desk.'}
 ];
 /* ===================== EVENTS 1: story arcs =====================
  Event: {id, who, title, text, tag ('real'|'rule'|'story'|'speculative'), src:[S-ids], info (the real-world explainer),
@@ -1660,6 +1707,94 @@ EVENTS.push(
  text:`Patricia Sharpe arrives at 8:29 with a clipboard. This time it isn't planned, and she knows exactly which files she wants to see.`,
  choices:[{t:'Show her what she asks for',run(){ return runCQC(); }}]}
 );
+/* ===================== EVENTS 5: CQC myths, oddities and the walkround =====================
+ Real rules from CQC's own "GP mythbusters", and the things practices do anyway.
+ cqcPrep() banks a little credit for the inspection: runCQC adds it to Safe and half of it to Well-led.
+*/
+const cqcPrep = n => { S.flags.cqcPrep = (S.flags.cqcPrep || 0) + n; };
+const preCQC = () => !S.flags.cqcDone;
+
+EVENTS.push(
+{id:'gavin_mock',who:'gavin',title:'212 must-haves',months:[1,2,3,4,5,6,7],cond:preCQC,tag:'real',src:['S45','S52'],
+ info:'CQC publishes more than a hundred "GP mythbusters" that say what inspectors do and don\'t expect. A whole industry of consultants sells preparation anyway. GPs have described a "culture of fear" around inspections, and in one case a non-clinical inspector told a practice to stock a drug it would almost never use.',
+ text:`Gavin, a CQC compliance consultant, offers a mock inspection for £3,000. His brochure lists "212 must-haves for Outstanding". Some of them are laws. Some of them are Gavin's opinions, in bold.`,
+ choices:[
+  {t:'Book Gavin (£3,000)',fx:{cash:-3,safety:4,team:-3,you:-1},run(){ cqcPrep(3); },o:`Gavin finds 212 things. About forty matter: out-of-date adrenaline, a blocked fire exit, a sharps bin nobody has emptied since the spring. The other 172 include a policy for the kettle. The team does all 212, just in case.`},
+  {t:'Read CQC\'s own mythbusters and walk the building yourself',fx:{you:-2,safety:3},run(){ cqcPrep(2); },o:`You read them on the sofa. CQC doesn't require most of what Gavin sells. It does want the things that could actually hurt someone. Your partner asks if this is a hobby now.`},
+  {t:'"We\'re fine."',fx:{you:1},later:[{in:2,p:0.35,fx:{safety:-3},note:'Because nobody walked round the building: the fire exit has been quietly blocked by flu vaccine boxes since August.'}],o:`You probably are. Probably.`}
+ ]},
+
+{id:'fish_tank',who:'gerald',title:'The fish tank',months:[1,2,3,4,5,6,7,8],cond:preCQC,tag:'story',src:['S45','S50','S56'],
+ info:'CQC expects every part of a practice to be risk-assessed, including its water, where legionella is the usual worry. Aquariums can carry Mycobacterium marinum ("fish tank granuloma"), which infects cuts on hands and arms and doesn\'t pass from person to person. Stories about inspectors wanting a fish tank risk assessment are practice-manager folklore. We couldn\'t find a published CQC report that demands one, so this card is folklore built on real rules.',
+ text:`"The fish tank," says the man doing the fire check, pen poised. "Where's the risk assessment?" Gerald, a goldfish who has outlived three practice managers, looks back at him. The children love Gerald. Mr Pratt has complained about him twice.`,
+ choices:[
+  {t:'Write Gerald a risk assessment',fx:{you:-1,safety:1,team:2},run(){ cqcPrep(1); },o:`Two pages. Hazards: water, electricity, a glass box at toddler height, and Gerald. Controls: a lid, gloves for cleaning the tank, and a sign asking children not to tap. Risk: low. Gerald is now the best-documented member of the practice.`},
+  {t:'Rehome Gerald with Kayleigh',fx:{patients:-2,team:-2},o:`Gerald moves into Kayleigh's flat. Reception gets asked "where's the fish?" thirty times a day. The empty corner is somehow worse.`},
+  {t:'Leave it. He\'s a goldfish.',fx:{you:1},later:[{in:3,p:0.35,fx:{you:-2,safety:-1},note:'Because Gerald never got a risk assessment: "Aquarium (no risk assessment)" appeared in the inspection feedback, just below the blind cord.'}],o:`Gerald stays, undocumented, and apparently happy about it.`}
+ ]},
+
+{id:'furosemide',who:'lmc',title:'The furosemide question',months:[2,3,4,5,6,7,8,9],tag:'real',src:['S46','S52'],
+ info:'CQC\'s guidance gives a suggested list of emergency medicines for GP practices. It says the list is neither exhaustive nor mandatory: practices decide what to stock for their own situation and keep a risk assessment for anything they leave out. A GP campaign against a "culture of fear" in inspections began after a non-clinical inspector told a practice to stock furosemide.',
+ text:`At the LMC meeting, a GP from across the county is still upset. A non-clinical inspector told her practice to stock furosemide in the emergency box. "It's for severe heart failure," she says. "Hardly anyone gives it outside hospital. Not even the ambulance crews."`,
+ choices:[
+  {t:'Check your emergency drugs and write down why each gap is justified',fx:{you:-2,safety:3,aim:{safety:1}},run(){ cqcPrep(2); },o:`CQC's own guidance says its list isn't mandatory. What it wants is a reason for each gap. Yours fits on one side of A4 and mentions furosemide by name.`},
+  {t:'Buy some furosemide, just in case (£60)',fx:{cash:-0.1,you:1},o:`It goes in the emergency box. It'll expire unused in 2028, and someone will have to log that too.`},
+  {t:'Help the LMC write to CQC',fx:{you:-1,team:1,icb:1},o:`A firm, polite letter that quotes the CQC's own mythbuster back at it. The reply thanks you for your feedback and says inspectors will be "reminded".`}
+ ]},
+
+{id:'curtains',who:'bev',title:'Curtain day',months:[1,2,3,4,5,6,7,8,9,10],tag:'rule',src:['S47'],
+ info:'CQC\'s mythbuster on privacy curtains says there is no set frequency for changing them. They must look clean, and they must be changed straight away if soiled. Many practices still change disposable curtains on a fixed date, because that\'s what the date on the curtain says.',
+ text:`The disposable curtains round the couches have a date written on them in marker, six months ago today. "They're due," Bev says. "Twelve at £45 each." They look spotless.`,
+ choices:[
+  {t:'Replace them all, on the day',fx:{cash:-0.55},o:`Fresh curtains, freshly dated. It's a small waste of money that makes everyone feel safer, which in general practice passes for a policy.`},
+  {t:'Change them when they\'re soiled, and check them weekly',fx:{safety:1,team:-1},run(){ cqcPrep(1); },o:`You add a weekly curtain check to the cleaning schedule and swap two that have marks on them. The other £450 stays in the account. Bev writes "per CQC mythbuster 6" on the schedule, underlined.`}
+ ]},
+
+{id:'knitted_ducks',who:'higgins',title:'The knitted ducks',months:[1,2,3,4,5,6,7,8],cond:preCQC,tag:'rule',src:['S45','S54'],
+ info:'CQC expects toys in waiting rooms to be kept clean. It doesn\'t expect a specific toy policy or a set cleaning frequency. Soft toys are harder to clean than wipeable ones, so many practices wash them on a rota or take them out.',
+ text:`Mrs Higgins has knitted a family of ducks for the children's corner: a mother, five ducklings, and one with a tiny stethoscope "for the doctor". Someone has told reception that soft toys are "banned by CQC". Mrs Higgins is in the waiting room, watching.`,
+ choices:[
+  {t:'Keep the ducks, add wipe-clean toys, and put both on the cleaning rota',fx:{patients:2,team:-1},run(){ cqcPrep(1); },o:`The ducks go through the hot wash every Friday. They come out slightly more alarming each time. Mrs Higgins is delighted.`},
+  {t:'Put the ducks on the reception desk, out of reach',fx:{patients:1,team:1},o:`They become the practice mascots. Nobody touches them. Infection risk: nil. Morale: ducks.`},
+  {t:'Quietly bin them',fx:{patients:-3,you:-2},o:`Mrs Higgins finds the doctor duck in the bin by the staff door. She doesn't say anything. There is no shortbread in December.`}
+ ]},
+
+{id:'carpet',who:'bev',title:'The carpet',months:[1,2,3,4,5,6,7,8,9],tag:'rule',src:['S48','S54'],
+ info:'CQC\'s guidance says carpet is acceptable where spills are unlikely, such as waiting rooms, consulting rooms and offices. It shouldn\'t be used where body fluids may be spilt, such as treatment rooms.',
+ text:`The treatment room, where Maureen does bloods and dressings, is carpeted. Beige, 1994, with a stain the shape of Wales. The waiting room is carpeted too. A flooring firm has quoted £11,000 "to be CQC-compliant throughout".`,
+ choices:[
+  {t:'Re-floor the treatment room only (£3,500)',fx:{cash:-3.5,safety:3,aim:{safety:1}},run(){ cqcPrep(2); },o:`Sealed, wipeable vinyl where the blood is. The waiting room keeps its carpet, which CQC is perfectly happy with. Wales is gone.`},
+  {t:'Re-floor everything (£11,000)',fx:{cash:-11,safety:3,team:1},run(){ cqcPrep(2); },o:`Shiny floors throughout. The waiting room now echoes like a swimming pool, and every dropped set of keys sounds like gunfire.`},
+  {t:'Move bloods to a room that already has vinyl',fx:{team:-2,safety:2},run(){ cqcPrep(1); },o:`Maureen moves. She loses her window and gains the room next to the toilet. It works. She mentions it every day.`}
+ ]},
+
+{id:'dbs_expiry',who:'bev',title:'Do DBS checks expire?',months:[2,3,4,5,6,7,8,9,10],tag:'rule',src:['S51','S55'],
+ info:'A DBS certificate has no expiry date. CQC\'s mythbuster says employers decide if and when to re-check, based on the role and the risk. Non-clinical staff who act as chaperones may need a check, and they need training.',
+ text:`The HR company's newsletter says every DBS check "should be renewed every three years". That's 23 staff at about £50 each, plus a week of Kayleigh's life. Meanwhile two receptionists chaperone and have never had a check.`,
+ choices:[
+  {t:'Re-check everybody',fx:{cash:-1.2,team:-2},o:`Twenty-three forms. The cleaner, who has worked here since 1998, is re-checked twice because the first form was lost. The receptionists who chaperone are finally covered, along with everyone else.`},
+  {t:'Check and train the chaperones, and write a risk-based policy',fx:{cash:-0.2,safety:3},run(){ cqcPrep(2); },o:`The two receptionists who chaperone get checks and proper training. Everyone else is covered by a one-page policy saying when you re-check and why. CQC's mythbusters describe exactly this.`},
+  {t:'Only nurses chaperone until it\'s sorted',fx:{safety:1,patients:-2,team:-1},o:`Patients who need a chaperone now wait until a nurse is free. The nurses notice.`}
+ ]},
+
+{id:'cqc_factual',arc:1,who:'bev',title:'The draft report',cond:()=>S.cqc&&S.cqc.overall==='ri',tag:'real',src:['S53'],
+ info:'Before a CQC report is published, the practice gets a draft and can challenge factual errors, with evidence. In one real case, CQC changed a student health service\'s rating from "requires improvement" to good after admitting that due process hadn\'t been followed. Among other things, inspectors had asked about care of older people at a practice whose patients were all students.',
+ text:`The draft report has arrived. You have ten working days to challenge anything factually wrong. Paragraph 4 criticises access to "the first-floor lift". There's no first floor. There's no lift. Paragraph 9 quotes a policy that belongs to a different practice.`,
+ choices:[
+  {t:'Challenge it properly, with evidence',fx:{you:-3},
+   run(){ if(chance(0.35)){ S.cqc.overall='g'; for(const k in S.cqc.rates) if(S.cqc.rates[k]==='ri') S.cqc.rates[k]='g'; applyFx({team:5,you:6,rep:4}); return {o:`Forty pages of evidence, sent at 11:58pm on day ten. Three weeks later CQC agrees that several findings "were not supported by the evidence". The rating is changed to Good. Bev frames the letter next to the certificate.`}; }
+     return {o:`CQC removes the lift and the other practice's policy. The rating stays at Requires improvement. At least it's now wrong about the right building.`}; }},
+  {t:'Correct the lift and get on with the action plan',fx:{safety:2,team:-1,aim:{safety:1}},o:`You fix the obvious errors and start on the 23 actions. Some of them are fair, and you're a bit annoyed about that.`}
+ ]},
+
+{id:'mini_walkround',kind:'mini',game:'walkround',rep:1,max:2,who:'bev',title:'The Walkround',months:[1,2,3,4,5,6,7,8],cond:preCQC,w:()=>S.seen.cqc_call?4:1,tag:'rule',src:['S45','S46','S49','S54'],
+ info:'CQC publishes "GP mythbusters" saying what it does and doesn\'t expect. Real risks, such as expired emergency drugs, blocked fire exits and fridges out of range, need fixing. Routine checks need records. Some choices need a written risk assessment. Plenty of popular "CQC rules" aren\'t rules at all.',
+ text:`Bev hands you a clipboard. "Walk the building like Patricia would." Some things need fixing today. Some just need a log to prove you check them. Some need a written risk assessment. And some are myths that cost practices a fortune.`,
+ choices:[
+  {t:'Grab the clipboard (45-second game)',play:1},
+  {t:'Leave it to Gavin\'s checklist (£1,500)',fx:{cash:-1.5,safety:2,team:-1},o:`Gavin does the walkround. He finds the blind cord, the adrenaline and eleven things that aren't rules. The team fixes all of them.`}
+ ]}
+);
 /* ===================== ENGINE: state, month flow, simulation ===================== */
 let S = null;
 const SAVE_KEY = 'lps-save-v2', BEST_KEY = 'lps-best-v1';
@@ -1993,7 +2128,7 @@ function targets(c) {
     [-5 * c.recepShort, 'Reception short: nobody answers the phone'],
     [ib > 700 ? -8 : ib > 400 ? -3 : 0, 'Results and letters waiting too long'],
     [WINTER.includes(m) ? -4 : 0, 'Winter: everyone is ill at once'],
-    [p.key === 'city' ? -4 : 0, 'High need and a transient list']
+    [p.key === 'city' ? -3 : 0, 'High need and a transient list']
   ]);
   build('team', 58, [
     [-clamp(90 * (0.97 - r), 0, 30), 'Short of appointments: everyone is firefighting'],
@@ -2008,7 +2143,8 @@ function targets(c) {
     [WINTER.includes(m) ? -3 : 0, 'Winter'],
     [S.plan.draw === 'low' ? -3 : S.plan.draw === 'high' ? 2 : 0, S.plan.draw === 'low' ? 'Lean drawings: the mortgage' : 'Generous drawings'],
     [S.plan.leave ? 8 : 0, 'A week off'],
-    [activeOthers() === 0 ? -4 : 0, 'Carrying it alone']
+    [activeOthers() === 0 ? -4 : 0, 'Carrying it alone'],
+    [p.key === 'city' ? -2 : 0, 'Interpreter line on hold, again']
   ]);
   build('safety', 56, [
     [Math.min(S.plan.mgmt, 3) * 4, 'Management time for governance'],
@@ -2151,12 +2287,13 @@ const RATE_NAME = { o: 'Outstanding', g: 'Good', ri: 'Requires improvement', i: 
 function runCQC(reinspect) {
   const st = S.st, expected = (S.month / 12) * 85;
   const jitter = () => (Math.random() - 0.5) * 8;
+  const prep = clamp(S.flags.cqcPrep || 0, -6, 8); // walkround and myth-busting done beforehand
   const dom = {
-    Safe: clamp(st.safety + jitter()),
+    Safe: clamp(st.safety + prep + jitter()),
     Effective: clamp(50 + (S.qof - expected) * 1.2 + (st.safety - 50) * 0.3 + jitter()),
     Caring: clamp(st.patients * 0.7 + st.team * 0.3 + jitter()),
     Responsive: clamp(st.patients * 0.6 + (S.lastRatio - 0.8) * 150 + 10 + jitter()),
-    'Well-led': clamp(st.team * 0.55 + st.safety * 0.35 + S.plan.mgmt * 5 + jitter())
+    'Well-led': clamp(st.team * 0.55 + st.safety * 0.35 + S.plan.mgmt * 5 + prep / 2 + jitter())
   };
   const rates = {}; for (const k in dom) rates[k] = rateOf(dom[k]);
   const vals = Object.values(rates);
@@ -2174,6 +2311,7 @@ function runCQC(reinspect) {
   else if (overall === 'ri') o = 'Requires improvement. There is an action plan with 23 points, and it will make the practice safer. Patricia will be back to check.';
   else o = reinspect ? 'Still inadequate. The ICB begins the process of terminating the contract.' : `Inadequate. Warning notices, special measures and a re-inspection in three months. The ${prac().paper} runs it on the front page.`;
   if (overall === 'i') { if (reinspect) S.forceOver = 'cqc'; else schedule('cqc_reinspect', 3); }
+  if (overall === 'ri') schedule('cqc_factual', 1);
   S.flags.cqcDone = 1;
   const html = `<div class="cqc-card" role="table" aria-label="CQC ratings">${Object.keys(rates).map(k => `<div class="row"><span>${k}</span><span class="rate ${rates[k]}">${RATE_NAME[rates[k]]}</span></div>`).join('')}<div class="row overall"><span>Overall</span><span class="rate">${RATE_NAME[overall]}</span></div></div>`;
   return { o, html };
@@ -2864,6 +3002,12 @@ const MINI = {
     blurb: 'Online requests flood in. Send each patient to the right place. Wrong answers cost two seconds.',
     rules: ['<b>999 / A&E</b>: life-threatening, right now.', '<b>GP today</b>: needs a clinician the same day.', '<b>Routine</b>: book an appointment with the right person.', '<b>Pharmacy</b>: Pharmacy First conditions and self-care.', '<b>Physio</b>: musculoskeletal problems without red flags.'],
     bins: [{ k: '999', l: '999 / A&E', s: 'Emergency' }, { k: 'gp', l: 'GP today', s: 'Same day' }, { k: 'routine', l: 'Routine', s: 'Book in' }, { k: 'pharm', l: 'Pharmacy', s: 'Pharmacy First' }, { k: 'physio', l: 'Physio', s: 'First contact' }]
+  },
+  walkround: {
+    name: 'The Walkround', dur: 45000, items: WALK,
+    blurb: 'Walk the building the way an inspector would. Decide what each thing needs before the timer runs out. Wrong answers cost two seconds.',
+    rules: ['<b>Fix it now</b>: a real risk to someone today. Missing one of these hurts Safety.', '<b>Show the log</b>: fine, as long as you can prove you check it.', '<b>Risk-assess it</b>: a reasonable choice that needs writing down.', '<b>Mythbuster</b>: CQC doesn\'t require it. Don\'t spend money on it.'],
+    bins: [{ k: 'fix', l: 'Fix it now', s: 'Real risk' }, { k: 'log', l: 'Show the log', s: 'Prove you check' }, { k: 'assess', l: 'Risk-assess it', s: 'Write it down' }, { k: 'myth', l: 'Mythbuster', s: 'Not required' }]
   }
 };
 let MG = null;
@@ -2887,11 +3031,11 @@ function renderMini() {
   let body = '';
   if (MG.stage === 'intro') {
     body = `<div class="card mini-intro"><div class="eyebrow">Mini-game · 45 seconds</div><h2>${G.name}</h2><p class="text">${G.blurb}</p><ul>${G.rules.map(r => `<li>${r}</li>`).join('')}</ul>
-      <p class="muted" style="font-size:14px">Use the buttons, or number keys 1 to ${G.bins.length}. Simplified for a game: not clinical guidance.</p>
+      <p class="muted" style="font-size:14px">Use the buttons, or number keys 1 to ${G.bins.length}. Simplified for a game: not ${MG.game === 'walkround' ? 'regulatory' : 'clinical'} guidance.</p>
       <div class="card-foot"><button class="btn primary" data-act="mini-start" autofocus>Start the clock</button></div></div>`;
   } else if (MG.stage === 'play') {
     const it = MG.items[MG.idx % MG.items.length];
-    const docHead = MG.game === 'docman' ? `<div class="kind"><span>${esc(it.k)}</span><span>${esc(it.f)}</span></div>` : `<div class="kind"><span>Online request</span><span>#${4100 + MG.idx}</span></div>`;
+    const docHead = it.k ? `<div class="kind"><span>${esc(it.k)}</span><span>${esc(it.f)}</span></div>` : `<div class="kind"><span>Online request</span><span>#${4100 + MG.idx}</span></div>`;
     const fb = MG.last ? (MG.last.ok ? `<b class="ok">Right.</b> ${esc(MG.last.w)}` : `<b class="no">Not quite: ${esc(MG.last.ans)}.</b> ${esc(MG.last.w)}`) : '&nbsp;';
     body = `<div class="mini-top"><h2>${G.name}</h2><div class="mini-score"><span>Sorted <b>${MG.correct}</b></span><span>Streak <b>${MG.streak}</b></span><span id="mg-secs">${Math.ceil(MG.left / 1000)}s</span></div></div>
       <div class="timer" id="mg-timer"><b style="width:${(MG.left / G.dur) * 100}%"></b></div>
@@ -2902,7 +3046,7 @@ function renderMini() {
     const R = miniResult();
     body = `<div class="card"><div class="eyebrow">${G.name} · results</div><h2>${esc(R.grade)}</h2>
       <p class="text">${esc(R.text)}</p>
-      <dl class="kv" style="margin-top:14px"><dt>Sorted correctly</dt><dd>${MG.correct}</dd><dt>Wrong</dt><dd>${MG.wrong}</dd><dt>Accuracy</dt><dd>${Math.round(R.acc * 100)}%</dd><dt>Best streak</dt><dd>${MG.best}</dd><dt>${MG.game === 'docman' ? 'Urgent results missed' : 'Dangerous misroutes'}</dt><dd class="${MG.danger ? 'bad-t' : ''}">${MG.danger}</dd></dl>
+      <dl class="kv" style="margin-top:14px"><dt>Sorted correctly</dt><dd>${MG.correct}</dd><dt>Wrong</dt><dd>${MG.wrong}</dd><dt>Accuracy</dt><dd>${Math.round(R.acc * 100)}%</dd><dt>Best streak</dt><dd>${MG.best}</dd><dt>${{ docman: 'Urgent results missed', triage: 'Dangerous misroutes', walkround: 'Real risks missed' }[MG.game]}</dt><dd class="${MG.danger ? 'bad-t' : ''}">${MG.danger}</dd></dl>
       <div class="card-foot"><button class="btn primary" data-act="mini-done" autofocus>Back to the practice</button></div></div>`;
   }
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap mini">${body}</div></main>`;
@@ -2914,6 +3058,12 @@ function miniResult() {
     grade = acc >= 0.9 && MG.correct >= 12 ? 'Docman Deity' : acc >= 0.75 ? 'Safe Pair of Hands' : acc >= 0.5 ? 'Needs a Second Look' : 'Please Step Away From the Inbox';
     fx = { inbox: -MG.correct * 9, safety: (acc >= 0.85 ? 3 : acc >= 0.65 ? 1 : -2) - MG.danger * 3, you: MG.correct >= 12 ? 1 : -1 };
     text = `You cleared ${MG.correct * 9} items' worth of the backlog.` + (MG.danger ? ` ${MG.danger} urgent result${MG.danger > 1 ? 's' : ''} went to the wrong pile. Someone will have to ring those patients this afternoon.` : ' Nothing dangerous slipped through.');
+  } else if (MG.game === 'walkround') {
+    grade = acc >= 0.9 && MG.correct >= 12 ? 'Inspector\'s Nightmare (Complimentary)' : acc >= 0.75 ? 'Inspection-Ready, Mostly' : acc >= 0.5 ? 'Laminated Everything' : 'Gavin\'s Best Customer';
+    const prep = acc >= 0.85 ? 4 : acc >= 0.65 ? 2 : 0;
+    fx = { safety: (acc >= 0.85 ? 4 : acc >= 0.65 ? 2 : -1) - MG.danger * 2, team: -1, you: MG.correct >= 12 ? 1 : -1, flags: { cqcPrep: (S.flags.cqcPrep || 0) + prep - MG.danger } };
+    if (acc >= 0.75) fx.aim = { safety: 1 };
+    text = `You checked ${MG.correct + MG.wrong} things and got ${MG.correct} right.` + (MG.danger ? ` ${MG.danger} real risk${MG.danger > 1 ? 's' : ''} got a form instead of a fix. Patricia will find ${MG.danger > 1 ? 'them' : 'it'}.` : ' Every real risk was fixed on the spot.') + (prep ? ' Your evidence folder will help on inspection day.' : '');
   } else {
     grade = acc >= 0.9 && MG.correct >= 10 ? 'Care Navigation Legend' : acc >= 0.75 ? 'Sensible Triager' : acc >= 0.5 ? 'Sends Everyone to the GP' : 'Chaos Coordinator';
     const cut = Math.min(6, r1(MG.correct * 0.4));
@@ -2948,6 +3098,7 @@ function miniAnswer(k) {
   else {
     MG.wrong++; MG.streak = 0; MG.penalty += 2000;
     if (MG.game === 'docman' && it.a[0] === 'urgent') MG.danger++;
+    if (MG.game === 'walkround' && it.a[0] === 'fix' && k !== 'fix') MG.danger++;
     if (MG.game === 'triage' && (it.a.includes('999') || it.a[0] === 'gp') && ['pharm', 'physio', 'routine'].includes(k)) MG.danger++;
   }
   MG.last = { ok, w: it.w, ans: it.a.map(label).join(' or ') };

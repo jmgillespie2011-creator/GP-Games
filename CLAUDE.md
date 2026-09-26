@@ -21,16 +21,17 @@ A single-page vanilla JS game with no dependencies. The only build step is conca
 
 - `a-head.html`: title, the Google Fonts link and all the CSS. Colours are tokens on `:root`, overridden for dark mode by both the `prefers-color-scheme` media query and `[data-theme]`.
 - `c-data.js`: the sourced 2026/27 constants (`P`), practices, staff roles with costs that include employer NI and pension, projects, the cast, meter icons, headlines, `SOURCES` and `GLOSSARY`.
-- `c2-minidata.js`: Docman Dash and 8am Rush items.
+- `c2-minidata.js`: Docman Dash, 8am Rush and Walkround items.
 - `d-events1.js`: story arcs (scheduled): partners, CQC, QOF year end.
 - `e-events2.js`: patient, team and wellbeing cards.
 - `f-events3.js`: money, safety and systems cards.
 - `f2-events4.js`: the real calendar (contract day, pay awards, patient survey, headline, flu, winter), real-rule cards, crisis cards and the other endings.
+- `f3-events5.js`: CQC myths and oddities from CQC's own GP mythbusters (Gavin the consultant, Gerald the fish tank, furosemide, curtains, knitted ducks, carpet, DBS), the draft-report challenge and the Walkround mini-game card. `cqcPrep(n)` banks credit that `runCQC` adds to Safe and, halved, to Well-led.
 - `g-engine.js`: state `S`, month flow, the money model (`calc`), where meters are heading (`targets`), state-driven incidents and delayed consequences (`monthEnd`).
 - `g2-endings.js`: CQC ratings, game overs, other endings, year-end accounts and the partner's own tax and pension (`personalTax`), and saving.
 - `h-ui.js`: helpers (`explain()` for expandable explainers, `srcLinks()`), HUD, title, month plan and cards.
 - `h2-screens.js`: month report, endings, overlays (how to play, glossary, sources) and input handling via event delegation on `data-act`.
-- `i-mini.js`: the two mini-games, then boot.
+- `i-mini.js`: the three mini-games (Docman Dash, The 8am Rush, The Walkround), then boot.
 
 ### How consequences work
 
@@ -94,14 +95,15 @@ These come from the scoping work behind this game.
 
 ### Balance
 
-The last run of `tools/simulate.mjs 200` covered 1,200 years:
+The last run of `tools/simulate.mjs 300` covered 1,800 years:
 
 | Practice | Random play survived | Sensible play survived | Sensible play profit share | Sensible play take-home | Sensible play QOF |
 |---|---|---|---|---|---|
-| Suburb | 62% | 100% | £155k | £74k | 94% |
-| Town | 54% | 100% | £146k | £72k | 93% |
-| City | 40% | 100% | £118k | £62k | 91% |
+| Suburb | 61% | 100% | £155k | £75k | 94% |
+| Town | 55% | 100% | £146k | £72k | 93% |
+| City | 50% | 100% | £134k | £68k | 96% |
 
 - Burnout in January and February is the most common game over.
-- Sensible play in the city ends with patients around 33, mostly "Requires improvement" from CQC and the bank deep in overdraft.
+- The city was rebalanced in September 2026: it starts with a care coordinator and a social prescriber, £40k in the bank against a £110k overdraft, lower overheads and slightly lower demand. It also carries a small extra drag on You. Sensible play now ends with patients around 39, mostly Good from CQC (about a third Requires improvement) and the bank within its overdraft.
+- Random-play survival moves by about 5 points between runs.
 - The real 2024/25 average partner profit was £164,200.

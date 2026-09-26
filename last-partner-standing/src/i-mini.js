@@ -11,6 +11,12 @@ const MINI = {
     blurb: 'Online requests flood in. Send each patient to the right place. Wrong answers cost two seconds.',
     rules: ['<b>999 / A&E</b>: life-threatening, right now.', '<b>GP today</b>: needs a clinician the same day.', '<b>Routine</b>: book an appointment with the right person.', '<b>Pharmacy</b>: Pharmacy First conditions and self-care.', '<b>Physio</b>: musculoskeletal problems without red flags.'],
     bins: [{ k: '999', l: '999 / A&E', s: 'Emergency' }, { k: 'gp', l: 'GP today', s: 'Same day' }, { k: 'routine', l: 'Routine', s: 'Book in' }, { k: 'pharm', l: 'Pharmacy', s: 'Pharmacy First' }, { k: 'physio', l: 'Physio', s: 'First contact' }]
+  },
+  walkround: {
+    name: 'The Walkround', dur: 45000, items: WALK,
+    blurb: 'Walk the building the way an inspector would. Decide what each thing needs before the timer runs out. Wrong answers cost two seconds.',
+    rules: ['<b>Fix it now</b>: a real risk to someone today. Missing one of these hurts Safety.', '<b>Show the log</b>: fine, as long as you can prove you check it.', '<b>Risk-assess it</b>: a reasonable choice that needs writing down.', '<b>Mythbuster</b>: CQC doesn\'t require it. Don\'t spend money on it.'],
+    bins: [{ k: 'fix', l: 'Fix it now', s: 'Real risk' }, { k: 'log', l: 'Show the log', s: 'Prove you check' }, { k: 'assess', l: 'Risk-assess it', s: 'Write it down' }, { k: 'myth', l: 'Mythbuster', s: 'Not required' }]
   }
 };
 let MG = null;
@@ -34,11 +40,11 @@ function renderMini() {
   let body = '';
   if (MG.stage === 'intro') {
     body = `<div class="card mini-intro"><div class="eyebrow">Mini-game · 45 seconds</div><h2>${G.name}</h2><p class="text">${G.blurb}</p><ul>${G.rules.map(r => `<li>${r}</li>`).join('')}</ul>
-      <p class="muted" style="font-size:14px">Use the buttons, or number keys 1 to ${G.bins.length}. Simplified for a game: not clinical guidance.</p>
+      <p class="muted" style="font-size:14px">Use the buttons, or number keys 1 to ${G.bins.length}. Simplified for a game: not ${MG.game === 'walkround' ? 'regulatory' : 'clinical'} guidance.</p>
       <div class="card-foot"><button class="btn primary" data-act="mini-start" autofocus>Start the clock</button></div></div>`;
   } else if (MG.stage === 'play') {
     const it = MG.items[MG.idx % MG.items.length];
-    const docHead = MG.game === 'docman' ? `<div class="kind"><span>${esc(it.k)}</span><span>${esc(it.f)}</span></div>` : `<div class="kind"><span>Online request</span><span>#${4100 + MG.idx}</span></div>`;
+    const docHead = it.k ? `<div class="kind"><span>${esc(it.k)}</span><span>${esc(it.f)}</span></div>` : `<div class="kind"><span>Online request</span><span>#${4100 + MG.idx}</span></div>`;
     const fb = MG.last ? (MG.last.ok ? `<b class="ok">Right.</b> ${esc(MG.last.w)}` : `<b class="no">Not quite: ${esc(MG.last.ans)}.</b> ${esc(MG.last.w)}`) : '&nbsp;';
     body = `<div class="mini-top"><h2>${G.name}</h2><div class="mini-score"><span>Sorted <b>${MG.correct}</b></span><span>Streak <b>${MG.streak}</b></span><span id="mg-secs">${Math.ceil(MG.left / 1000)}s</span></div></div>
       <div class="timer" id="mg-timer"><b style="width:${(MG.left / G.dur) * 100}%"></b></div>
@@ -49,7 +55,7 @@ function renderMini() {
     const R = miniResult();
     body = `<div class="card"><div class="eyebrow">${G.name} · results</div><h2>${esc(R.grade)}</h2>
       <p class="text">${esc(R.text)}</p>
-      <dl class="kv" style="margin-top:14px"><dt>Sorted correctly</dt><dd>${MG.correct}</dd><dt>Wrong</dt><dd>${MG.wrong}</dd><dt>Accuracy</dt><dd>${Math.round(R.acc * 100)}%</dd><dt>Best streak</dt><dd>${MG.best}</dd><dt>${MG.game === 'docman' ? 'Urgent results missed' : 'Dangerous misroutes'}</dt><dd class="${MG.danger ? 'bad-t' : ''}">${MG.danger}</dd></dl>
+      <dl class="kv" style="margin-top:14px"><dt>Sorted correctly</dt><dd>${MG.correct}</dd><dt>Wrong</dt><dd>${MG.wrong}</dd><dt>Accuracy</dt><dd>${Math.round(R.acc * 100)}%</dd><dt>Best streak</dt><dd>${MG.best}</dd><dt>${{ docman: 'Urgent results missed', triage: 'Dangerous misroutes', walkround: 'Real risks missed' }[MG.game]}</dt><dd class="${MG.danger ? 'bad-t' : ''}">${MG.danger}</dd></dl>
       <div class="card-foot"><button class="btn primary" data-act="mini-done" autofocus>Back to the practice</button></div></div>`;
   }
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap mini">${body}</div></main>`;
@@ -61,6 +67,12 @@ function miniResult() {
     grade = acc >= 0.9 && MG.correct >= 12 ? 'Docman Deity' : acc >= 0.75 ? 'Safe Pair of Hands' : acc >= 0.5 ? 'Needs a Second Look' : 'Please Step Away From the Inbox';
     fx = { inbox: -MG.correct * 9, safety: (acc >= 0.85 ? 3 : acc >= 0.65 ? 1 : -2) - MG.danger * 3, you: MG.correct >= 12 ? 1 : -1 };
     text = `You cleared ${MG.correct * 9} items' worth of the backlog.` + (MG.danger ? ` ${MG.danger} urgent result${MG.danger > 1 ? 's' : ''} went to the wrong pile. Someone will have to ring those patients this afternoon.` : ' Nothing dangerous slipped through.');
+  } else if (MG.game === 'walkround') {
+    grade = acc >= 0.9 && MG.correct >= 12 ? 'Inspector\'s Nightmare (Complimentary)' : acc >= 0.75 ? 'Inspection-Ready, Mostly' : acc >= 0.5 ? 'Laminated Everything' : 'Gavin\'s Best Customer';
+    const prep = acc >= 0.85 ? 4 : acc >= 0.65 ? 2 : 0;
+    fx = { safety: (acc >= 0.85 ? 4 : acc >= 0.65 ? 2 : -1) - MG.danger * 2, team: -1, you: MG.correct >= 12 ? 1 : -1, flags: { cqcPrep: (S.flags.cqcPrep || 0) + prep - MG.danger } };
+    if (acc >= 0.75) fx.aim = { safety: 1 };
+    text = `You checked ${MG.correct + MG.wrong} things and got ${MG.correct} right.` + (MG.danger ? ` ${MG.danger} real risk${MG.danger > 1 ? 's' : ''} got a form instead of a fix. Patricia will find ${MG.danger > 1 ? 'them' : 'it'}.` : ' Every real risk was fixed on the spot.') + (prep ? ' Your evidence folder will help on inspection day.' : '');
   } else {
     grade = acc >= 0.9 && MG.correct >= 10 ? 'Care Navigation Legend' : acc >= 0.75 ? 'Sensible Triager' : acc >= 0.5 ? 'Sends Everyone to the GP' : 'Chaos Coordinator';
     const cut = Math.min(6, r1(MG.correct * 0.4));
@@ -95,6 +107,7 @@ function miniAnswer(k) {
   else {
     MG.wrong++; MG.streak = 0; MG.penalty += 2000;
     if (MG.game === 'docman' && it.a[0] === 'urgent') MG.danger++;
+    if (MG.game === 'walkround' && it.a[0] === 'fix' && k !== 'fix') MG.danger++;
     if (MG.game === 'triage' && (it.a.includes('999') || it.a[0] === 'gp') && ['pharm', 'physio', 'routine'].includes(k)) MG.danger++;
   }
   MG.last = { ok, w: it.w, ans: it.a.map(label).join(' or ') };

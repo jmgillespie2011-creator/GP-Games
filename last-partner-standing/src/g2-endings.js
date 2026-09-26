@@ -4,12 +4,13 @@ const RATE_NAME = { o: 'Outstanding', g: 'Good', ri: 'Requires improvement', i: 
 function runCQC(reinspect) {
   const st = S.st, expected = (S.month / 12) * 85;
   const jitter = () => (Math.random() - 0.5) * 8;
+  const prep = clamp(S.flags.cqcPrep || 0, -6, 8); // walkround and myth-busting done beforehand
   const dom = {
-    Safe: clamp(st.safety + jitter()),
+    Safe: clamp(st.safety + prep + jitter()),
     Effective: clamp(50 + (S.qof - expected) * 1.2 + (st.safety - 50) * 0.3 + jitter()),
     Caring: clamp(st.patients * 0.7 + st.team * 0.3 + jitter()),
     Responsive: clamp(st.patients * 0.6 + (S.lastRatio - 0.8) * 150 + 10 + jitter()),
-    'Well-led': clamp(st.team * 0.55 + st.safety * 0.35 + S.plan.mgmt * 5 + jitter())
+    'Well-led': clamp(st.team * 0.55 + st.safety * 0.35 + S.plan.mgmt * 5 + prep / 2 + jitter())
   };
   const rates = {}; for (const k in dom) rates[k] = rateOf(dom[k]);
   const vals = Object.values(rates);
@@ -27,6 +28,7 @@ function runCQC(reinspect) {
   else if (overall === 'ri') o = 'Requires improvement. There is an action plan with 23 points, and it will make the practice safer. Patricia will be back to check.';
   else o = reinspect ? 'Still inadequate. The ICB begins the process of terminating the contract.' : `Inadequate. Warning notices, special measures and a re-inspection in three months. The ${prac().paper} runs it on the front page.`;
   if (overall === 'i') { if (reinspect) S.forceOver = 'cqc'; else schedule('cqc_reinspect', 3); }
+  if (overall === 'ri') schedule('cqc_factual', 1);
   S.flags.cqcDone = 1;
   const html = `<div class="cqc-card" role="table" aria-label="CQC ratings">${Object.keys(rates).map(k => `<div class="row"><span>${k}</span><span class="rate ${rates[k]}">${RATE_NAME[rates[k]]}</span></div>`).join('')}<div class="row overall"><span>Overall</span><span class="rate">${RATE_NAME[overall]}</span></div></div>`;
   return { o, html };

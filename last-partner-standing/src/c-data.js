@@ -57,9 +57,9 @@ const PRACTICES = {
   city:{
     key:'city',label:'Inner city',diff:'Brutal',surgery:'Canal Street Medical Centre',place:'Hollowbrook',paper:'The Hollowbrook Herald',
     blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold.',
-    list:10400,weight:0.96,prev:0.9,lastQof:88,cash:25,overdraft:-90,st:{patients:44,team:50,you:64,safety:50},
-    demandRate:0.1,inboxRate:0.046,qofEase:0.88,hire:0.9,rooms:11,premNet:4.5,overhead:3,priv:1.8,
-    staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:0,sp:0,gpa:0}
+    list:10400,weight:0.96,prev:0.9,lastQof:88,cash:40,overdraft:-110,st:{patients:44,team:50,you:64,safety:50},
+    demandRate:0.097,inboxRate:0.046,qofEase:0.88,hire:0.9,rooms:11,premNet:3.5,overhead:1.5,priv:1.8,
+    staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0}
   }
 };
 // income per registered patient a year, £ (scaled from the 2026/27 reference practice) [S8,S9]
@@ -147,7 +147,9 @@ const CAST = {
   coroner:{name:'Coroner\'s officer',role:'HM Coroner',m:'HMC',c:'#303845'},
   pcse:{name:'Pension administration',role:'Primary care support services',m:'PEN',c:'#6D6A75'},
   insurer:{name:'SunSafe Travel Insurance',role:'Claims department',m:'INS',c:'#2E6E8E'},
-  jobs:{name:'Job alert',role:'GP vacancies near you',m:'JOB',c:'#3F7D6C'}
+  jobs:{name:'Job alert',role:'GP vacancies near you',m:'JOB',c:'#3F7D6C'},
+  gavin:{name:'Gavin Lusk',role:'CQC compliance consultant, £750 a day',m:'GL',c:'#8C3B5E'},
+  gerald:{name:'Gerald',role:'Waiting-room goldfish. Unregistered.',m:'G',c:'#D9822B'}
 };
 
 // line icons for the meters (stroke uses currentColor)
@@ -227,7 +229,20 @@ const SOURCES = {
   S39:['GPonline: practice manager fraud case, £450k','https://www.gponline.com/practice-manager-handed-three-year-jail-term-450000-fraud/article/1954151','B'],
   S40:['BMA: state-backed GP indemnity (CNSGP)','https://www.bma.org.uk/advice-and-support/medical-indemnity/medical-indemnity/state-backed-gp-indemnity-scheme','B'],
   S43:['BMA Law: avoid being the last partner standing','https://bmalaw.co.uk/resources/avoid-being-the-last-partner-standing/','B'],
-  S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C']
+  S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
+  S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
+  S46:['CQC: GP mythbuster 1, emergency care in general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-1-emergency-care-general-practice','A'],
+  S47:['CQC: GP mythbuster 6, privacy curtains','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbuster-6-guidance-about-privacy-curtains','A'],
+  S48:['CQC: Nigel\'s surgery 5, carpets in GP practices','https://www.cqc.org.uk/guidance-providers/gps/nigels-surgery-5-carpets-gp-practices','A'],
+  S49:['CQC: GP mythbuster 17, vaccine storage and fridges','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-17-vaccine-storage-fridges-gp-practices','A'],
+  S50:['CQC: GP mythbuster 27, legionella','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-27-legionella','A'],
+  S51:['CQC: GP mythbuster 2, DBS checks','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters/gp-mythbuster-2-who-should-have-disclosure-barring-service-dbs-check','A'],
+  S52:['GPonline: GPs demand end to "culture of fear" around CQC inspections','https://www.gponline.com/gps-demand-end-culture-fear-around-cqc-inspections/article/1709862','B'],
+  S53:['Pulse: practice overturns CQC rating','https://www.pulsetoday.co.uk/news/regulation/practice-overturns-cqc-rating-despite-its-concerns-being-dismissed-by-chief-inspector/','B'],
+  S54:['CQC: GP mythbuster 99, infection prevention and control','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters/gp-mythbuster-99-infection-prevention-control-general-practice','A'],
+  S55:['CQC: GP mythbuster 15, chaperones','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-15-chaperones','A'],
+  S56:['Mycobacterium marinum in fish and people: a review','https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6831007/','A'],
+  S57:['Child Accident Prevention Trust: blind cords','https://capt.org.uk/blind-cords/','B']
 };
 
 /* ---------------- glossary ---------------- */
@@ -256,5 +271,8 @@ const GLOSSARY = [
   ['Notional rent','For partner-owned buildings the NHS reimburses a rent set by a valuer, reviewed every three years.',['S30']],
   ['State-backed indemnity (CNSGP)','Covers NHS clinical negligence claims. It doesn\'t cover GMC cases, inquests or complaints, so GPs still pay a defence organisation.',['S40']],
   ['Significant event analysis','A structured, blame-free review of something that went wrong or nearly did, and what changes as a result.',[]],
+  ['GP mythbusters','CQC\'s own series of over a hundred short guides saying what inspectors do and don\'t expect, written because practices kept doing expensive things nobody required.',['S45']],
+  ['Risk assessment','A written record of a hazard, who it could harm and what you do about it. CQC often accepts a reasoned risk assessment where a practice has chosen not to do something, such as stocking a particular emergency drug.',['S45','S46']],
+  ['Factual accuracy check','Before a CQC report is published the practice gets a draft and can challenge factual errors, with evidence.',['S53']],
   ['Suspected cancer referral','An urgent referral when cancer is a possibility. It used to be called the two-week wait.',[]]
 ];

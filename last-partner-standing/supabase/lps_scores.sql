@@ -52,3 +52,31 @@ revoke execute on function public.lps_scores_rate_limit() from public, anon, aut
 -- Weekly challenge: the ISO week the score was played in (for example 2026-W39), or null for a normal game.
 alter table public.lps_scores add column if not exists week text check (week is null or week ~ '^[0-9]{4}-W[0-9]{2}$');
 create index if not exists lps_scores_week_score_idx on public.lps_scores (week, score desc, created_at);
+
+-- A light word filter for names on the public board, matching nameOk() in src/h3-board.js.
+-- Look-alike digits are swapped back to letters. The first list is matched anywhere once spaces and
+-- punctuation are removed; the second only as whole words (so Dickens, Hancock and Cassidy are fine).
+create or replace function public.lps_name_ok(n text) returns boolean
+language sql immutable set search_path = '' as $$
+  select not (
+    regexp_replace(translate(lower(n), '013457', 'oieast'), '[^a-z]', '', 'g')
+      ~ '(fuck|cunt|nigg|whore|bitch|bastard|twat|bollock|hitler|paedo|retard|spastic|tranny|wanker)'
+    or translate(lower(n), '013457', 'oieast')
+      ~ '(^|[^a-z])(dick|cock|arse|ass|tits|rape|fag|faggot|paki|spaz|chink|coon|dyke|gook|wog|jizz|cum|nonce|prick|knob|shit|shite|shitty|wank|piss|pissed|pedo|porn|nazi|kike|slut)s?([^a-z]|$)'
+  )
+$$;
+
+create or replace function public.lps_scores_rate_limit() returns trigger
+language plpgsql security definer set search_path = '' as $$
+begin
+  new.created_at := now();
+  if not public.lps_name_ok(new.name) then
+    raise exception 'That name can''t go on the board.';
+  end if;
+  if (select count(*) from public.lps_scores where created_at > now() - interval '1 minute') >= 30 then
+    raise exception 'Too many scores at once. Try again in a minute.';
+  end if;
+  return new;
+end $$;
+
+-- To take a name off the board by hand (in the Supabase SQL editor): delete from public.lps_scores where id = <id>;

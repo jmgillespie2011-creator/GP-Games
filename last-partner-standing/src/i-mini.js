@@ -1,7 +1,7 @@
 /* ===================== MINI-GAMES ===================== */
 const MINI = {
   docman: {
-    name: 'Docman Dash', dur: 45000, items: DOCS,
+    name: 'Inbox Dash', dur: 45000, items: DOCS,
     blurb: 'Documents arrive one at a time. Sort each one before the timer runs out. Wrong answers cost two seconds.',
     rules: ['<b>File</b>: normal, or already dealt with.', '<b>Action</b>: needs doing, but not today: a referral, a medication change, a form.', '<b>Urgent</b>: a same-day problem. Missing one of these hurts Safety.', '<b>Bounce</b>: someone else\'s job. Send it back where it belongs.'],
     bins: [{ k: 'file', l: 'File', s: 'No action' }, { k: 'action', l: 'Action', s: 'Needs doing' }, { k: 'urgent', l: 'Urgent', s: 'Same day' }, { k: 'bounce', l: 'Bounce', s: 'Not your job' }]
@@ -64,7 +64,7 @@ function miniResult() {
   const n = MG.correct + MG.wrong, acc = n ? MG.correct / n : 0;
   let grade, fx, text;
   if (MG.game === 'docman') {
-    grade = acc >= 0.9 && MG.correct >= 12 ? 'Docman Deity' : acc >= 0.75 ? 'Safe Pair of Hands' : acc >= 0.5 ? 'Needs a Second Look' : 'Please Step Away From the Inbox';
+    grade = acc >= 0.9 && MG.correct >= 12 ? 'Inbox Deity' : acc >= 0.75 ? 'Safe Pair of Hands' : acc >= 0.5 ? 'Needs a Second Look' : 'Please Step Away From the Inbox';
     fx = { inbox: -MG.correct * 9, safety: (acc >= 0.85 ? 3 : acc >= 0.65 ? 1 : -2) - MG.danger * 3, you: MG.correct >= 12 ? 1 : -1 };
     text = `You cleared ${MG.correct * 9} items' worth of the backlog.` + (MG.danger ? ` ${MG.danger} urgent result${MG.danger > 1 ? 's' : ''} went to the wrong pile. Someone will have to ring those patients this afternoon.` : ' Nothing dangerous slipped through.');
   } else if (MG.game === 'walkround') {

@@ -153,7 +153,7 @@ EVENTS.push(
   {t:'Wait for the LMC summary',fx:{you:2},o:`The LMC summary arrives two days later. It's two pages long and mostly swearing, professionally phrased.`}
  ]},
 
-{id:'mini_docman',kind:'mini',game:'docman',rep:1,max:3,who:'bev',title:'Docman Dash',w:()=>S.inbox>350?2:1.1,tag:'story',
+{id:'mini_docman',kind:'mini',game:'docman',rep:1,max:3,who:'bev',title:'Inbox Dash',w:()=>S.inbox>350?2:1.1,tag:'story',
  text:`The document inbox has {inbox} items in it. Bev asks if you want to blitz some yourself between patients. Letters, results and requests: file it, action it, flag it urgent, or bounce it back to where it belongs.`,
  choices:[
   {t:'Grab a coffee and blitz it (45-second game)',play:1},

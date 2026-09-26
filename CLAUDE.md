@@ -14,7 +14,7 @@ A single-page vanilla JS game with no dependencies. The only build step is conca
   - `.vercelignore` keeps source, tools and docs out of the deployment.
   - Rebuild before deploying.
   - https://last-partner-standing.vercel.app (the Vercel project `last-partner-standing`) is a proxy. It holds only `vercel-proxy/last-partner-standing/vercel.json`, which rewrites every request to https://gp-games.vercel.app. So it always serves whatever `gp-games` is serving, and a push to `main` updates both addresses. Don't deploy the game to that project. Only redeploy it if the proxy file changes (see `vercel-proxy/README.md`).
-- Leaderboard database: the Supabase project `rttvlxawjidhneljhglk` (organisation GP Games, region eu-west-1), applied as the migration `lps_scores_leaderboard`. `last-partner-standing/supabase/lps_scores.sql` creates the table, row-level security (anyone can read and insert; nobody can update or delete), sanity checks on values, a server-set timestamp and a limit of 30 posts a minute. Scores are computed in the browser, so they can be faked.
+- Leaderboard database: the Supabase project `rttvlxawjidhneljhglk` (organisation GP Games, region eu-west-1), applied as the migration `lps_scores_leaderboard`. `last-partner-standing/supabase/lps_scores.sql` creates the table, row-level security (anyone can read and insert; nobody can update or delete), sanity checks on values, a server-set timestamp and a limit of 30 posts a minute. Scores are computed in the browser, so they can be faked. Names pass a word filter twice: `nameOk()` in `h3-board.js` and `lps_name_ok()` in the database (migration `lps_scores_name_filter`). Keep the two word lists the same. Ambiguous words only match as whole words, so real surnames like Wankhede, Nazim and Draper get through. To remove a name by hand, run `delete from public.lps_scores where id = …` in the Supabase SQL editor. The title screen has a Privacy explainer.
 - Save games (`lps-save-v2`) and best scores (`lps-best-v1`) live in `localStorage`. Every access is wrapped in try/catch. Bump the save key if the state shape changes.
 
 ### src files
@@ -23,7 +23,7 @@ A single-page vanilla JS game with no dependencies. The only build step is conca
 
 - `a-head.html`: title, the Google Fonts link and all the CSS. Colours are tokens on `:root`, overridden for dark mode by both the `prefers-color-scheme` media query and `[data-theme]`.
 - `c-data.js`: the sourced 2026/27 constants (`P`), practices, staff roles with costs that include employer NI and pension, projects, the cast, meter icons, headlines, `SOURCES` and `GLOSSARY`.
-- `c2-minidata.js`: Docman Dash, 8am Rush and Walkround items.
+- `c2-minidata.js`: Inbox Dash, 8am Rush and Walkround items.
 - `d-events1.js`: story arcs (scheduled): partners, CQC, QOF year end.
 - `e-events2.js`: patient, team and wellbeing cards.
 - `f-events3.js`: money, safety and systems cards. These include the clinical system outage (paper notes, handwritten FP10s, no records; a continuity kit sets `flags.bcp` and softens later outages), ICB-pushed Windows updates, and medicine shortages (Medicine Supply Notifications and Serious Shortage Protocols).
@@ -35,7 +35,7 @@ A single-page vanilla JS game with no dependencies. The only build step is conca
 - `h-ui.js`: helpers (`explain()` for expandable explainers, `srcLinks()`), HUD, title, month plan and cards.
 - `h2-screens.js`: month report, endings, overlays (how to play, glossary, sources) and input handling via event delegation on `data-act`.
 - `h3-board.js`: the shared leaderboard. It reads and posts scores in the Supabase table `lps_scores` through its REST API, using the project URL and publishable key in `BOARD`. With `BOARD.url` empty, it stays hidden. It shows on the year-end screen, the title screen and in the menu. Inside a Claude Artifact the network is blocked, so it points players to the website.
-- `i-mini.js`: the three mini-games (Docman Dash, The 8am Rush, The Walkround), then boot.
+- `i-mini.js`: the three mini-games (Inbox Dash, The 8am Rush, The Walkround), then boot.
 
 ### How consequences work
 

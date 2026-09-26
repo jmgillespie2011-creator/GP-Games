@@ -799,7 +799,7 @@ const GLOSSARY = [
   ['LCS','A locally commissioned service: extra work an ICB pays practices to do, such as community dermatology or weight management. Where there isn\'t one, the work often arrives anyway, unfunded.',[]],
   ['Suspected cancer referral','An urgent referral when cancer is a possibility. It used to be called the two-week wait.',[]]
 ];
-/* ---------------- Docman Dash items ---------------- */
+/* ---------------- Inbox Dash items ---------------- */
 // a = accepted bins. file / action / urgent / bounce
 const DOCS = [
   {k:'Blood result',f:'Pathology',b:'Potassium 6.8 mmol/L, sample not haemolysed. Mr D, 71, on ramipril and spironolactone.',a:['urgent'],w:'Hyperkalaemia on an ACE inhibitor and spironolactone: same-day action.'},
@@ -1103,7 +1103,7 @@ EVENTS.push(
   {t:'Wait for the LMC summary',fx:{you:2},o:`The LMC summary arrives two days later. It's two pages long and mostly swearing, professionally phrased.`}
  ]},
 
-{id:'mini_docman',kind:'mini',game:'docman',rep:1,max:3,who:'bev',title:'Docman Dash',w:()=>S.inbox>350?2:1.1,tag:'story',
+{id:'mini_docman',kind:'mini',game:'docman',rep:1,max:3,who:'bev',title:'Inbox Dash',w:()=>S.inbox>350?2:1.1,tag:'story',
  text:`The document inbox has {inbox} items in it. Bev asks if you want to blitz some yourself between patients. Letters, results and requests: file it, action it, flag it urgent, or bounce it back to where it belongs.`,
  choices:[
   {t:'Grab a coffee and blitz it (45-second game)',play:1},
@@ -2899,6 +2899,7 @@ function renderTitle() {
           <li>Survive to 31st March 2027 and the accountant tells you what it was all worth, after tax.</li>
         </ul>
         ${explain('About the numbers', `<p>The money runs on real 2026/27 figures for England: the £130.07 global sum, QOF at £227.95 a point, 15% employer NI, 14.38% employer pension, locum rates and partner tax. Cards marked <b>Real figures</b> or <b>Real rule</b> show their sources.</p><p>It's a simplified model of a GMS practice, not financial, tax or medical advice. The practices, people and companies are fictional. Not affiliated with the NHS, the BMA or any government body.</p>`)}
+        ${explain('Privacy', `<p>Your game is saved only in this browser. Nothing about you is sent anywhere unless you post a score to the leaderboard. That stores the name you choose, your score, your practice and your year's results, publicly, with no email or other details. Use a nickname if you like.</p><p>The page loads its fonts from Google Fonts, and the website's host keeps standard access logs. There are no adverts, analytics or tracking cookies.</p>`)}
       </div>
     </section>
     <section class="setup" aria-label="New game">
@@ -3425,6 +3426,17 @@ function boardFetch(path, opts) {
     .finally(() => { if (t) clearTimeout(t); });
 }
 function cleanName(n) { return String(n || '').replace(/[^A-Za-z0-9 .'-]/g, '').replace(/\s+/g, ' ').trim().slice(0, 24); }
+// A light word filter for the public board. The same lists are enforced in the database trigger (supabase/lps_scores.sql).
+// Letters are compared with look-alike digits swapped back and spaces and punctuation removed, so "f.u c k" and "5h1t" are caught.
+const BAD_PARTS = ['fuck', 'cunt', 'nigg', 'whore', 'bitch', 'bastard', 'twat', 'bollock', 'hitler', 'paedo', 'retard', 'spastic', 'tranny', 'wanker'];
+const BAD_WORDS = ['dick', 'cock', 'arse', 'ass', 'tits', 'rape', 'fag', 'faggot', 'paki', 'spaz', 'chink', 'coon', 'dyke', 'gook', 'wog', 'jizz', 'cum', 'nonce', 'prick', 'knob', 'shit', 'shite', 'shitty', 'wank', 'piss', 'pissed', 'pedo', 'porn', 'nazi', 'kike', 'slut'];
+function nameOk(n) {
+  const low = String(n || '').toLowerCase().replace(/[013457]/g, d => ({ 0: 'o', 1: 'i', 3: 'e', 4: 'a', 5: 's', 7: 't' })[d]);
+  const squashed = low.replace(/[^a-z]/g, '');
+  if (BAD_PARTS.some(w => squashed.includes(w))) return false;
+  const words = low.split(/[^a-z]+/);
+  return !BAD_WORDS.some(w => words.includes(w) || words.includes(w + 's'));
+}
 function savedBoardName() { try { return localStorage.getItem(BOARD_NAME_KEY) || ''; } catch (e) { return ''; } }
 
 function loadBoard() {
@@ -3442,6 +3454,7 @@ function postScore() {
   const inp = document.getElementById('board-name');
   const name = cleanName(inp ? inp.value : '');
   if (!name) { toast('Pick a name for the board first.'); return; }
+  if (!nameOk(name)) { toast('That name can\'t go on the board. Pick another.'); return; }
   try { localStorage.setItem(BOARD_NAME_KEY, name); } catch (e) { }
   const E = S.end;
   const row = { name, practice: S.practiceKey, title: String(E.arche.t).slice(0, 48), score: Math.max(0, Math.min(800, E.score)),
@@ -3481,7 +3494,7 @@ function boardPanelHTML() {
     ? `<p class="fc-note good-t">Your year is on the board${BD.rank ? `, at number ${BD.rank}` : ''}.</p>`
     : `<div class="board-form"><label for="board-name">Name on the board</label><div class="name-row"><input id="board-name" maxlength="24" autocomplete="nickname" value="${esc(savedBoardName() || 'Dr ' + S.name)}"></div>
        <button class="btn primary" data-act="board-post" ${BD.posting ? 'disabled' : ''}>${BD.posting ? 'Posting…' : `Post my score (${E.score})`}</button></div>
-       <p class="fc-note">Everyone can see the board. Use a nickname if you'd rather not use your real name.</p>`;
+       <p class="fc-note">Everyone can see the board. Only the name you choose, your score and your year's results are stored, with no other details about you. Use a nickname if you'd rather not use your real name. Offensive names are blocked and removed.</p>`;
   return `<section class="panel" id="board-panel"><h3>Leaderboard <small>top 20 partners</small></h3>${form}${boardInner()}</section>`;
 }
 function boardOverlayHTML() {
@@ -3508,7 +3521,7 @@ function boardAction(a, arg) {
 /* ===================== MINI-GAMES ===================== */
 const MINI = {
   docman: {
-    name: 'Docman Dash', dur: 45000, items: DOCS,
+    name: 'Inbox Dash', dur: 45000, items: DOCS,
     blurb: 'Documents arrive one at a time. Sort each one before the timer runs out. Wrong answers cost two seconds.',
     rules: ['<b>File</b>: normal, or already dealt with.', '<b>Action</b>: needs doing, but not today: a referral, a medication change, a form.', '<b>Urgent</b>: a same-day problem. Missing one of these hurts Safety.', '<b>Bounce</b>: someone else\'s job. Send it back where it belongs.'],
     bins: [{ k: 'file', l: 'File', s: 'No action' }, { k: 'action', l: 'Action', s: 'Needs doing' }, { k: 'urgent', l: 'Urgent', s: 'Same day' }, { k: 'bounce', l: 'Bounce', s: 'Not your job' }]
@@ -3571,7 +3584,7 @@ function miniResult() {
   const n = MG.correct + MG.wrong, acc = n ? MG.correct / n : 0;
   let grade, fx, text;
   if (MG.game === 'docman') {
-    grade = acc >= 0.9 && MG.correct >= 12 ? 'Docman Deity' : acc >= 0.75 ? 'Safe Pair of Hands' : acc >= 0.5 ? 'Needs a Second Look' : 'Please Step Away From the Inbox';
+    grade = acc >= 0.9 && MG.correct >= 12 ? 'Inbox Deity' : acc >= 0.75 ? 'Safe Pair of Hands' : acc >= 0.5 ? 'Needs a Second Look' : 'Please Step Away From the Inbox';
     fx = { inbox: -MG.correct * 9, safety: (acc >= 0.85 ? 3 : acc >= 0.65 ? 1 : -2) - MG.danger * 3, you: MG.correct >= 12 ? 1 : -1 };
     text = `You cleared ${MG.correct * 9} items' worth of the backlog.` + (MG.danger ? ` ${MG.danger} urgent result${MG.danger > 1 ? 's' : ''} went to the wrong pile. Someone will have to ring those patients this afternoon.` : ' Nothing dangerous slipped through.');
   } else if (MG.game === 'walkround') {

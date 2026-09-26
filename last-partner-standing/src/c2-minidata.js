@@ -1,4 +1,4 @@
-/* ---------------- Docman Dash items ---------------- */
+/* ---------------- Inbox Dash items ---------------- */
 // a = accepted bins. file / action / urgent / bounce
 const DOCS = [
   {k:'Blood result',f:'Pathology',b:'Potassium 6.8 mmol/L, sample not haemolysed. Mr D, 71, on ramipril and spironolactone.',a:['urgent'],w:'Hyperkalaemia on an ACE inhibitor and spironolactone: same-day action.'},

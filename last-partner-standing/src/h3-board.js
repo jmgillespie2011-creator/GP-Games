@@ -18,6 +18,17 @@ function boardFetch(path, opts) {
     .finally(() => { if (t) clearTimeout(t); });
 }
 function cleanName(n) { return String(n || '').replace(/[^A-Za-z0-9 .'-]/g, '').replace(/\s+/g, ' ').trim().slice(0, 24); }
+// A light word filter for the public board. The same lists are enforced in the database trigger (supabase/lps_scores.sql).
+// Letters are compared with look-alike digits swapped back and spaces and punctuation removed, so "f.u c k" and "5h1t" are caught.
+const BAD_PARTS = ['fuck', 'cunt', 'nigg', 'whore', 'bitch', 'bastard', 'twat', 'bollock', 'hitler', 'paedo', 'retard', 'spastic', 'tranny', 'wanker'];
+const BAD_WORDS = ['dick', 'cock', 'arse', 'ass', 'tits', 'rape', 'fag', 'faggot', 'paki', 'spaz', 'chink', 'coon', 'dyke', 'gook', 'wog', 'jizz', 'cum', 'nonce', 'prick', 'knob', 'shit', 'shite', 'shitty', 'wank', 'piss', 'pissed', 'pedo', 'porn', 'nazi', 'kike', 'slut'];
+function nameOk(n) {
+  const low = String(n || '').toLowerCase().replace(/[013457]/g, d => ({ 0: 'o', 1: 'i', 3: 'e', 4: 'a', 5: 's', 7: 't' })[d]);
+  const squashed = low.replace(/[^a-z]/g, '');
+  if (BAD_PARTS.some(w => squashed.includes(w))) return false;
+  const words = low.split(/[^a-z]+/);
+  return !BAD_WORDS.some(w => words.includes(w) || words.includes(w + 's'));
+}
 function savedBoardName() { try { return localStorage.getItem(BOARD_NAME_KEY) || ''; } catch (e) { return ''; } }
 
 function loadBoard() {
@@ -35,6 +46,7 @@ function postScore() {
   const inp = document.getElementById('board-name');
   const name = cleanName(inp ? inp.value : '');
   if (!name) { toast('Pick a name for the board first.'); return; }
+  if (!nameOk(name)) { toast('That name can\'t go on the board. Pick another.'); return; }
   try { localStorage.setItem(BOARD_NAME_KEY, name); } catch (e) { }
   const E = S.end;
   const row = { name, practice: S.practiceKey, title: String(E.arche.t).slice(0, 48), score: Math.max(0, Math.min(800, E.score)),
@@ -74,7 +86,7 @@ function boardPanelHTML() {
     ? `<p class="fc-note good-t">Your year is on the board${BD.rank ? `, at number ${BD.rank}` : ''}.</p>`
     : `<div class="board-form"><label for="board-name">Name on the board</label><div class="name-row"><input id="board-name" maxlength="24" autocomplete="nickname" value="${esc(savedBoardName() || 'Dr ' + S.name)}"></div>
        <button class="btn primary" data-act="board-post" ${BD.posting ? 'disabled' : ''}>${BD.posting ? 'Posting…' : `Post my score (${E.score})`}</button></div>
-       <p class="fc-note">Everyone can see the board. Use a nickname if you'd rather not use your real name.</p>`;
+       <p class="fc-note">Everyone can see the board. Only the name you choose, your score and your year's results are stored, with no other details about you. Use a nickname if you'd rather not use your real name. Offensive names are blocked and removed.</p>`;
   return `<section class="panel" id="board-panel"><h3>Leaderboard <small>top 20 partners</small></h3>${form}${boardInner()}</section>`;
 }
 function boardOverlayHTML() {

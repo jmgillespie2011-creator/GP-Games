@@ -92,6 +92,7 @@ function renderTitle() {
           <li>Survive to 31st March 2027 and the accountant tells you what it was all worth, after tax.</li>
         </ul>
         ${explain('About the numbers', `<p>The money runs on real 2026/27 figures for England: the £130.07 global sum, QOF at £227.95 a point, 15% employer NI, 14.38% employer pension, locum rates and partner tax. Cards marked <b>Real figures</b> or <b>Real rule</b> show their sources.</p><p>It's a simplified model of a GMS practice, not financial, tax or medical advice. The practices, people and companies are fictional. Not affiliated with the NHS, the BMA or any government body.</p>`)}
+        ${explain('Privacy', `<p>Your game is saved only in this browser. Nothing about you is sent anywhere unless you post a score to the leaderboard. That stores the name you choose, your score, your practice and your year's results, publicly, with no email or other details. Use a nickname if you like.</p><p>The page loads its fonts from Google Fonts, and the website's host keeps standard access logs. There are no adverts, analytics or tracking cookies.</p>`)}
       </div>
     </section>
     <section class="setup" aria-label="New game">

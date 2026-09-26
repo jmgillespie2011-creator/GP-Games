@@ -3979,7 +3979,7 @@ let UI = { screen: 'title', pickPractice: 'town', nameDraft: '', look: { s: 0, c
 // settings kept in this browser; the 45-second card timer is off by default
 // The maker's own product, shown as a clearly labelled panel on the title and year-end screens,
 // never inside cards. Website only: hidden inside the Claude Artifact (framed) and while `url` is empty.
-const SPONSOR = { name: 'Datim-QI', line: 'An AI quality improvement analyst to support GP practice management.', url: '' };
+const SPONSOR = { name: 'Datim-QI', line: 'An AI quality improvement analyst to support GP practice management.', url: 'https://datim-qi.uk' };
 function sponsorHTML() {
   if (!SPONSOR.url) return '';
   let framed = false; try { framed = window.self !== window.top; } catch (e) { framed = true; }

@@ -7,6 +7,15 @@ const gbp = v => (v < 0 ? '−£' : '£') + Math.round(Math.abs(v)).toLocaleStri
 const pct = v => Math.round(v * 100) + '%';
 let UI = { screen: 'title', pickPractice: 'town', nameDraft: '', look: { s: 0, c: 0 } };
 // settings kept in this browser; the 45-second card timer is off by default
+// The maker's own product, shown as a clearly labelled panel on the title and year-end screens,
+// never inside cards. Website only: hidden inside the Claude Artifact (framed) and while `url` is empty.
+const SPONSOR = { name: 'Datim-QI', line: 'An AI quality improvement analyst to support GP practice management.', url: '' };
+function sponsorHTML() {
+  if (!SPONSOR.url) return '';
+  let framed = false; try { framed = window.self !== window.top; } catch (e) { framed = true; }
+  if (framed) return '';
+  return `<aside class="sponsor" aria-label="From the maker of this game"><div class="eyebrow">From the maker of this game</div><p><b>${esc(SPONSOR.name)}</b>: ${esc(SPONSOR.line)}</p><a class="btn ghost" href="${esc(SPONSOR.url)}" target="_blank" rel="noopener sponsored">Find out more</a></aside>`;
+}
 const SETTINGS_KEY = 'lps-settings-v1', CARD_SECONDS = 45;
 function loadSettings() { try { return Object.assign({ timer: false, quick: true }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) { return { timer: false, quick: true }; } }
 function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(UI.settings)); } catch (e) { } }
@@ -136,6 +145,7 @@ function renderTitle() {
         ${saved ? `<button class="btn" data-act="continue">Continue: ${esc(PRACTICES[saved.practiceKey].surgery)}, ${saved.phase === 'end' ? 'year end' : MONTHS[Math.min(saved.month, 11)]}${saved.yr ? `, year ${saved.yr + 1}` : ''}</button>` : ''}
       </div>
       ${(() => { const w = weeklyChallenge(); return `${first ? '<details class="explain"><summary>Weekly challenge</summary>' : ''}<div class="weekly"><div class="eyebrow">Weekly challenge · ${w.week}</div><p>The brutal one: <b>${esc(PRACTICES[w.practice].surgery)}</b>. Everyone gets the same goal, the same twist and the same luck this week. Compare scores on the leaderboard.</p><button class="btn" data-act="weekly">Play this week's challenge</button></div>${first ? '</details>' : ''}`; })()}
+      ${sponsorHTML()}
       ${loadPlaques().length ? partnersBoardHTML(5) + (loadPlaques().length > 5 ? '<button class="btn ghost" data-act="honours">The whole board</button>' : '') : ''}
     </section>
   </div></main>`;

@@ -145,6 +145,7 @@ function renderEnd() {
       ${chartSVG()}</section>
     ${boardPanelHTML()}
     ${partnersBoardHTML(8)}
+    ${sponsorHTML()}
     <div class="end-actions"><button class="btn" data-act="shareimg">Share a picture</button><button class="btn" data-act="share">Copy my result</button><button class="btn ghost" data-act="again">New partner, same practice</button><button class="btn ghost" data-act="home">Title screen</button></div>
   </div></main>`;
 }

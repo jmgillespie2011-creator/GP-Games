@@ -45,7 +45,7 @@ const empCostK = (pay, penShare) => (pay + P.niRate * Math.max(0, pay - P.niT) +
 const PRACTICES = {
   suburb:{
     key:'suburb',label:'Leafy suburb',diff:'Gentle',surgery:'Oakfield Surgery',place:'Little Oakfield',paper:'The Oakfield Courier',
-    blurb:'Healthy, wealthy and extremely well-informed. They have read the NICE guidance. All of it.',
+    blurb:'Healthy, wealthy and well-informed. The easiest list in the county, on paper. The building is older than the NHS.',
     list:7200,weight:1.02,prev:0.95,lastQof:96,cash:70,overdraft:-70,st:{patients:58,team:64,you:72,safety:62},
     demandRate:0.089,inboxRate:0.05,qofEase:1.08,hire:1.1,rooms:7,premNet:1.5,overhead:0,priv:4.1,
     staff:{recep:5,nurse:2,hca:1,salaried:1,pharm:0,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0}
@@ -81,7 +81,7 @@ const ROLES = {
   para:{name:'Paramedic',arrs:1,sup:1,cost:0.35,cap:55,room:4,hire:0.5,desc:'Home visits and same-day minor illness.'},
   mhp:{name:'Mental health practitioner',arrs:1,sup:1,cost:0.35,cap:40,room:8,hire:0.45,desc:'Longer appointments for the patients who need them most.'},
   cc:{name:'Care coordinator',arrs:1,cost:0.35,qof:2,hire:0.75,desc:'Recalls, care plans, chasing. QOF loves them.'},
-  sp:{name:'Social prescriber',arrs:1,cost:0.35,demand:-2,hire:0.75,desc:'Loneliness, debt, housing. Fewer frequent attenders.'},
+  sp:{name:'Social prescriber',arrs:1,cost:0.35,demand:-2,hire:0.75,desc:'Loneliness, debt, housing: the things a prescription can\'t fix.'},
   gpa:{name:'GP assistant',arrs:1,cost:0.35,clear:80,hire:0.7,desc:'Codes letters, preps results, tames the inbox.'}
 };
 const ROLE_ORDER = ['salaried','nurse','hca','recep','pharm','physio','para','mhp','cc','sp','gpa'];
@@ -126,7 +126,7 @@ const CAST = {
   kayleigh:{name:'Kayleigh Dunn',role:'Receptionist',m:'KD',c:'#C9731F'},
   raj:{name:'Raj Mistry',role:'Clinical Pharmacist',m:'RM',c:'#3A7535'},
   kevin:{name:'Kevin Doyle',role:'Finance administrator',m:'KV',c:'#5B6B2E'},
-  pratt:{name:'Mr Derek Pratt',role:'Patient, 71',m:'DP',c:'#666B70'},
+  pratt:{name:'Mr Derek Pritchard',role:'Patient, 71',m:'DP',c:'#666B70'},
   higgins:{name:'Mrs Edna Higgins',role:'Patient, 84',m:'EH',c:'#B55C80'},
   jay:{name:'Jay',role:'Wants to register',m:'J',c:'#6B5B95'},
   icb:{name:'Jonathan Price',role:'ICB Primary Care Commissioning',m:'JP',c:'#314559'},

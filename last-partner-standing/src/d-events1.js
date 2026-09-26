@@ -72,7 +72,7 @@ EVENTS.push(
 {id:'okoye_staying',arc:1,who:'okoye',title:'The laminated advert',cond:()=>isActive('okoye')&&S.okoye<60,tag:'story',
  text:`Nadia drops something in the confidential waste. It's the laminated Perth advert. "This place is mad," she says, "but it's our mad."`,
  choices:[
-  {t:'Hug her (awkwardly)',fx:{team:3,you:3},o:`It's exactly as awkward as expected. Kayleigh sees and tells everyone. Morale improves.`},
+  {t:'Hug her (awkwardly)',fx:{team:3,you:3},o:`It's exactly as awkward as expected. Word gets round. Morale improves.`},
   {t:'Buy her a proper coffee',fx:{you:2,team:1},o:`Flat white, oat milk, from the good place. Twenty minutes of actual conversation. Neither of you mentions work.`}
  ]},
 
@@ -118,7 +118,7 @@ EVENTS.push(
  choices:[
   {t:'Sell. Let someone else hold the liability.',run(){ S.exit='sold'; return {o:`You sign. The papers take three minutes. The phones switch to a national call centre the following Monday.`}; }},
   {t:'Politely decline',fx:{you:1},o:`"Totally understand," he says, already typing an email to the practice down the road.`},
-  {t:'Tell him where to put his synergies',fx:{team:4,you:3,rep:2},o:`Kayleigh tells the whole building. Morale is briefly excellent.`}
+  {t:'Tell him where to put his synergies',fx:{team:4,you:3,rep:2},o:`Word reaches the whole building by lunchtime. Morale is briefly excellent.`}
  ]},
 
 {id:'cqc_call',who:'bev',title:'The phone call',months:[4,5,6,7,8],w:()=>S.st.safety<45||S.rep<45?5:3,tag:'real',src:['S33'],

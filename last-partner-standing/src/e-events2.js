@@ -43,7 +43,7 @@ EVENTS.push(
 
 {id:'pratt_complaint',who:'pratt',title:'A formal complaint',tag:'rule',
  info:'NHS complaints must be acknowledged within three working days, and complainants can escalate to the Parliamentary and Health Service Ombudsman. Many complaints are really about access.',
- text:`Mr Pratt has written a formal complaint. He was told to ring back at 8am four days running, then offered a routine appointment in three weeks. He has copied in the ICB and his MP. He isn't wrong.`,
+ text:`Mr Pritchard has written a formal complaint. He was told to ring back at 8am four days running, then offered a routine appointment in three weeks. He has copied in the ICB and his MP. He isn't wrong.`,
  choices:[
   {t:'Invite him in to talk it through',fx:{you:-3,patients:2,rep:2},o:`He talks for an hour about his wife's dementia and why he gets so angry on the phone. At the end he shakes your hand: "First time anyone's listened."`},
   {t:'Send a careful written response',fx:{patients:-1,safety:1},o:`Your response is measured and correct. His reply is longer.`},
@@ -137,7 +137,7 @@ EVENTS.push(
 {id:'dna',who:'bev',title:'Did not attend',tag:'story',
  text:`Last month 186 booked appointments weren't attended. That's about 30 GP sessions. Bev has made a poster that says "186 PEOPLE WASTED APPOINTMENTS" in red capitals.`,
  choices:[
-  {t:'Automated reminders with an easy cancel link',fx:{demand:-1.5,patients:1},run(){ addMod({id:'sms',label:'Text reminder service',months:99,fx:{cash:-0.15}}); },o:`Missed appointments drop by a third, for about £150 a month. Three people reply "CANCEL MY ACCOUNT". It isn't that kind of service.`},
+  {t:'Automated reminders with an easy cancel link',fx:{demand:-1.5,patients:1},run(){ addMod({id:'sms',label:'Text reminder service',months:99,fx:{cash:-0.15}}); },o:`Missed appointments drop by a third, for about £150 a month. The first batch of reminders goes out at 3am, until Bev finds the setting.`},
   {t:'Put the poster up',fx:{patients:-2,demand:-0.5,rep:-1},o:`The people who read the poster are the people who came. They feel told off.`},
   {t:'Leave it. Most of them had reasons.',fx:{you:1},o:`Fair. Several were stuck in the phone queue trying to cancel.`}
  ]},

@@ -28,7 +28,7 @@ EVENTS.push(
  info:'ICBs commission community dermatology services locally, and some have been paused or closed. In 2026, for example, services delivered by GP practices in East Sussex were suspended. When a service goes, its patients come back to general practice, and more are referred to hospital dermatology, where waits are already long.',
  text:`Jonathan from the ICB writes: the community dermatology service will close at the end of the month "as part of a pathway review". Its patients now come back to you: eczema that needs a plan, moles that need a look, and anything the hospital won't take.`,
  choices:[
-  {t:'Absorb the work',fx:{demand:2,inbox:30,you:-1},o:`The skin appointments start the following Monday. So do the photos of moles, sent in by online form, some of them in focus.`},
+  {t:'Absorb the work',fx:{demand:2,inbox:30,you:-1},o:`The skin appointments start the following Monday. So do the photos of moles, which the online form rejects if they're over 2MB, so they arrive by email instead.`},
   {t:'Train a GP in dermoscopy and run your own skin clinic (£2,500)',fx:{demand:2,cash:-2.5,you:-2,safety:2},run(){ addMod({id:'derm',label:'In-house skin clinic',months:99,demand:-1.5,hours:1}); },o:`A dermoscope, a two-day course and a Tuesday skin clinic. You catch a melanoma in the second month, and send far fewer "just in case" referrals.`},
   {t:'Push back with the LMC and neighbouring practices',fx:{icb:-2,you:-1},alt:{p:0.6,fx:{demand:2,icb:-3,you:-2},o:`The ICB "notes your concerns". The service closes on schedule.`},o:`Three practices and the LMC write together. The ICB agrees to keep the service going for another year while it "reviews options".`}
  ]},

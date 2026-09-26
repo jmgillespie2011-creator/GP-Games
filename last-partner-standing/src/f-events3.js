@@ -18,9 +18,9 @@ EVENTS.push(
  ]},
 
 {id:'wrong_letter',who:'bev',title:'Wrong address',tag:'story',
- text:`A hospital letter about Mrs A was scanned into Mrs B's record, then posted to Mrs B. Mrs B rings to say she has "learned a lot about Mrs A's bowels".`,
+ text:`A hospital letter about Mrs A was scanned into Mrs B's record, then posted to Mrs B. Mrs B rings, kindly, to say she has a letter that isn't hers. The scanning software is 97% accurate. Today was the other 3%.`,
  choices:[
-  {t:'Log it as a data breach and apologise to both',fx:{safety:4,you:-2},o:`You assess it against the reporting criteria, record it properly and apologise to both patients. Mrs A is gracious. Mrs B is enjoying herself.`},
+  {t:'Log it as a data breach and apologise to both',fx:{safety:4,you:-2},o:`You assess it against the reporting criteria, record it properly and apologise to both patients. Both are gracious about it, which is more than the scanning software deserves.`},
   {t:'Apologise and move on',fx:{you:1},later:[{in:2,p:0.35,fx:{safety:-8,rep:-3,cash:-5},note:'Mrs A complained to the Information Commissioner about the misfiled letter. The legal advice cost £5,000.'}],o:`It blows over. Probably.`}
  ]},
 
@@ -162,15 +162,15 @@ EVENTS.push(
 {id:'measles',who:'maureen',title:'Measles',months:[3,4,5,6,7,8,9],tag:'story',
  text:`There's measles at the primary school on Mill Lane: four confirmed cases. Your MMR uptake at age five is 81%. Maureen has pulled up the list of unvaccinated children. It's long.`,
  choices:[
-  {t:'Catch-up clinics every evening this week',fx:{team:-3,you:-2,safety:3,qof:2,cash:1.5,rep:2},o:`Maureen vaccinates 94 children. One parent says "I didn't know it was still a thing". It is still a thing.`},
+  {t:'Catch-up clinics every evening this week',fx:{team:-3,you:-2,safety:3,qof:2,cash:1.5,rep:2},o:`Maureen vaccinates 94 children. Several parents say nobody had ever followed up the missed appointment. Now somebody has.`},
   {t:'Send letters and carry on',fx:{safety:-2,patients:-1},o:`Nine families book in. The outbreak team calls to ask what else you're doing.`}
  ]},
 
 {id:'heatwave',who:'bev',title:'Heatwave',months:[2,3,4],tag:'story',
- text:`It's 33°C. The server cupboard is 41°C and making a noise like a hairdryer. The waiting room smells like a bus.`,
+ text:`It's 33°C. The server cupboard is 41°C and making a noise like a hairdryer. The waiting room fan is moving hot air from one side of the room to the other.`,
  choices:[
   {t:'Buy portable air conditioning (£800)',fx:{cash:-0.8,team:3},o:`The server stops wheezing. So does Maureen.`},
-  {t:'Prop the doors and windows open',fx:{safety:-2,team:-1},o:`A pigeon enters Room 5 during a smear. Consent was not obtained, from anyone.`}
+  {t:'Prop the doors and windows open',fx:{safety:-2,team:-1},o:`A pigeon gets into Room 5 during a diabetes review and settles on the sharps bin. It takes two nurses and a towel to persuade it out.`}
  ]},
 
 {id:'pharmacy_close',who:'chemist',title:'The pharmacy on the high street',tag:'story',

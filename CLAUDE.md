@@ -14,6 +14,7 @@ A single-page vanilla JS game with no dependencies. The only build step is conca
   - `.vercelignore` keeps source, tools and docs out of the deployment.
   - Rebuild before deploying.
   - The Vercel project `last-partner-standing` (https://last-partner-standing.vercel.app) used to hold a different build of the game. Since September 2026 it serves this game too. It isn't linked to GitHub, so deploy it by hand from this repo (a production deployment with a GitHub `gitSource` for this repo and branch) whenever you deploy `gp-games`, until it is linked in the Vercel dashboard.
+- Leaderboard database: `last-partner-standing/supabase/lps_scores.sql` creates the table, row-level security (anyone can read and insert; nobody can update or delete), sanity checks on values and a limit of 30 posts a minute. Scores are computed in the browser, so they can be faked.
 - Save games (`lps-save-v2`) and best scores (`lps-best-v1`) live in `localStorage`. Every access is wrapped in try/catch. Bump the save key if the state shape changes.
 
 ### src files
@@ -32,6 +33,7 @@ A single-page vanilla JS game with no dependencies. The only build step is conca
 - `g2-endings.js`: CQC ratings, game overs, other endings, year-end accounts and the partner's own tax and pension (`personalTax`), and saving.
 - `h-ui.js`: helpers (`explain()` for expandable explainers, `srcLinks()`), HUD, title, month plan and cards.
 - `h2-screens.js`: month report, endings, overlays (how to play, glossary, sources) and input handling via event delegation on `data-act`.
+- `h3-board.js`: the shared leaderboard. It reads and posts scores in the Supabase table `lps_scores` through its REST API, using the project URL and publishable key in `BOARD`. With `BOARD.url` empty, it stays hidden. It shows on the year-end screen, the title screen and in the menu. Inside a Claude Artifact the network is blocked, so it points players to the website.
 - `i-mini.js`: the three mini-games (Docman Dash, The 8am Rush, The Walkround), then boot.
 
 ### How consequences work

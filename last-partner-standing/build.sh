@@ -3,7 +3,7 @@
 #  last-partner-standing.html  - Artifact source (the publish step adds doctype/head)
 #  last-partner-standing-play.html - standalone copy to open directly in any browser
 cd "$(dirname "$0")"
-JS="src/c-data.js src/c2-minidata.js src/d-events1.js src/e-events2.js src/f-events3.js src/f2-events4.js src/f3-events5.js src/g-engine.js src/g2-endings.js src/h-ui.js src/h2-screens.js src/i-mini.js"
+JS="src/c-data.js src/c2-minidata.js src/d-events1.js src/e-events2.js src/f-events3.js src/f2-events4.js src/f3-events5.js src/g-engine.js src/g2-endings.js src/h-ui.js src/h2-screens.js src/h3-board.js src/i-mini.js"
 OUT=last-partner-standing.html
 cat src/a-head.html > "$OUT"
 printf '<div id="app"></div>\n<script>\n' >> "$OUT"

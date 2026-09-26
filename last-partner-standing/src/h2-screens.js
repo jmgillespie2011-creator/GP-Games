@@ -133,6 +133,7 @@ function renderEnd() {
     <section class="panel"><h3>The practice</h3>${statLines(null)}
       ${S.cqc ? `<div class="cqc-card">${Object.keys(S.cqc.rates).map(k => `<div class="row"><span>${k}</span><span class="rate ${S.cqc.rates[k]}">${RATE_NAME[S.cqc.rates[k]]}</span></div>`).join('')}<div class="row overall"><span>Overall</span><span class="rate">${RATE_NAME[S.cqc.overall]}</span></div></div>` : '<p class="fc-note">CQC never came. Enjoy it while it lasts.</p>'}
       ${chartSVG()}</section>
+    ${boardPanelHTML()}
     <div class="end-actions"><button class="btn primary" data-act="again">Another year</button><button class="btn" data-act="share">Copy my result</button><button class="btn ghost" data-act="home">Title screen</button></div>
     ${best.length ? `<div class="best"><div class="eyebrow">Your best years</div><ol style="margin:6px 0 0;padding-left:1.2em">${best.map(b => `<li>${b.score} · ${esc(b.t)} · ${esc(b.p)}</li>`).join('')}</ol></div>` : ''}
   </div></main>`;
@@ -172,7 +173,7 @@ function sourcesHTML() {
 }
 function menuHTML() {
   return `<h2>Menu</h2><p class="muted">Your game saves automatically after every decision, in this browser only.</p>
-  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button><button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
+  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
 }
 function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); }
 
@@ -185,7 +186,7 @@ function render() {
     case 'outcome': return renderOutcome();
     case 'mini': return renderMini();
     case 'report': return renderReport();
-    case 'end': return renderEnd();
+    case 'end': { const first = BD.for !== S.end; if (first) { BD.for = S.end; BD.posted = null; BD.rank = null; BD.tab = 'all'; BD.rows = null; } renderEnd(); if (first) loadBoard(); return; }
     case 'over': return renderOver();
   }
 }
@@ -241,7 +242,7 @@ document.addEventListener('click', ev => {
       try { navigator.clipboard.writeText(txt).then(done, () => { fallback(); const t = document.getElementById('sharebox'); if (t) t.select(); }); } catch (e) { fallback(); }
       break;
     }
-    default: if (typeof miniAction === 'function') miniAction(a, arg);
+    default: if (typeof boardAction === 'function' && boardAction(a, arg)) break; if (typeof miniAction === 'function') miniAction(a, arg);
   }
 });
 document.addEventListener('click', ev => { if (ev.target.id === 'overlay') closeOverlay(); });

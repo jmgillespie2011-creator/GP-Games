@@ -26,7 +26,7 @@ A single-page vanilla JS game with no dependencies. The only build step is conca
 - `c2-minidata.js`: Docman Dash, 8am Rush and Walkround items.
 - `d-events1.js`: story arcs (scheduled): partners, CQC, QOF year end.
 - `e-events2.js`: patient, team and wellbeing cards.
-- `f-events3.js`: money, safety and systems cards.
+- `f-events3.js`: money, safety and systems cards. These include the clinical system outage (paper notes, handwritten FP10s, no records; a continuity kit sets `flags.bcp` and softens later outages), ICB-pushed Windows updates, and medicine shortages (Medicine Supply Notifications and Serious Shortage Protocols).
 - `f2-events4.js`: the real calendar (contract day, pay awards, patient survey, headline, flu, winter), real-rule cards, crisis cards and the other endings.
 - `f3-events5.js`: CQC myths and oddities from CQC's own GP mythbusters (Gavin the consultant, Gerald the fish tank, furosemide, curtains, knitted ducks, carpet, DBS), the draft-report challenge and the Walkround mini-game card. `cqcPrep(n)` banks credit that `runCQC` adds to Safe and, halved, to Well-led.
 - `g-engine.js`: state `S`, month flow, the money model (`calc`), where meters are heading (`targets`), state-driven incidents and delayed consequences (`monthEnd`).

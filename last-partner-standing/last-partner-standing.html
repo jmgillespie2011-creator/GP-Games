@@ -697,6 +697,12 @@ const SOURCES = {
   S43:['BMA Law: avoid being the last partner standing','https://bmalaw.co.uk/resources/avoid-being-the-last-partner-standing/','B'],
   S58:['NHS England Digital: General Practice Workforce, 31 August 2026','https://digital.nhs.uk/data-and-information/publications/statistical/general-and-personal-medical-services/31-august-2026','A'],
   S59:['BMA: Pressures in general practice, data analysis','https://www.bma.org.uk/advice-and-support/nhs-delivery-and-workforce/pressures/pressures-in-general-practice-data-analysis','B'],
+  S60:['Digital Health: global IT outage disrupting NHS GP systems, July 2024','https://www.digitalhealth.net/2024/07/global-it-outage-disrupting-nhs-caused-by-antivirus-software/','B'],
+  S61:['Community Pharmacy England: EPS technical issues and contingency arrangements','https://cpe.org.uk/digital-and-technology/contingency-it/eps-contingencies/','B'],
+  S62:['NHS England: GP digital services operating model','https://www.england.nhs.uk/digitaltechnology/digital-primary-care/gp-digital-services-operating-model/','A'],
+  S63:['NHSBSA: Serious Shortage Protocols','https://www.nhsbsa.nhs.uk/pharmacies-gp-practices-and-appliance-contractors/serious-shortage-protocols-ssps','A'],
+  S64:['Community Pharmacy England: medicine shortages','https://cpe.org.uk/dispensing-and-supply/supply-chain/medicine-shortages/','B'],
+  S65:['House of Commons Library: medicines shortages','https://commonslibrary.parliament.uk/research-briefings/cbp-9997/','A'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
   S46:['CQC: GP mythbuster 1, emergency care in general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-1-emergency-care-general-practice','A'],
@@ -742,6 +748,8 @@ const GLOSSARY = [
   ['GP mythbusters','CQC\'s own series of over a hundred short guides saying what inspectors do and don\'t expect, written because practices kept doing expensive things nobody required.',['S45']],
   ['Risk assessment','A written record of a hazard, who it could harm and what you do about it. CQC often accepts a reasoned risk assessment where a practice has chosen not to do something, such as stocking a particular emergency drug.',['S45','S46']],
   ['Factual accuracy check','Before a CQC report is published the practice gets a draft and can challenge factual errors, with evidence.',['S53']],
+  ['EPS and FP10','The Electronic Prescription Service sends prescriptions straight to the patient\'s chosen pharmacy. When it or the clinical system is down, prescriptions go on paper FP10 forms, signed in ink.',['S61']],
+  ['Medicine shortages','The Department of Health issues Medicine Supply Notifications with advice on alternatives, and for serious shortages a Serious Shortage Protocol, which lets pharmacists supply a set alternative without a new prescription.',['S63','S64']],
   ['Suspected cancer referral','An urgent referral when cancer is a possibility. It used to be called the two-week wait.',[]]
 ];
 /* ---------------- Docman Dash items ---------------- */
@@ -1383,11 +1391,36 @@ EVENTS.push(
   {t:'Send everyone to the hospital walk-in',fx:{patients:-4,team:1,icb:-2},run(){ addMod({id:'cyber',label:'Pathology outage',months:2,fx:{qof:-2}}); },o:`The hospital walk-in queue goes out of the door. The hospital writes a stern letter about "inappropriate GP redirection".`}
  ]},
 
-{id:'it_outage',who:'it',title:'System down',tag:'story',
- text:`08:04 Monday. The clinical system is down. No records, no prescribing, no appointments. The helpdesk estimates "sometime today". The waiting room is filling up.`,
+{id:'it_outage',who:'it',title:'System down',rep:1,max:2,w:()=>S.counts.it_outage?0.6:1,tag:'real',src:['S60','S61'],
+ info:'In July 2024 a faulty security update took down Windows machines worldwide, and with them the clinical system many GP practices use to book appointments, read notes and send prescriptions. Practices went back to paper records and handwritten prescriptions, without access to test results. With the Electronic Prescription Service down, prescriptions go on paper FP10 forms, and pharmacies can\'t download them. Business continuity plans usually include a printed or offline summary of each day\'s patients.',
+ text:()=>`08:04 Monday. The clinical system is down across the area. No appointment book, no past medical history, no allergies, no repeat lists, no results, and no electronic prescriptions. The supplier says "sometime today". ${S.flags.bcp ? 'At least last night\'s offline summary printed: problems, medicines and allergies for everyone booked today.' : 'Nobody printed anything last night, because nobody ever has.'} The waiting room is filling up.`,
  choices:[
-  {t:'Paper day: handwritten notes, scan later',fx:{safety:-2,you:-2,team:3,inbox:60},o:`Maureen finds the paper prescription pads. Alan knows how to do this from 1989. There's a Blitz spirit. Then there's the scanning.`},
-  {t:'Urgent-only service until it\'s back',fx:{patients:-4,you:1},o:`It's back at 1:40pm. You spend the afternoon rebooking the morning.`}
+  {t:'Paper day: handwritten notes, handwritten FP10s, scan it all in later',
+   fx:()=>S.flags.bcp?{team:3,you:-2,inbox:60,safety:-1}:{team:3,you:-3,inbox:90,safety:-4},
+   run(){ addMod({id:'paperday',label:'Catching up after the system outage',months:1,capMul:0.9,hours:2}); },
+   later:[{in:1,p:0.25,fx:{safety:-3,you:-2},note:'Because the paper day ran without records: a handwritten prescription clashed with a medicine nobody could see on the repeat list. The pharmacist caught it and rang you.'}],
+   o:()=>S.flags.bcp?`Everyone works from the printed summary. Every consultation still starts with "and what tablets are you on?", but the allergies are on paper in front of you. Prescriptions go on FP10 pads, signed in ink. Then there's the scanning.`:`Kayleigh rebuilds the morning list from the phone log and memory. Every consultation starts with "and what tablets are you on?" One patient mentions, just in time, that she's allergic to penicillin. Prescriptions go on FP10 pads, and the pharmacy across the road rings about your handwriting. Then there's the scanning.`},
+  {t:'Urgent only today. Rebook everyone else.',fx:{patients:-5,you:1,safety:1},run(){ addMod({id:'rebook',label:'Rebooking after the outage',months:1,demand:4}); },o:`It comes back at 1:40pm. You spend the afternoon rebooking the morning, and next month is busier for it.`},
+  {t:'Get through today, then buy a proper continuity kit (£1,200)',need:()=>!S.flags.bcp,why:'You already have one',fx:{team:1,you:-2,inbox:70,safety:-2,cash:-1.2,flags:{bcp:1},aim:{safety:1}},o:`Paper today. From tomorrow the system prints an overnight summary of each day's patients, there's a 4G backup router, and the FP10 pads live in a labelled drawer. Next time will still be bad, but not blind.`}
+ ]},
+
+{id:'windows_update',who:'it',title:'Working on updates',rep:1,max:2,tag:'real',src:['S62'],
+ info:'Under NHS England\'s GP IT operating model, ICBs commission and run most practices\' IT, including patching and operating system updates, which are part of the cyber security rules. When updates land at the wrong time, the first session of the day starts without computers or smartcards.',
+ text:`08:00. Every PC in the building says "Working on updates 12%. Don't turn off your computer." The ICB's IT provider pushed Windows updates overnight. Your first patient is booked for 8:10. When the PCs come back, the smartcard readers will want a restart too.`,
+ choices:[
+  {t:'Start on the phones, with notes on paper, until they\'re back',fx:{patients:-1,team:-2,you:-2,inbox:15},o:`Half an hour of phone consultations written on the back of old letters. At 8:37 the computers come back, then ask for another restart.`},
+  {t:'Ring the IT helpdesk',fx:{you:-2,patients:-2},o:`Ticket #448214 is logged at 8:06. It's resolved at 8:41, when the update finishes by itself. Your morning clinic finishes at 1:15.`},
+  {t:'Ask the ICB to schedule updates overnight, with notice',fx:{you:-1,icb:1},later:[{in:2,p:0.6,fx:{team:2,you:1},note:'The ICB\'s IT provider moved practice updates to 2am, with a week\'s notice. Mornings start on time again.'}],o:`A polite email, copied to the LMC. The reply says your "feedback has been logged". Two months later, surprisingly, something changes.`}
+ ]},
+
+{id:'med_shortage',who:'chemist',title:'Out of stock',rep:1,max:2,tag:'real',src:['S63','S64','S65'],
+ info:'When a medicine is in short supply, the Department of Health and Social Care issues a Medicine Supply Notification with advice on alternatives. Every switch then needs a new prescription. For serious shortages it can issue a Serious Shortage Protocol, which lets pharmacists supply a set alternative, a reduced quantity or a different form without going back to the GP. Recent shortages have included HRT, ADHD medicines, some diabetes medicines and antibiotics, mostly because of manufacturing problems.',
+ text:()=>{ const opts=[['An HRT patch',0.009],['A common ADHD medicine',0.004],['A widely used diabetes medicine',0.012],['A first-line antibiotic',0.003],['A common epilepsy medicine',0.003]]; if(S.flags.shortDrug==null) S.flags.shortDrug=Math.floor(Math.random()*opts.length); const [d,rate]=opts[S.flags.shortDrug]; return `Ashok rings. "${d} is out of stock everywhere. The wholesalers say eight weeks, maybe twelve." About ${Math.max(12,Math.round(S.list*rate))} of your patients take it. There's a Medicine Supply Notification listing alternatives, but there's no Serious Shortage Protocol, so every switch needs a new prescription from you.`; },
+ after(){ delete S.flags.shortDrug; },
+ choices:[
+  {t:'Raj reviews every patient and switches them one by one',need:()=>S.staff.pharm>0,why:'You need a clinical pharmacist',fx:{inbox:35,safety:3,patients:1,you:-1},o:`Raj works through the list: the right alternative for each patient, their other medicines checked, and a text explaining the change. Three patients need a GP. Nobody goes without.`},
+  {t:'Switch everyone to the first listed alternative in one batch',fx:{inbox:15,patients:-1,safety:-1},later:[{in:1,p:0.45,fx:{inbox:30,patients:-2,safety:-2},note:'Because of the batch switch: thirty patients rang about tablets that look different, and two had side effects from the alternative.'}],o:`One search, one batch of prescriptions, one text message. It's done by lunchtime. Mostly.`},
+  {t:'Tell patients to try other pharmacies',fx:{patients:-4,rep:-2,inbox:10},later:[{in:1,p:0.5,fx:{safety:-4,you:-2},note:'Because patients were sent pharmacy to pharmacy: one went three weeks without their medicine and ended up in A&E.'}],o:`Reception gives out a list of pharmacies. Patients ring round, then ring you back.`}
  ]},
 
 {id:'phones',who:'kayleigh',title:'The phones have died',cond:()=>!S.flags.telephony,tag:'story',

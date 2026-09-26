@@ -237,6 +237,12 @@ const SOURCES = {
   S43:['BMA Law: avoid being the last partner standing','https://bmalaw.co.uk/resources/avoid-being-the-last-partner-standing/','B'],
   S58:['NHS England Digital: General Practice Workforce, 31 August 2026','https://digital.nhs.uk/data-and-information/publications/statistical/general-and-personal-medical-services/31-august-2026','A'],
   S59:['BMA: Pressures in general practice, data analysis','https://www.bma.org.uk/advice-and-support/nhs-delivery-and-workforce/pressures/pressures-in-general-practice-data-analysis','B'],
+  S60:['Digital Health: global IT outage disrupting NHS GP systems, July 2024','https://www.digitalhealth.net/2024/07/global-it-outage-disrupting-nhs-caused-by-antivirus-software/','B'],
+  S61:['Community Pharmacy England: EPS technical issues and contingency arrangements','https://cpe.org.uk/digital-and-technology/contingency-it/eps-contingencies/','B'],
+  S62:['NHS England: GP digital services operating model','https://www.england.nhs.uk/digitaltechnology/digital-primary-care/gp-digital-services-operating-model/','A'],
+  S63:['NHSBSA: Serious Shortage Protocols','https://www.nhsbsa.nhs.uk/pharmacies-gp-practices-and-appliance-contractors/serious-shortage-protocols-ssps','A'],
+  S64:['Community Pharmacy England: medicine shortages','https://cpe.org.uk/dispensing-and-supply/supply-chain/medicine-shortages/','B'],
+  S65:['House of Commons Library: medicines shortages','https://commonslibrary.parliament.uk/research-briefings/cbp-9997/','A'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
   S46:['CQC: GP mythbuster 1, emergency care in general practice','https://www.cqc.org.uk/guidance-providers/gps/gp-mythbusters/gp-mythbuster-1-emergency-care-general-practice','A'],
@@ -282,5 +288,7 @@ const GLOSSARY = [
   ['GP mythbusters','CQC\'s own series of over a hundred short guides saying what inspectors do and don\'t expect, written because practices kept doing expensive things nobody required.',['S45']],
   ['Risk assessment','A written record of a hazard, who it could harm and what you do about it. CQC often accepts a reasoned risk assessment where a practice has chosen not to do something, such as stocking a particular emergency drug.',['S45','S46']],
   ['Factual accuracy check','Before a CQC report is published the practice gets a draft and can challenge factual errors, with evidence.',['S53']],
+  ['EPS and FP10','The Electronic Prescription Service sends prescriptions straight to the patient\'s chosen pharmacy. When it or the clinical system is down, prescriptions go on paper FP10 forms, signed in ink.',['S61']],
+  ['Medicine shortages','The Department of Health issues Medicine Supply Notifications with advice on alternatives, and for serious shortages a Serious Shortage Protocol, which lets pharmacists supply a set alternative without a new prescription.',['S63','S64']],
   ['Suspected cancer referral','An urgent referral when cancer is a possibility. It used to be called the two-week wait.',[]]
 ];

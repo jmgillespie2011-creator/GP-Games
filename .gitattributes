@@ -1,0 +1,2 @@
+# build scripts must keep Unix line endings to run under sh
+*.sh text eol=lf

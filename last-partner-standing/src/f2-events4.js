@@ -212,6 +212,7 @@ EVENTS.push(
  text:()=>`Payroll is due and you're past the £${Math.abs(S.overdraft)}k overdraft limit. The bank will extend it by £60,000 if every partner signs a personal guarantee.`,
  choices:[
   {t:'Sign the personal guarantee',fx:{you:-8},alt:{p:0.15,fx:{you:-10},run(){ S.overdraft-=30; },o:`The bank's credit committee only agrees £30,000, against your house. Payroll goes out. Next month's won't unless something changes.`},run(){ if(!S._alt) S.overdraft-=60; },o:`Your signature now secures the practice overdraft against your house. Payroll goes out on time. Staff will never know.`},
+  {t:'Ring Parkside about a merger',run(){ if(chance(0.7)){ S.exit='merged'; return {o:`Dr Rowe has been expecting the call. Parkside takes on your staff, your list and, after some hard negotiation, most of the overdraft. Your partnership ends; your patients keep their doctors.`}; } applyFx({you:-4}); S.overdraft-=20; return {o:`Parkside's partners look at your accounts and say no: "We can't take on that overdraft." The bank grudgingly extends the limit by £20,000 while you think again.`}; }},
   {t:'Refuse. Hand back the contract.',run(){ S.exit='handback'; return {o:`You refuse. The partnership can't pay its staff, so it hands back its contract.`}; }}
  ]},
 

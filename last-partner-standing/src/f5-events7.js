@@ -79,8 +79,8 @@ EVENTS.push(
   {t:'Pay for staff counselling (£150 a month)',fx:{team:4},run(){ addMod({ id: 'counsel', label: 'Staff counselling', months: 99, fx: { cash: -0.15 }, aim: { team: 1 } }); },o:`Four people use it in the first month. Nobody says who.`},
   {t:'"We just need to get through winter."',fx:{team:-6},o:`Maureen nods. She doesn't argue. That's what worries you.`}
  ]},
-{id:'p_merger_again',who:'rowe',title:'Parkside, again',pmin:2,cond:()=>activeOthers()<=1,tag:'story',
- text:`Dr Rowe from Parkside Surgery rings again. "We're both too small to survive on our own. I'd rather merge with you than be taken over by Apex. Think about it before they do."`,
+{id:'p_merger_again',who:'rowe',title:()=>S.seen.merger_offer?'Parkside, again':'Parkside calls',cond:()=>((S.yr||0)>=1&&activeOthers()<=1)||S.cash<S.overdraft/2,w:()=>S.cash<S.overdraft/2?4:1,tag:'story',
+ text:()=>`Dr Rowe from Parkside Surgery rings${S.seen.merger_offer ? ' again' : ''}. ${S.cash < S.overdraft / 2 ? `"I hear the bank is getting twitchy. Before it gets worse: merge with us. Your staff keep their jobs and your patients keep their doctors."` : `"We're both too small to survive on our own. I'd rather merge with you than be taken over by Apex. Think about it before they do."`}`,
  choices:[
   {t:'Merge',run(){ S.exit = 'merged'; return { o: `The lawyers take four months. Your brass plate comes down and goes in a drawer at home.` }; }},
   {t:'Not yet',fx:{you:-1},o:`"Not yet," she says. "That's what I said, two years ago."`}

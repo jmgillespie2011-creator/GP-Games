@@ -53,7 +53,7 @@ TR.scene({
     // the kicker types in, then the rule under it draws
     TR.text(root._kick, TR.type('The practice is fictional. The numbers are real.', seg(lt, 0.15, 0.95)));
     root._sx(root._r1, E.inOut(seg(lt, 0.55, 1.35)));
-    root._sx(root._r2, E.inOut(seg(lt, 3.2, 3.9)));
+    root._sx(root._r2, E.inOut(seg(lt, 3.05, 3.75)));
     // a figure arrives: the number rises into place as it counts, then its line, then its source
     const arrive = (F, t0, count, dim) => {
       TR.text(F.f._lv, count);
@@ -62,11 +62,11 @@ TR.scene({
       TR.pose(F.s, { o: E.out(seg(lt, t0 + 0.4, t0 + 0.8)) });
     };
     // the two top figures step back a little once the last one has landed
-    const dim = 1 - 0.2 * E.inOut(seg(lt, 4.3, 5.1));
-    arrive(root._a, 1.25, '£' + (130.07 * E.out(seg(lt, 1.25, 2.05))).toFixed(2), dim);
-    arrive(root._b, 2.35, Math.round(15 * E.out(seg(lt, 2.35, 2.95))) + '%', dim);
-    // the fall counts down more slowly: the last steps (−15, −16, −17) linger
-    const v = Math.round(17 * E.out(seg(lt, 3.45, 4.75)));
-    arrive(root._c, 3.45, v ? '−' + v + '%' : '0%', 1);
+    const dim = 1 - 0.2 * E.inOut(seg(lt, 4.2, 5.0));
+    arrive(root._a, 1.15, '£' + (130.07 * E.out(seg(lt, 1.15, 1.95))).toFixed(2), dim);
+    arrive(root._b, 2.25, Math.round(15 * E.out(seg(lt, 2.25, 2.85))) + '%', dim);
+    // the fall counts down more slowly: the last steps (−15, −16, −17) linger, and −17 lands at about 4.2s
+    const v = Math.round(17 * E.out(seg(lt, 3.3, 4.6)));
+    arrive(root._c, 3.3, v ? '−' + v + '%' : '0%', 1);
   }
 });

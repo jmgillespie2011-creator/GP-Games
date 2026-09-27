@@ -110,12 +110,29 @@ function suggestPlan() {
   while (c.ratio < 0.95 && pl.locum < Math.min(4, locumMax()) && S.cash > S.overdraft + 25) { pl.locum++; c = calc(); }
   if (pl.locum) why.push(`${pl.locum} locum session${pl.locum > 1 ? 's' : ''} a week, because appointments are still short`);
   const done = id => (PROJECTS.find(x => x.id === id) || {}).once && S.flags['proj_' + id];
-  const [proj, because] = S.flags.telephony && !done('telephony') ? ['telephony', 'the new phones are ready to go live']
-    : S.st.team < 45 ? ['wellbeing', 'the team is worn down'] : S.st.safety < 45 ? ['cqc', 'Safety is low'] : S.inbox > 450 ? ['inbox', 'the inbox is over 450']
-    : S.st.patients < 40 ? ['ppg', 'patients are unhappy']
-    : roomsNeeded() + 4 > roomsAvail() && !done('meetingroom') ? ['meetingroom', 'you are nearly out of clinic rooms'] : S.cash < 0 ? ['claims', 'the bank is overdrawn'] : ['qof', 'QOF is money you can still earn'];
+  // weigh every need, and don't nag: a project done last month (or twice in the last three) counts for much less
+  const hist = S.projHist || [], recent = id => hist.slice(-3).filter(x => x === id).length;
+  const cqcSoon = !S.seen.cqc_visit && !(S.yr || 0) ? S.month >= 5 && S.month <= 8 : false;
+  const opts = [
+    ['telephony', S.flags.telephony && !done('telephony') ? 100 : 0, 'the new phones are ready to go live'],
+    ['wellbeing', S.st.team < 45 ? 10 + (45 - S.st.team) * 2 : 0, `Team is down to ${Math.round(S.st.team)}`],
+    ['cqc', (S.st.safety < 45 ? 10 + (45 - S.st.safety) * 2 : 0) + (cqcSoon && S.st.safety < 60 ? 12 : 0), cqcSoon ? 'CQC usually calls before the winter' : `Safety is down to ${Math.round(S.st.safety)}`],
+    ['inbox', S.inbox > 450 ? 10 + (S.inbox - 450) / 10 : 0, `the inbox is at ${Math.round(S.inbox)}`],
+    ['ppg', S.st.patients < 40 ? 10 + (40 - S.st.patients) * 2 : 0, `Patients is down to ${Math.round(S.st.patients)}`],
+    ['meetingroom', roomsNeeded() + 4 > roomsAvail() && !done('meetingroom') && S.cash > S.overdraft + 10 ? 22 : 0, 'you are nearly out of clinic rooms'],
+    ['recruit', Object.keys(S.vac).length ? 14 : 0, 'you have adverts out, and this improves the odds'],
+    ['claims', S.cash < 0 ? 12 * Math.pow(0.55, S.counts.proj_claims || 0) : 0, 'the bank is overdrawn and there is money in the claims'],
+    ['qof', 8 + (S.month >= 6 && S.qof < S.month * 8 ? 8 : 0), S.month >= 6 && S.qof < S.month * 8 ? `QOF is behind at ${Math.round(S.qof)}%` : 'QOF is money you can still earn'],
+    ['digital', !done('digital') && S.cash > S.overdraft + 10 ? 6 : 0, 'clearer online forms cut demand for good'],
+    ['cqc', !recent('cqc') && S.st.safety >= 45 && S.st.safety < 60 ? 4 : 0, 'a check now keeps you ready for CQC'],
+    ['ppg', S.st.patients >= 40 && S.st.patients < 55 ? 4 : 0, 'patient feedback lifts your reputation'],
+    ['none', S.st.you < 35 ? 10 + (35 - S.st.you) : hist[hist.length - 1] !== 'none' ? 3.5 : 0, S.st.you < 35 ? 'You needs a month without extra work' : 'a quiet month gives you some breathing space']
+  ].map(([id, sc, why]) => [id, sc * (hist[hist.length - 1] === id ? 0.4 : 1) * (recent(id) >= 2 ? 0.6 : 1), why])
+   .filter(o => o[1] > 0 && !done(o[0])).sort((a, b) => b[1] - a[1]).filter((o, i, a) => a.findIndex(x => x[0] === o[0]) === i);
+  const [proj, , because] = opts[0] || ['qof', 0, 'QOF is money you can still earn'];
+  const again = hist[hist.length - 1] === proj;
   pl.project = proj;
-  why.push(`Project: ${(PROJECTS.find(x => x.id === proj) || {}).name}, because ${because}`);
+  why.push(`Project: ${(PROJECTS.find(x => x.id === proj) || {}).name}, because ${because}${again ? ' (again: it still matters most)' : ''}`);
   return why;
 }
 // headcount and FTE against the England averages for a list this size
@@ -618,6 +635,7 @@ function monthEnd() {
   px.deltas = diffSnap(px.before, snap());
   if (px.dem) px.dem = Math.max(0, px.dem - calc().demand);
   if (proj.once) S.flags['proj_' + proj.id] = 1;
+  S.projHist = (S.projHist || []).concat(proj.id).slice(-6);
   if (proj.id === 'telephony') S.flags.telephonyLive = 1;
   // Nadia watches everything
   S.okoye = clamp(S.okoye + (c.ratio < 0.9 ? 2 : 0) + (S.st.team < 40 ? 2 : 0) - (S.st.team >= 65 ? 2 : 0) + (pl.draw === 'low' ? 4 : pl.draw === 'high' ? -2 : 0) + (c.hours > 52 ? 1 : 0));

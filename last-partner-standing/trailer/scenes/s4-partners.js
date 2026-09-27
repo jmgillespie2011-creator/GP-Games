@@ -7,7 +7,7 @@ TR.css(`
 .s4-dim,.s4-shade{background:#070A10}
 .s4-rain{position:absolute;background-repeat:repeat;will-change:transform}
 .s4-plate{position:absolute;left:40px;width:1200px}
-.tr-brass.s4-brass{display:grid;grid-template-columns:96px 1fr auto 1fr auto 1fr 96px;align-items:baseline;column-gap:8px;padding:20px 34px 18px;font-size:42px;line-height:1.3;border-top:3px solid #6B5220;border-bottom:3px solid #6B5220;border-radius:6px;box-shadow:inset 0 2px 0 rgba(255,246,208,.4),0 24px 44px -16px rgba(0,0,0,.85)}
+.tr-brass.s4-brass{display:grid;grid-template-columns:96px minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr) 96px;align-items:baseline;column-gap:8px;padding:20px 34px 18px;font-size:42px;line-height:1.3;border-top:3px solid #6B5220;border-bottom:3px solid #6B5220;border-radius:6px;box-shadow:inset 0 2px 0 rgba(255,246,208,.4),0 24px 44px -16px rgba(0,0,0,.85)}
 .tr-brass.s4-brass::after{content:''}
 .tr-brass.s4-brass .bt{font-size:15px;justify-self:start}
 .tr-brass.s4-brass .bn{justify-self:center}

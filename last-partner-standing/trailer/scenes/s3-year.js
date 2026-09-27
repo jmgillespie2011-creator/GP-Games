@@ -22,8 +22,8 @@ TR.css(`
 .s3-chip.later{color:var(--t-warn);border-color:var(--t-warn);border-style:dashed}
 .s3-chip.now{color:var(--t-bad);border-color:var(--t-bad);font-weight:700}
 .s3-chip.txt{padding-left:8px}
-.s3-deltas{display:flex;flex-wrap:wrap;gap:8px;padding-top:14px}
-.s3-delta{font-family:var(--mono);font-size:13px;font-weight:600;line-height:1.5;border-radius:6px;padding:2px 9px;border:1.5px solid;background:var(--t-sheet)}
+.s3-deltas{display:flex;gap:7px;padding-top:14px;white-space:nowrap}
+.s3-delta{font-family:var(--mono);font-size:12.5px;font-weight:600;line-height:1.5;border-radius:6px;padding:2px 8px;border:1.5px solid;background:var(--t-sheet)}
 .s3-delta.up{color:var(--t-good);border-color:var(--t-good)}
 .s3-delta.down{color:var(--t-bad);border-color:var(--t-bad)}
 `);

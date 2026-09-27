@@ -2,8 +2,8 @@
  Two copies of the front on one night street. On the left, 31 March 2027: every window still lit. On the right, one
  January in year 2: your room goes dark as You runs out (the game's own rule), then the other windows, then the door
  gets the game's CLOSED sign. The banners are the year-end and game-over titles, drawn like the game's share picture.
- Then the game's honours board rises over the street, its names engraved one by one, and the question.
- Ends on the board and the line. */
+ Then the game's honours board rises over the street, its names engraved one by one, and the question above it.
+ Ends on the board and the line over the street dimmed to 62%, pavement at about y 580, as scene 7 opens. */
 TR.css(`
 .s6-kick{position:absolute;left:0;top:0;width:560px;text-align:center;white-space:nowrap}
 .s6-bw{position:absolute;left:0;top:0;width:560px;text-align:center}
@@ -39,28 +39,28 @@ const S6_ROWS = [
 const s6Row = (x, i) => `<li class="s6-plq"><span class="s6-n">${i + 1}</span><span class="s6-pt" style="--ring:${PLAYER_COLOURS[x.c]}"><svg viewBox="0 0 64 64" width="62" height="62"><rect width="64" height="64" rx="10" fill="${SIL_TILE}"/><g transform="translate(3.2 6.4) scale(0.9)">${silLook(PLAYER_LOOKS[x.look])}</g></svg></span><span class="s6-t"><b>Dr ${esc(x.n)}</b><small>${esc(PRACTICES[x.p].surgery)} · ${esc(x.how)}</small></span><span class="s6-m">${x.m}<small>months</small></span></li>`;
 TR.scene({
   id: 's6-endings', title: 'Two endings', dur: 8, fadeIn: 0.5,
-  lines: ['31 March 2027: the lights are still on at Riverside Surgery. Survived. Technically.', 'Or one January the windows go dark, one by one, and the door says ask the ICB. Burnt out.', 'The Partners’ Board: every partner you play gets a line, however briefly they served. How long can you last?'],
+  lines: ['31 March 2027: the lights are still on at Riverside Surgery. Survived. Technically.', 'Or, one January in year 2, the windows go dark one by one and the door says ask the ICB. Burnt out.', 'The Partners’ Board: every partner you play gets a line, however briefly they served. How long can you last?'],
   build(root) {
     root._street = TR.el('div', 'tr-fill', null, root);
     root._facL = TR.el('div', 'tr-facade', null, root);
     root._facR = TR.el('div', 'tr-facade', null, root);
     root._kL = TR.el('div', 's6-kick tr-kick', '31 March 2027', root);
-    root._kR = TR.el('div', 's6-kick tr-kick', 'January 2028', root);
+    root._kR = TR.el('div', 's6-kick tr-kick', 'January 2028 · year 2', root);
     root._bL = TR.el('div', 's6-bw', '<span class="s6-ban s6-gold">Survived. Technically.</span>', root);
     root._bR = TR.el('div', 's6-bw', '<span class="s6-ban s6-red">Burnt out</span>', root);
     root._scrim = TR.el('div', 'tr-fill s6-scrim', null, root);
+    // the question sits over the sky, the board under it hides the pavement in the middle
     const end = TR.el('div', 's6-end', null, root);
-    root._board = TR.el('div', 's6-board', `<div class="s6-bh">The Partners’ Board<small>Those who served. Some briefly.</small></div><ol class="s6-plqs">${S6_ROWS.map(s6Row).join('')}</ol>`, end);
-    root._rows = [...root._board.querySelectorAll('.s6-plq')];
     root._line = TR.el('div', 's6-line tr-cap', 'How long can you <span class="s6-u">last</span>?', end);
     root._u = root._line.querySelector('.s6-u');
+    root._board = TR.el('div', 's6-board', `<div class="s6-bh">The Partners’ Board<small>Those who served. Some briefly.</small></div><ol class="s6-plqs">${S6_ROWS.map(s6Row).join('')}</ol>`, end);
+    root._rows = [...root._board.querySelectorAll('.s6-plq')];
   },
   update(lt, root) {
     const E = TR.ease;
     // one camera for both fronts, side by side on the same baseline (their own pavements join in the middle),
-    // pushing in slowly all scene; as the board comes up it tilts so the pavement slides up behind the board
-    const k = TR.lerp(1.7, 1.8, lt / 8), w = 320 * k;
-    const y = TR.lerp(384, 316, E.inOut(TR.seg(lt, 3.5, 4.7))) - 125 * k;
+    // pushing in slowly all scene and ending with the pavement at y 580, where scene 7 has it
+    const k = TR.lerp(1.7, 1.8, lt / 8), w = 320 * k, y = 384 - 125 * k;
     const camL = { x: 640 - w, y, w }, camR = { x: 639, y, w };
     TR.street(root._street, camL);
     TR.cam(root._facL, camL);

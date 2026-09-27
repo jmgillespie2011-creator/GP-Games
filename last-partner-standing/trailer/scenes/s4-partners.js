@@ -81,7 +81,7 @@ TR.scene({
       el.style.left = (cx - 220) + 'px'; el.style.bottom = (720 - S4_PLATE_Y + 36) + 'px';
       return el;
     };
-    root._hart = beat('September', { who: 'hartley', title: 'Six months’ notice', text: '“I’m retiring at the end of September.”', tag: 'real' }, 640);
+    root._hart = beat('Back in September', { who: 'hartley', title: 'Six months’ notice', text: '“I’m retiring at the end of September.”', tag: 'real' }, 640);
     root._okoye = beat('January', { who: 'okoye', title: 'G’day from the future', text: '“Sorry, not sorry. Come and visit.”', tag: 'story' }, 957);
     // the deed: what being the last partner means, over the dark office and staff room
     root._end = TR.el('div', 's4-end', null, root);
@@ -102,11 +102,12 @@ TR.scene({
     root._rain.forEach(L => TR.pose(L.el, { x: -((-L.vx * lt) % L.w), y: (L.vy * lt) % L.h }));
     // the dark closes in around your window: a shade with a hole the shape of its frame and sill
     const dark = E.inOut(TR.seg(lt, 6.5, 7.7));
-    TR.pose(root._dim, { o: 0.42 - 0.12 * dark });
+    // the dim comes in over the first half second, so the cut from s3's February night doesn't drop the lights
+    TR.pose(root._dim, { o: 0.42 * E.inOut(TR.seg(lt, 0, 0.5)) - 0.12 * dark });
     const box = (x0, y0, x1, y1) => { const a = TR.camPt(cam, x0, y0), b = TR.camPt(cam, x1, y1); return `M${a.x.toFixed(1)} ${a.y.toFixed(1)}H${b.x.toFixed(1)}V${b.y.toFixed(1)}H${a.x.toFixed(1)}Z`; };
     const W = S4_YOURS, cp = `path(evenodd, "M0 0H1280V720H0Z${box(W.x - 3, W.y - 3, W.x + W.w + 3, W.y + W.h + 3)}${box(W.x - 5, W.y + W.h + 3, W.x + W.w + 5, W.y + W.h + 13)}")`;
     if (root._shade._cp !== cp) { root._shade.style.clipPath = cp; root._shade._cp = cp; }
-    TR.pose(root._shade, { o: 0.6 * dark });
+    TR.pose(root._shade, { o: 0.82 * dark });
     // the plate: two strikes, and the names that went fade a little further at the end
     const hs = E.inOut(TR.seg(lt, 2.8, 3.35)), os = E.inOut(TR.seg(lt, 5.85, 6.4)), fade = 1 - 0.25 * E.inOut(TR.seg(lt, 8.4, 9.4));
     TR.brass(root._brass, [{ n: 'Dr ' + TR.NAME }, { n: 'Dr Hartley', strike: hs, o: fade }, { n: 'Dr Okoye', strike: os, o: fade }]);

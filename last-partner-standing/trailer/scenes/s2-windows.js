@@ -21,12 +21,12 @@ TR.css(`
 .s2-u{position:relative}
 .s2-u i{position:absolute;left:-.03em;right:-.03em;bottom:-.02em;height:.13em;background:#F2D449;transform-origin:left center}
 `);
-// the tour: the window, what the room is, one true line, and which margin its card sits in
+// the tour: the window, what the room is, a line only for yours (the review found the others unreadable in their time), and which margin its card sits in
 const S2_TOUR = [
-  { k: 'patients', room: 'The waiting room', line: 'Fills up when appointments run short. Gerald stays.', side: 'L' },
-  { k: 'team', room: 'The staff room', line: 'Empties as morale falls.', side: 'R' },
-  { k: 'safety', room: 'The treatment room', line: 'Maureen’s room. Fridges, records, near misses.', side: 'R' },
-  { k: 'cash', room: 'Bev’s office', line: 'Past the overdraft limit, payroll can bounce.', side: 'L' },
+  { k: 'patients', room: 'The waiting room', line: '', side: 'L' },
+  { k: 'team', room: 'The staff room', line: '', side: 'R' },
+  { k: 'safety', room: 'The treatment room', line: '', side: 'R' },
+  { k: 'cash', room: 'Bev’s office', line: '', side: 'L' },
   { k: 'you', room: 'Your room', line: 'Yes, you’re a meter.', side: 'R' }
 ];
 const S2_ON = [0.3, 1.95, 3.25, 4.55, 5.85];   // when each window's light takes over from the last
@@ -56,7 +56,7 @@ TR.scene({
     root._cards = S2_TOUR.map(T => {
       const val = T.k === 'cash' ? fmtK(w0.cash).replace('.0k', 'k') : String(w0.st[T.k]);
       const bar = T.k === 'cash' ? TR.clamp(50 + 50 * w0.cash / Math.abs(P0.overdraft), 2, 100) : w0.st[T.k];
-      const c = TR.el('div', 's2-slot', `<div class="s2-card"><div class="s2-rm">${esc(T.room)}</div><div class="s2-hd">${ICON[T.k]}<b>${esc(STAT_LABEL[T.k])}</b><span>${esc(val)}</span></div><div class="s2-bar"><b></b></div><p>${esc(T.line)}</p></div>`, root);
+      const c = TR.el('div', 's2-slot', `<div class="s2-card"><div class="s2-rm">${esc(T.room)}</div><div class="s2-hd">${ICON[T.k]}<b>${esc(STAT_LABEL[T.k])}</b><span>${esc(val)}</span></div><div class="s2-bar"><b></b></div>${T.line ? `<p>${esc(T.line)}</p>` : ''}</div>`, root);
       c._bar = c.querySelector('.s2-bar b'); c._v = bar;
       return c;
     });
@@ -120,7 +120,7 @@ TR.scene({
     });
 
     // the line in the sky above the roof, in two beats
-    TR.pose(root._cap, { y: 12 * (1 - E.out(TR.seg(lt, S2_FIVE, S2_FIVE + 0.5))), o: TR.window(lt, S2_FIVE, S2_OUT + 0.5, 0.45, 0.45) });
+    TR.pose(root._cap, { y: 12 * (1 - E.out(TR.seg(lt, S2_FIVE, S2_FIVE + 0.5))), o: TR.window(lt, S2_FIVE, 9.95, 0.45, 0.45) });
     const inc = +E.out(TR.seg(lt, S2_YOU, S2_YOU + 0.35)).toFixed(3);
     if (root._inc._o !== inc) { root._inc.style.opacity = inc; root._inc._o = inc; }
     const u = `scaleX(${E.inOut(TR.seg(lt, S2_YOU + 0.2, S2_YOU + 0.65)).toFixed(3)})`;

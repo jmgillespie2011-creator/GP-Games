@@ -5,6 +5,16 @@
   if (capture) document.documentElement.classList.add('capture');
   const screen = document.getElementById('screen'), stage = document.getElementById('stage');
   TR.init(stage);
+  // social cuts (capture only): ?frame=square (X) or ?frame=portrait (LinkedIn) puts the film in a frame with a
+  // headline above, a progress bar and the address below
+  const soc = capture ? q.get('frame') : null;
+  let socBar = null;
+  if (soc === 'square' || soc === 'portrait') {
+    document.documentElement.classList.add('social', 'social-' + soc);
+    const shell = TR.el('div', 'soc', `<div class="soc-top"><div class="soc-eyebrow">Last Partner Standing · a GP survival game</div><h1 class="soc-h">How long can you last as a <span class="under">GP partner?</span></h1>${soc === 'portrait' ? '<p class="soc-sub">A year on England’s 2026/27 GP contract.<br>A fictional practice, with the real rules and numbers.</p>' : ''}</div><div class="soc-film"></div><div class="soc-bar"><b></b></div><div class="soc-bot"><span class="soc-url">last-partner-standing.vercel.app</span><span class="soc-free">Free, in your browser.</span>${soc === 'portrait' ? '<span class="soc-fine">Fictional practices and people. Real rules.</span>' : ''}</div>`, document.body);
+    shell.querySelector('.soc-film').appendChild(screen);
+    socBar = shell.querySelector('.soc-bar b');
+  }
 
   // scale the 1280x720 stage to the width of the screen box
   const fit = () => { const k = document.fullscreenElement === screen ? Math.min(screen.clientWidth / TR.W, screen.clientHeight / TR.H) : screen.clientWidth / TR.W; stage.style.setProperty('--k', k.toFixed(5)); };
@@ -30,6 +40,7 @@
   let playing = false, t0 = 0, w0 = 0, raf = 0;
   const TOT = TR.mmss(TR.total);
   TR.onseek = t => {
+    if (socBar) socBar.style.width = (100 * t / TR.total).toFixed(2) + '%';
     const v = t.toFixed(1); if (scrub.value !== v && document.activeElement !== scrub) scrub.value = v;
     clock.textContent = `${TR.mmss(t)} / ${TOT}`;
     const cur = TR.scenes.indexOf(TR.sceneAt(t));

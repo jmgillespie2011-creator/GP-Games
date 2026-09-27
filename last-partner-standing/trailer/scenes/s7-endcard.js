@@ -63,7 +63,8 @@ TR.scene({
     TR.cam(root._fac, cam);
     TR.pose(root._brass, { x: cam.x, y: cam.y + 250 * cam.w / 320, s: cam.w / 768 });
     // it opens as dim as s6 leaves the street, and the lights come back up
-    TR.pose(root._scrim, { o: 0.62 * (1 - E.inOut(TR.seg(lt, 0, 0.8))) });
+    // s6 fades to black, so this opens from black and the street comes up
+    TR.pose(root._scrim, { o: 1 - E.inOut(TR.seg(lt, 0, 0.8)) });
     // the type rises in on the paper once the picture has moved off it
     const rise = (el, a, dy) => { const q = E.out(TR.seg(lt, a, a + 0.5)); TR.pose(el, { y: dy * (1 - q), o: q }); };
     rise(root._eye, 1.0, 10);

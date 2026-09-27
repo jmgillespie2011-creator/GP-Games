@@ -29,6 +29,8 @@ const TR = {
   scenes: [], total: 0, t: 0,
   // the trailer's player: Dr Ashworth, Riverside Surgery in the market town
   NAME: 'Ashworth', LOOK: { s: 0, c: 1 }, PRACTICE: 'town',
+  // the frame the page shows before it plays: the deed line over the lit front, three names on the plate
+  POSTER: 6.9,
   _css: ''
 };
 

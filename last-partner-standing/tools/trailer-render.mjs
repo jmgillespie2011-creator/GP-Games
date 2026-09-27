@@ -7,6 +7,7 @@
 //                                                    contact sheets (24 frames each: s3.png, s3-2.png, ...); --from/--to work too
 //   node last-partner-standing/tools/trailer-render.mjs --video trailer.mp4 [--fps 30] [--scale 1.5] [--poster 70.5 poster.png]
 //   --only s4[,s5] assembles only those scenes (each then starts at 0 in that page), so other scenes can't break it.
+//   --frame square|portrait renders the social cuts instead: 1080x1080 for X, 1080x1350 for LinkedIn (use --scale 1).
 //   --page FILE renders an already built page (last-partner-standing-trailer.html) instead of assembling the sources.
 // Needs the playwright package and a Chromium (set CHROMIUM to its path if Playwright can't find one), and ffmpeg with
 // libx264 for --video (set FFMPEG, or `pip install imageio-ffmpeg`).
@@ -41,8 +42,10 @@ if (!page_file) {
 page_file = path.resolve(page_file);
 
 const scale = +arg('scale', 1);
+const frame = arg('frame');
+const [W, H] = { square: [1080, 1080], portrait: [1080, 1350] }[frame] || [1280, 720];
 const b = await pw.chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
-const ctx = await b.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: scale });
+const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: scale });
 // Web fonts come through curl into a small cache, so renders work behind a TLS-intercepting proxy the browser
 // doesn't trust (curl uses the system's CA settings) and repeat runs don't refetch them. If curl fails, the browser tries.
 const fontCache = path.join(os.tmpdir(), 'lps-font-cache');
@@ -59,7 +62,7 @@ const pg = await ctx.newPage();
 const errors = [];
 pg.on('pageerror', e => errors.push('pageerror: ' + (e.stack || e.message)));
 pg.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
-await pg.goto('file://' + page_file + '?capture=1');
+await pg.goto('file://' + page_file + '?capture=1' + (frame ? '&frame=' + frame : ''));
 await pg.waitForFunction(() => window.TR_READY === true, null, { timeout: 15000 }).catch(() => { });
 // load every face the film uses before the first frame, so no frame falls back to a system font
 const fontsOk = await pg.evaluate(async () => {
@@ -74,7 +77,7 @@ const info = await pg.evaluate(() => ({ total: TR.total, scenes: TR.scenes.map(s
 
 const seekShot = async (t, opts) => {
   await pg.evaluate(t => TR.seek(t), t);
-  return pg.screenshot(Object.assign({ type: 'png', clip: { x: 0, y: 0, width: 1280, height: 720 } }, opts || {}));
+  return pg.screenshot(Object.assign({ type: 'png', clip: { x: 0, y: 0, width: W, height: H } }, opts || {}));
 };
 const range = () => {
   let from = +arg('from', 0), to = +arg('to', info.total);
@@ -128,7 +131,7 @@ if (sheet) {
   for (let i = 0, n = 1; i < shots.length; i += 24, n++) {
     const part = shots.slice(i, i + 24);
     await sp.setViewportSize({ width: 1320, height: 400 });
-    await sp.setContent(`<body style="margin:0;background:#222;font:600 13px/1 monospace;color:#eee"><div style="display:grid;grid-template-columns:repeat(4,320px);gap:8px;padding:8px">${part.map(s => `<figure style="margin:0"><img src="${s.src}" style="display:block;width:320px;height:180px"><figcaption style="padding:4px 2px">${s.t.toFixed(2)}s</figcaption></figure>`).join('')}</div></body>`);
+    await sp.setContent(`<body style="margin:0;background:#222;font:600 13px/1 monospace;color:#eee"><div style="display:grid;grid-template-columns:repeat(4,320px);gap:8px;padding:8px">${part.map(s => `<figure style="margin:0"><img src="${s.src}" style="display:block;width:320px;height:${Math.round(320 * H / W)}px"><figcaption style="padding:4px 2px">${s.t.toFixed(2)}s</figcaption></figure>`).join('')}</div></body>`);
     const f = n === 1 ? base + '.png' : `${base}-${n}.png`;
     await sp.screenshot({ path: f, fullPage: true });
     console.log(f);
@@ -157,7 +160,7 @@ if (video) {
     if (i % (fps * 5) === 0) console.log(`frame ${i}/${N} (${(i / fps).toFixed(0)}s of film, ${((Date.now() - a) / 1000).toFixed(0)}s elapsed)`);
   }
   enc.stdin.end(); await ended;
-  console.log(`wrote ${out} (${(fs.statSync(out).size / 1e6).toFixed(2)} MB, ${N} frames at ${fps} fps, ${1280 * scale}x${720 * scale})`);
+  console.log(`wrote ${out} (${(fs.statSync(out).size / 1e6).toFixed(2)} MB, ${N} frames at ${fps} fps, ${W * scale}x${H * scale})`);
 }
 
 const poster = arg('poster');

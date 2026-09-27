@@ -38,7 +38,7 @@ const S6_ROWS = [
 // one row, drawn like the game's plaqueRow(): rank, portrait ringed in the player's colour, name, practice and ending, months
 const s6Row = (x, i) => `<li class="s6-plq"><span class="s6-n">${i + 1}</span><span class="s6-pt" style="--ring:${PLAYER_COLOURS[x.c]}"><svg viewBox="0 0 64 64" width="62" height="62"><rect width="64" height="64" rx="10" fill="${SIL_TILE}"/><g transform="translate(3.2 6.4) scale(0.9)">${silLook(PLAYER_LOOKS[x.look])}</g></svg></span><span class="s6-t"><b>Dr ${esc(x.n)}</b><small>${esc(PRACTICES[x.p].surgery)} · ${esc(x.how)}</small></span><span class="s6-m">${x.m}<small>months</small></span></li>`;
 TR.scene({
-  id: 's6-endings', title: 'Two endings', dur: 8, fadeIn: 0.5,
+  id: 's6-endings', title: 'Two endings', dur: 8, fadeIn: 0.5, fadeOut: 0.35,
   lines: ['31 March 2027: one partner left, and the lights are still on at Riverside Surgery. Last Partner Standing.', 'Or, one January in year 2, the windows go dark one by one and a sign on the door says “Closed. Ask the ICB.” Burnt out.', 'The Partners’ Board: every partner you play gets a line, however briefly they served. How long can you last?'],
   build(root) {
     root._street = TR.el('div', 'tr-fill', null, root);

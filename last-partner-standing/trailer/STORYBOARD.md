@@ -99,6 +99,8 @@ Scenes cut or fade into each other. Where the front carries on across a cut, it 
 
 ### s3: the year, beat by beat
 
+(After the film review: s2's meter cards carry only the room, meter and value, apart from your own room's "Yes, you're a meter.", because nothing longer can be read in their time; s3's card texts are trimmed to about a dozen words that keep the punchline, and the meters move about 2.2 s after each card lands.)
+
 Six cards, one after another, dealt onto the right half of the stage (the front sits on the left at `TR.CAM.LEFT`, the HUD strip across the top). Each card deals in, holds long enough to read its title and first line, and then the meters move: the HUD bars and numbers slide to the next values and the front changes with them. The month pills tick through the year. Trim card text to its first sentence or two if needed, but keep the words as given.
 
 | Beat | Month shown | Card | Meters after it (Patients, Team, You, Safety, bank, ratio) |

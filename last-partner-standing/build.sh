@@ -5,9 +5,13 @@
 #  last-partner-standing-trailer.html - the trailer, a 75-second film drawn with the game's own art (trailer/)
 cd "$(dirname "$0")"
 JS="src/c-data.js src/c2-minidata.js src/c3-art.js src/d-events1.js src/e-events2.js src/f-events3.js src/f2-events4.js src/f3-events5.js src/f4-events6.js src/f5-events7.js src/f6-events8.js src/f7-events9.js src/f8-events10.js src/g-engine.js src/g2-endings.js src/h-ui.js src/h2-screens.js src/h3-board.js src/i-mini.js"
+# A short build id from the sources: stamped into the page as BUILD and written to build.txt, which the website serves.
+# An open game compares the two and offers a reload when a new version is out. Unchanged sources keep the same id.
+BUILD=$(cat src/a-head.html $JS | sha1sum | cut -c1-7)
+printf '%s\n' "$BUILD" > build.txt
 OUT=last-partner-standing.html
 cat src/a-head.html > "$OUT"
-printf '<div id="app"></div>\n<script>\n' >> "$OUT"
+printf '<div id="app"></div>\n<script>\nconst BUILD = '"'"'%s'"'"';\n' "$BUILD" >> "$OUT"
 cat $JS >> "$OUT"
 printf '</script>\n' >> "$OUT"
 
@@ -28,7 +32,7 @@ printf '<meta name="twitter:card" content="summary_large_image">\n<meta name="tw
 ICON=$(base64 < src/icon.svg | tr -d '\n')
 printf '<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,%s">\n<link rel="apple-touch-icon" href="/last-partner-standing/apple-touch-icon.png">\n<link rel="manifest" href="/last-partner-standing/manifest.webmanifest">\n' "$ICON" >> "$PLAY"
 cat src/a-head.html >> "$PLAY"
-printf '</head>\n<body>\n<div id="app"></div>\n<script>\n' >> "$PLAY"
+printf '</head>\n<body>\n<div id="app"></div>\n<script>\nconst BUILD = '"'"'%s'"'"';\n' "$BUILD" >> "$PLAY"
 cat $JS >> "$PLAY"
 printf '</script>\n</body>\n</html>\n' >> "$PLAY"
 

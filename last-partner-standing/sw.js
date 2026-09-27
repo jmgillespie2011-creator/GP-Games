@@ -1,8 +1,8 @@
 // Service worker for the installable app: the game works offline after one visit.
 // The page is fetched fresh when online (so updates arrive), and falls back to the cached copy offline.
 // The game is cached as '/'; other pages (the trailer) under their own address, so they never replace it.
-// Fonts and icons are cached as they're used. The leaderboard (Supabase) and video are never cached.
-const CACHE = 'lps-v2';
+// Fonts and icons are cached as they're used. The leaderboard (Supabase), video and build.txt are never cached.
+const CACHE = 'lps-v3';
 const CORE = ['/', '/last-partner-standing/icon-192.png', '/last-partner-standing/manifest.webmanifest'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
@@ -10,6 +10,8 @@ self.addEventListener('fetch', e => {
   const req = e.request, url = new URL(req.url);
   if (req.method !== 'GET' || url.hostname.endsWith('supabase.co')) return;
   if (req.headers.has('range') || url.pathname.endsWith('.mp4')) return;
+  // the version file must always come from the network, or an open game could never see a new release
+  if (url.pathname.endsWith('/build.txt')) return;
   if (req.mode === 'navigate') {
     const game = url.pathname === '/' || url.pathname === '/last-partner-standing' || url.pathname.endsWith('/last-partner-standing-play.html');
     const key = game ? '/' : url.pathname;

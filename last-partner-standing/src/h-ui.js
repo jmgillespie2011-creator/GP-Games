@@ -17,7 +17,7 @@ function sponsorHTML() {
   return `<aside class="sponsor" aria-label="From the maker of this game"><div class="eyebrow">From the maker of this game</div><p><b>${esc(SPONSOR.name)}</b>: ${esc(SPONSOR.line)}</p><a class="btn ghost" href="${esc(SPONSOR.url)}" target="_blank" rel="noopener sponsored">Find out more</a></aside>`;
 }
 const SETTINGS_KEY = 'lps-settings-v1', CARD_SECONDS = 45;
-function loadSettings() { try { return Object.assign({ timer: false, quick: true }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) { return { timer: false, quick: true }; } }
+function loadSettings() { try { return Object.assign({ timer: false, quick: true, teach: true }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) { return { timer: false, quick: true, teach: true }; } }
 function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(UI.settings)); } catch (e) { } }
 UI.settings = loadSettings();
 function timeUp(id, qi) {
@@ -138,6 +138,7 @@ function renderTitle() {
       <details class="explain opts"><summary>Options${UI.settings.timer ? ': the 8am pace is on' : ''}</summary>
         <label class="toggle"><input type="checkbox" data-act="timer" ${UI.settings.timer ? 'checked' : ''}> <span><b>The 8am pace</b>: ${CARD_SECONDS} seconds to decide each card, or it gets decided for you. Off by default.</span></label>
         <label class="toggle"><input type="checkbox" data-act="quick" ${UI.settings.quick ? 'checked' : ''}> <span><b>Skip quiet months</b>: when nothing new happened, go straight to the next plan and show last month in a short panel. On by default.</span></label>
+        <label class="toggle"><input type="checkbox" data-act="teach" ${UI.settings.teach ? 'checked' : ''}> <span><b>Explain the contract as you go</b>: in the leafy suburb and the market town, someone asks how the money works and you explain it with your practice's own figures. Five cards through year one. On by default.</span></label>
       </details>
       <div class="setup-actions">
         <button class="btn primary" data-act="start">Sign the partnership deed</button>

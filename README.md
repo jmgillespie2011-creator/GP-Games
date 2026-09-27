@@ -19,6 +19,7 @@ Or download [`last-partner-standing/last-partner-standing-play.html`](last-partn
   - locum rates, and a partner's own pension, income tax and Class 4 NI.
 - **Consequences that feel natural.** Meters drift toward wherever the practice's situation is taking them, and the month plan shows why. Decisions can change where things settle, or come back months later.
 - **Explainers everywhere.** Cards built on real figures or rules have a "What's real here?" dropdown with graded sources. The month plan and the accounts explain how everything is calculated, and there's a glossary.
+- **The contract, explained as you go.** In the leafy suburb and the market town, five cards through year one explain the GP contract at a trainee's level (the global sum, QOF, ARRS, drawings and tax, and why anyone would be a partner), using your own practice's figures. They're on by default and can be switched off under Options.
 - **Three practices:** leafy suburb (gentle), market town (standard) and inner city (brutal).
 - **118 cards and story arcs**, including:
   - contract day and the pay awards

@@ -189,7 +189,7 @@ function sourcesHTML() {
 }
 function menuHTML() {
   return `<h2>Menu</h2><p class="muted">Your game saves automatically after every decision, in this browser only.</p>
-  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="honours">The Partners' Board</button><button class="btn" data-act="timer">${UI.settings.timer ? 'Turn off' : 'Turn on'} the ${CARD_SECONDS}-second timer</button><button class="btn" data-act="quick">${UI.settings.quick ? 'Show every month report' : 'Skip quiet month reports'}</button><button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
+  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="honours">The Partners' Board</button><button class="btn" data-act="timer">${UI.settings.timer ? 'Turn off' : 'Turn on'} the ${CARD_SECONDS}-second timer</button><button class="btn" data-act="quick">${UI.settings.quick ? 'Show every month report' : 'Skip quiet month reports'}</button><button class="btn" data-act="teach">${UI.settings.teach ? 'Stop explaining the contract' : 'Explain the contract as you go'}</button><button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
 }
 // a month with nothing to read: no consequences, hires, departures or endings, small meter moves, nothing near the edge
 function quietMonth(R) {
@@ -237,6 +237,17 @@ document.addEventListener('click', ev => {
       break; }
     case 'nextyear': go(continueYear); break;
     case 'quick': { UI.settings.quick = !UI.settings.quick; saveSettings(); if (S && UI.screen !== 'title') { closeOverlay(); render(); } else keepScroll(renderTitle); toast(UI.settings.quick ? 'Quiet months now skip straight to the next plan.' : 'You\'ll see every month report.'); break; }
+    case 'teach': {
+      UI.settings.teach = !UI.settings.teach; saveSettings();
+      if (S && UI.screen !== 'title') {
+        // mid-game: schedule what's left of year one, or clear it and skip one that's on screen
+        teachSync();
+        if (!UI.settings.teach && S.phase === 'event' && TEACH_IDS.includes(S.queue[S.qi])) advanceEvent();
+        save(); closeOverlay(); render();
+      } else keepScroll(renderTitle);
+      toast(UI.settings.teach ? 'Contract explainers on: five cards through year one, in the leafy suburb and the market town.' : 'Contract explainers off.');
+      break;
+    }
     case 'timer': { UI.settings.timer = !UI.settings.timer; saveSettings(); if (S && UI.screen !== 'title') { closeOverlay(); render(); } else keepScroll(renderTitle); toast(UI.settings.timer ? `The 8am pace is on: ${CARD_SECONDS} seconds a card.` : 'The 8am pace is off.'); break; }
     case 'takeover': go(takeOver); break;
     case 'honours': openOverlay(partnersBoardHTML(40) + '<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>'); break;
@@ -246,7 +257,7 @@ document.addEventListener('click', ev => {
     case 'lookc': UI.look.c = +arg; UI.lookOpen = true; keepScroll(renderTitle); break;
     case 'dice': { UI.nameDraft = diceName(); keepScroll(renderTitle); break; }
     case 'start': { const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; UI.intro = true; go(() => newGame(UI.pickPractice, nm)); break; }
-    case 'continue': { const s = loadSave(); if (s) { S = s; UI.screen = 'game'; go(() => { }); } break; }
+    case 'continue': { const s = loadSave(); if (s) { S = s; teachSync(); UI.screen = 'game'; go(() => { }); } break; }
     case 'menu': openOverlay(menuHTML()); break;
     case 'how': openOverlay(howHTML()); break;
     case 'glossary': openOverlay(glossaryHTML()); break;

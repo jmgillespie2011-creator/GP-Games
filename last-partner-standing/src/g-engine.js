@@ -177,6 +177,8 @@ function newGame(practiceKey, name, opts) {
   S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
   // a mid-year crunch for the suburb and town, so good players are at risk before the winter (the city has its turnover)
   if (S.practiceKey !== 'city') { S.sched.push({ id: 'twist_summer', m: 2 + Math.floor(Math.random() * 3) }); S.flags.summerGP = S.staff.salaried > 0 && Math.random() < 0.5 ? 1 : 0; }
+  // the contract explained, in five cards through the year (suburb and town, unless switched off)
+  teachSchedule();
   startMonth();
   save();
 }

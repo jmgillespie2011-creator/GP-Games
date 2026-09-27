@@ -36,7 +36,7 @@ TR.css(`
 `);
 
 // the February night s3 ends on: Patients 31, Team 38, You 26, Safety 33, bank -£52k, 0.82 of the appointments needed
-const S4_WORLD = { st: { patients: 31, team: 38, you: 26, safety: 33 }, cash: -52, month: 10, ratio: 0.82 };
+const S4_WORLD = { st: { patients: 33, team: 39, you: 25, safety: 34 }, cash: -78, month: 10, ratio: 0.84 };
 const S4_PLATE_Y = 452, S4_END_Y = 366;
 const S4_YOURS = TR.WINDOWS.find(w => w.k === 'you');
 // a tile of rain streaks, slanted like the game's (2 across for 6 down), repeated across the stage

@@ -92,8 +92,8 @@ Components drawn like the game: `TR.cardHTML({who, title, text, tag, stamp})` (a
 Scenes cut or fade into each other. Where the front carries on across a cut, it must match exactly.
 
 - **s1 ends / s2 starts / s2 ends / s3 starts**: `TR.CAM.FULL`, every window lit (`lo` not set), `TR.world()` defaults (Patients 48, Team 52, You 64, Safety 52, bank £30k, month 0, ratio 1, both partners active), the brass plate under the front with all three names, no captions or callouts on screen. Draw the brass plate exactly as s1 does: `TR.place(el, {x: cam.x, y: cam.y + 250 * cam.w / 320, w: cam.w})`.
-- **s3** moves from `TR.CAM.FULL` to `TR.CAM.LEFT` in its first second as the HUD strip slides down from the top, and the brass plate slides away. It ends on `TR.CAM.LEFT` in February 2027 (month 10) with Patients 31, Team 38, You 26, Safety 33, bank −£52k, ratio 0.82, raining.
-- **s4** cuts in on the brass plate close up, in the same February night (dim windows, rain), and fades out to black over its last 0.6 s.
+- **s3** moves from `TR.CAM.FULL` to `TR.CAM.LEFT` in its first second as the HUD strip slides down from the top, and the brass plate slides away. It ends on `TR.CAM.LEFT` in February 2027 (month 10) with Patients 33, Team 39, You 25, Safety 34, bank −£78k, ratio 0.84, raining.
+- **s4** cuts in on the brass plate close up, in the same February night (Patients 33, Team 39, You 25, Safety 34, bank −£78k, ratio 0.84: dim windows, rain), and fades out to black over its last 0.6 s.
 - **s5** fades in and out (0.4 s each).
 - **s6** fades in from black. **s7** may cut or cross from s6's last frame; it holds its final frame still for the last 1.5 s.
 
@@ -105,11 +105,13 @@ Six cards, one after another, dealt onto the right half of the stage (the front 
 |---|---|---|---|
 | start | April (0) | | 48, 52, 64, 52, £30k, 1.00 |
 | 1 | April (0) | Contract day | 46, 50, 60, 51, £24k, 0.98 |
-| 2 | June (2) | Monday, 8:02am | 42, 47, 55, 49, £20k, 0.93 |
-| 3 | July (3) | The fish tank | 44, 49, 52, 47, £12k, 0.95 |
-| 4 | October (6) | Four thousand letters | 40, 43, 44, 38, −£6k, 0.90 |
-| 5 | December (8) | Queue in the rain | 33, 39, 33, 34, −£30k, 0.84 |
-| 6 | February (10) | Payroll day | 31, 38, 26, 33, −£52k, 0.82 |
+| 2 | June (2) | Monday, 8:02am | 42, 47, 55, 49, £12k, 0.93 |
+| 3 | July (3) | The fish tank (choice: write Gerald a risk assessment) | 42, 49, 54, 50, £12k, 0.95 |
+| 4 | October (6) | Four thousand letters | 40, 43, 44, 38, −£34k, 0.90 |
+| 5 | December (8) | Queue in the rain | 33, 39, 33, 34, −£78k, 0.84 |
+| 6 | February (10) | Payroll day (choice: sign the personal guarantee) | 33, 39, 25, 34, −£78k, 0.84 |
+
+On the two choice cards the meters move by exactly the game's effects for the choice taken (the risk assessment: Team +2, You −1, Safety +1; the guarantee: You −8). The bank passes the £75k overdraft limit in December, because that is what deals Payroll day in the game.
 
 The card's red stamp shows the month (`APR`, `JUN`, `JUL`, `OCT`, `DEC`, `FEB`). By the end: the queue is five long in the rain, you are slumped, the treatment room has its warning sign, Bev has a red letter.
 

@@ -2,7 +2,7 @@
  The game's loop at speed. A card is dealt on the right, twice a choice is made, then the HUD bars slide to the
  storyboard's next row and the surgery front changes with them: lights dim, the staff room empties, a queue forms.
  Starts on s1's last frame (TR.CAM.FULL, every window lit, three names on the plate). Ends on TR.CAM.LEFT in
- February 2027: Patients 31, Team 38, You 26, Safety 33, the bank at −£52k, a queue of five in the rain. */
+ February 2027: Patients 33, Team 39, You 25, Safety 34, the bank at −£78k, a queue of five in the rain. */
 TR.css(`
 .s3-brass{position:absolute}
 .s3-rain{position:absolute;background-repeat:repeat}
@@ -33,11 +33,11 @@ const S3 = {
   rows: [
     [48, 52, 64, 52, 30, 1.00],
     [46, 50, 60, 51, 24, 0.98],
-    [42, 47, 55, 49, 20, 0.93],
-    [44, 49, 52, 47, 12, 0.95],
-    [40, 43, 44, 38, -6, 0.90],
-    [33, 39, 33, 34, -30, 0.84],
-    [31, 38, 26, 33, -52, 0.82]
+    [42, 47, 55, 49, 12, 0.93],
+    [42, 49, 54, 50, 12, 0.95],   // the risk assessment: the game's own effects, Team +2, You −1, Safety +1
+    [40, 43, 44, 38, -34, 0.90],
+    [33, 39, 33, 34, -78, 0.84],  // past the £75k overdraft limit, which is what deals Payroll day
+    [33, 39, 25, 34, -78, 0.84]   // the personal guarantee: You −8
   ],
   // the six cards: dealt at `at`, meters move `move` seconds later; two show the game's choices, and the first is taken
   // (`press`). Choice chips as the game draws them: a meter with a dot (! for a big one), later, risk, now, follow.

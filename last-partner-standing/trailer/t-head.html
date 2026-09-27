@@ -1,7 +1,7 @@
 <title>Last Partner Standing Trailer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&family=Gelasio:ital,wght@0,400;0,700;1,400&display=swap">
 <style>
 /* The page around the film uses the game's own tokens, light and dark. The film itself (#stage) has a fixed look,
    because the same frames also become the MP4. */
@@ -14,7 +14,7 @@
   --display:"Bricolage Grotesque","Avenir Next Condensed","Arial Narrow",system-ui,sans-serif;
   --body:"Atkinson Hyperlegible","Segoe UI",system-ui,-apple-system,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
-  --serif:Georgia,"Times New Roman",serif;
+  --serif:Georgia,Gelasio,"Times New Roman",serif;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -107,6 +107,7 @@ a{color:inherit}
 .tr-fill{position:absolute;inset:0}
 .tr-facade{position:absolute;line-height:0}
 .tr-facade svg{display:block;width:100%;height:auto}
+#stage svg text[font-family^="Georgia"]{font-family:var(--serif)}
 
 /* captions */
 .tr-kick{font-family:var(--mono);font-size:18px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--t-hilite)}

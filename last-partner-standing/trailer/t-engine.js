@@ -98,7 +98,7 @@ TR.world = o => {
   return {
     practiceKey: P0.key, name: o.name || TR.NAME, look: o.look || TR.LOOK,
     st: Object.assign({}, P0.st, o.st || {}), cash: o.cash == null ? P0.cash : o.cash, overdraft: P0.overdraft,
-    month: o.month || 0, rooms: P0.rooms, lineage: o.lineage || [], cqc: o.cqc || null,
+    month: Math.round(o.month || 0), rooms: P0.rooms, lineage: o.lineage || [], cqc: o.cqc || null,
     partners: { hartley: { status: ps.hartley }, okoye: { status: ps.okoye }, tom: { status: 'salaried' }, priya: { status: 'none' } },
     flags: { geraldGone: !!o.geraldGone }, seen: { cat: !!o.cat }
   };
@@ -142,7 +142,8 @@ TR.cam = (el, cam) => {
 TR.street = (el, cam) => {
   const k = cam.w / 320, y0 = cam.y, y1 = cam.y + 250 * k, pv = cam.y + 234 * k;
   const bg = [
-    `linear-gradient(#B9B3A3,#B9B3A3) 0 ${pv.toFixed(1)}px/100% ${Math.max(1, 1.2 * k).toFixed(1)}px no-repeat`,
+    // the facade strokes its kerb line centred on y 234, so it starts 0.6 units higher
+    `linear-gradient(#B9B3A3,#B9B3A3) 0 ${(pv - 0.6 * k).toFixed(1)}px/100% ${Math.max(1, 1.2 * k).toFixed(1)}px no-repeat`,
     `linear-gradient(#8C877B,#8C877B) 0 ${pv.toFixed(1)}px/100% ${(16 * k).toFixed(1)}px no-repeat`,
     `linear-gradient(#262A31,#16191E) 0 ${y1.toFixed(1)}px/100% ${Math.max(0, 720 - y1 + 2).toFixed(1)}px no-repeat`,
     `linear-gradient(to bottom,#1B2433 ${y0.toFixed(1)}px,#3E4658 ${y1.toFixed(1)}px)`
@@ -190,7 +191,7 @@ TR.hudSet = (el, o) => {
     TR.text(M.v, String(v)); const w = v + '%'; if (M.b._w !== w) { M.b.style.width = w; M.b._w = w; }
     const cls = 'meter' + (v <= 20 ? ' crit' : v <= 35 ? ' low' : ''); if (M.m._c !== cls) { M.m.className = cls; M.m._c = cls; }
   });
-  const M = el._m.cash; TR.text(M.v, fmtK(cash).replace('.0k', 'k'));
+  const M = el._m.cash; TR.text(M.v, fmtK(Math.round(cash)).replace('.0k', 'k'));
   const w = TR.clamp(50 + 50 * cash / Math.abs(P0.overdraft), 2, 100).toFixed(1) + '%'; if (M.b._w !== w) { M.b.style.width = w; M.b._w = w; }
   const cls = 'meter' + (cash < P0.overdraft / 2 ? ' crit' : cash < 0 ? ' low' : ''); if (M.m._c !== cls) { M.m.className = cls; M.m._c = cls; }
   TR.text(el._mlab, `${MONTHS[month]} ${CAL_YEAR[month]}`);

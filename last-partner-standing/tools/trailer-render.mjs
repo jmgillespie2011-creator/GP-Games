@@ -63,7 +63,7 @@ await pg.goto('file://' + page_file + '?capture=1');
 await pg.waitForFunction(() => window.TR_READY === true, null, { timeout: 15000 }).catch(() => { });
 // load every face the film uses before the first frame, so no frame falls back to a system font
 const fontsOk = await pg.evaluate(async () => {
-  const faces = ['500 20px "Bricolage Grotesque"', '700 20px "Bricolage Grotesque"', '800 20px "Bricolage Grotesque"', '400 20px "Atkinson Hyperlegible"', '700 20px "Atkinson Hyperlegible"', 'italic 400 20px "Atkinson Hyperlegible"', '400 20px "IBM Plex Mono"', '600 20px "IBM Plex Mono"'];
+  const faces = ['500 20px "Bricolage Grotesque"', '700 20px "Bricolage Grotesque"', '800 20px "Bricolage Grotesque"', '400 20px "Atkinson Hyperlegible"', '700 20px "Atkinson Hyperlegible"', 'italic 400 20px "Atkinson Hyperlegible"', '400 20px "IBM Plex Mono"', '600 20px "IBM Plex Mono"', '400 20px Gelasio', '700 20px Gelasio', 'italic 400 20px Gelasio'];
   try { await Promise.race([Promise.all(faces.map(f => document.fonts.load(f))), new Promise(r => setTimeout(r, 8000))]); } catch (e) { }
   await document.fonts.ready;
   return faces.filter(f => !document.fonts.check(f));

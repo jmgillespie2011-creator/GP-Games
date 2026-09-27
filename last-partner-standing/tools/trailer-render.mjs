@@ -5,7 +5,7 @@
 //   node last-partner-standing/tools/trailer-render.mjs --at 3,12.5 --out DIR       full-size PNG frames
 //   node last-partner-standing/tools/trailer-render.mjs --scene s3 --every 0.5 --sheet s3.png
 //                                                    contact sheets (24 frames each: s3.png, s3-2.png, ...); --from/--to work too
-//   node last-partner-standing/tools/trailer-render.mjs --video trailer.mp4 [--fps 30] [--scale 1.5] [--poster 70.5 poster.png]
+//   node last-partner-standing/tools/trailer-render.mjs --video trailer.mp4 [--fps 30] [--scale 1.5] [--crf 25] [--poster 74.5 poster.png]
 //   --only s4[,s5] assembles only those scenes (each then starts at 0 in that page), so other scenes can't break it.
 //   --frame square|portrait renders the social cuts instead: 1080x1080 for X, 1080x1350 for LinkedIn (use --scale 1).
 //   --page FILE renders an already built page (last-partner-standing-trailer.html) instead of assembling the sources.
@@ -150,7 +150,7 @@ if (video) {
   // the front, so it plays as it downloads and uploads cleanly to X, LinkedIn and messaging apps
   const enc = spawn(ff, ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-',
     '-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=48000', '-shortest',
-    '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', String(arg('crf', 20)), '-pix_fmt', 'yuv420p', '-g', String(fps * 2),
+    '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', String(arg('crf', 25)), '-pix_fmt', 'yuv420p', '-g', String(fps * 2),
     '-c:a', 'aac', '-b:a', '64k', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
   const ended = new Promise((res, rej) => enc.on('close', c => c ? rej(new Error('ffmpeg exited ' + c)) : res()));
   const a = Date.now();

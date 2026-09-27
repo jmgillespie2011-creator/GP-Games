@@ -177,6 +177,8 @@ function newGame(practiceKey, name, opts) {
   S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
   // a mid-year crunch for the suburb and town, so good players are at risk before the winter (the city has its turnover)
   if (S.practiceKey !== 'city') { S.sched.push({ id: 'twist_summer', m: 2 + Math.floor(Math.random() * 3) }); S.flags.summerGP = S.staff.salaried > 0 && Math.random() < 0.5 ? 1 : 0; }
+  // the contract explained, in six cards through the year (suburb and town, unless switched off)
+  teachSchedule();
   startMonth();
   save();
 }
@@ -427,6 +429,8 @@ function calc() {
     pcn: S.list * PER_PATIENT.pcn / 12 / 1000,
     priv: S.list * p.priv / 12 / 1000
   };
+  // local services the ICB has decommissioned take their share of the enhanced-services income with them (lcs_cut)
+  inc.es *= 1 - Math.min(0.9, mods.reduce((a, x) => a + (x.esCut || 0), 0));
   ['gs', 'npp', 'vacc', 'es', 'pcn'].forEach(k => { inc[k] *= 1 + YEAR_FUNDING * yr; });
   let modCash = 0; mods.forEach(x => { if (x.fx && x.fx.cash) modCash += x.fx.cash; });
   let roleCost = 0; for (const r of ROLE_ORDER) roleCost += ROLES[r].cost * S.staff[r];

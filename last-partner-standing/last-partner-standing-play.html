@@ -282,6 +282,9 @@ p{margin:0}
 .nownote{font-size:13.5px;color:var(--ink-2);margin:10px 0 6px;padding:6px 10px;border-left:3px solid var(--bad);background:color-mix(in srgb,var(--bad) 7%,transparent);border-radius:0 8px 8px 0}
 .outcome .text{font-size:17px}
 .deltas{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+/* the worked figures under a contract explainer's outcome */
+.teach{margin-top:14px;padding:12px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet-2);display:grid;gap:8px;max-width:60ch}
+.teach h3{font-size:14px;font-weight:700;color:var(--ink-2)}
 .delta{font-family:var(--mono);font-size:13px;font-weight:600;border-radius:6px;padding:3px 9px;border:1.5px solid}
 .delta.up{color:var(--good);border-color:var(--good)}
 .delta.down{color:var(--bad);border-color:var(--bad)}
@@ -880,6 +883,9 @@ const SOURCES = {
   S96:['Pulse: How undelivered hospital letters have caused chaos for GPs','https://www.pulsetoday.co.uk/analysis/special-investigations/youve-not-got-mail/how-undelivered-hospital-letters-have-caused-chaos-for-gps/','B'],
   S97:['Pulse: Hospital trust fails to send over 50,000 patient letters to GPs due to IT fault','https://www.pulsetoday.co.uk/news/breaking-news/hospital-trust-fails-to-send-over-50000-patient-letters-to-gps-due-to-it-fault/','B'],
   S98:['Nursing in Practice: Funding for ARRS nurse roles outlined for 2026/27','https://www.nursinginpractice.com/latest-news/funding-for-arrs-nurse-roles-outlined-for-2026-27/','B'],
+  S99:['NHS Networks: Review of GP locally commissioned services','https://networks.nhs.uk/blog/review-of-gp-locally-commissioned-services/','B'],
+  S100:['NHS England: Strategic commissioning framework (November 2025)','https://www.england.nhs.uk/long-read/strategic-commissioning-framework/','A'],
+  S101:['BMA: Enhanced services GP practices can seek funding for','https://www.bma.org.uk/advice-and-support/gp-practices/gp-service-provision/enhanced-services-gp-practices-can-seek-funding-for','B'],
   S94:['NHS England Digital: Appointments in General Practice','https://digital.nhs.uk/data-and-information/publications/statistical/appointments-in-general-practice','A'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
@@ -928,7 +934,8 @@ const GLOSSARY = [
   ['Factual accuracy check','Before a CQC report is published the practice gets a draft and can challenge factual errors, with evidence.',['S53']],
   ['EPS and FP10','The Electronic Prescription Service sends prescriptions straight to the patient\'s chosen pharmacy. When it or the clinical system is down, prescriptions go on paper FP10 forms, signed in ink.',['S61']],
   ['Medicine shortages','The Department of Health issues Medicine Supply Notifications with advice on alternatives, and for serious shortages a Serious Shortage Protocol, which lets pharmacists supply a set alternative without a new prescription.',['S63','S64']],
-  ['LCS','A locally commissioned service: extra work an ICB pays practices to do, such as community dermatology or weight management. Where there isn\'t one, the work often arrives anyway, unfunded.',[]],
+  ['Enhanced services','Work beyond the core contract, paid separately, which practices choose to sign up to. National ones, such as the flu programme (£10.06 a jab in 2026/27) and the PCN DES, are offered to every practice. Local ones (an LES or LCS) are bought by each ICB.',['S101','S27']],
+  ['LCS or LES','A locally commissioned service, or local enhanced service: extra work an ICB pays practices to do, such as phlebotomy, wound care, community dermatology or weight management. Each area has its own list and prices. Services run for set periods, and the ICB can change, suspend or end them. Where there isn\'t one, the work often arrives anyway, unfunded.',['S99','S100','S72']],
   ['Suspected cancer referral','An urgent referral when cancer is a possibility. It used to be called the two-week wait.',[]]
 ];
 /* ---------------- Docman Dash items ---------------- */
@@ -1522,7 +1529,7 @@ EVENTS.push(
  text:`Tom, your salaried GP, catches you by the kettle. "I've been thinking. I'd like to become a partner." He has been reading the accounts. He has questions about the overdraft.`,
  choices:[
   {t:'"Yes. Welcome to the partnership."',fx:{team:4,you:2,capital:25},run(){ S.staff.salaried--; S.partners.tom.status='active'; },o:`Tom buys in with £25,000 of working capital and a bottle of prosecco. He'll share the profits, the decisions and the liability.`},
-  {t:'"Not this year. Let\'s review it in twelve months."',fx:{team:-2},alt:{p:0.5,o:`Tom nods. Six weeks later he hands in his notice. He's joining a practice across town as a partner.`,fx:{team:-3,sched:[['tom_leaves',1]]}},o:`Tom nods slowly. "Fair enough." He stays, but he has stopped volunteering for things.`},
+  {t:'"Not this year. Let\'s review it in twelve months."',fx:{team:-2},alt:{p:()=>S.flags.taughtTom ? 0.25 : 0.5,o:`Tom nods. Six weeks later he hands in his notice. He's joining a practice across town as a partner.`,fx:{team:-3,sched:[['tom_leaves',1]]}},o:`Tom nods slowly. "Fair enough." He stays, but he has stopped volunteering for things.`},
   {t:'Offer him a pay rise to stay salaried',fx:{team:1},run(){ S.tomRaise=0.8; },o:`An extra £800 a month. He takes it. "No liability, no drawings, no HMRC in January," he says. You are briefly jealous of your own employee.`}
  ]},
 
@@ -2653,7 +2660,7 @@ EVENTS.push(
   {t:'Pay for it yourself',fx:{you:6},o:`The surgery goes well. The £11,000 comes out of your own savings, then spend two weeks on crutches doing telephone triage from the sofa.`},
   {t:'Wait like everyone else',fx:{you:-4},later:[{in:4,p:0.5,fx:{you:-3},note:'Your knee gave way on the practice stairs. The waiting list letter says you are "in the queue".'}],o:`You join the list. You now understand your patients' letters in a new and personal way.`}
  ]},
-{id:'p_trainee_returns',once:1,who:'reg',title:'Ellie is back',pmin:1,cond:()=>!!S.flags.training,tag:'story',
+{id:'p_trainee_returns',once:1,who:'reg',title:'Ellie is back',pmin:1,cond:()=>!!S.flags.training,w:()=>(S.flags.taughtEllie || 0) >= 2 ? 3 : 1,tag:'story',
  text:`Ellie, your old registrar, has finished training. She'd like to come back as a salaried GP, and she's asking about partnership "in a year or two".`,
  choices:[
   {t:'Offer her a job, and a route to partnership',need:()=>gpHeadroom() >= 6,why:'No room for another GP in this area',fx:{team:5,you:3},run(){ S.staff.salaried++; },o:`Ellie starts next month. This is what growing your own GPs was for.`},
@@ -3137,6 +3144,201 @@ EVENTS.push(
   {t:'The practice needs every session',fx:{you:-2},o:`You stay. The advert closes on Friday.`}
  ]}
 );
+/* ===================== EVENTS 10: the contract, explained =====================
+ Six cards through year one in the leafy suburb and the market town, pitched at a GP trainee: where the money
+ comes from (the global sum), QOF, enhanced services (national ones, and the local LES or LCS that an ICB can end),
+ ARRS, drawings and tax, and why anyone would be a partner. Someone asks, and you explain it with the practice's own
+ figures; the teaching choice shows them worked out. On by default, switched off under Options or in the menu
+ ("Explain the contract as you go", `UI.settings.teach`).
+ Plus `lcs_cut`, a real card for every practice: the ICB decommissions a local service, and the enhanced-services
+ income falls for good (a mod with `esCut`, read by calc()). After the LES explainer it follows for some players.
+ Who asks: Ellie if you became a training practice and she's in post, otherwise Tom while he's at the practice,
+ otherwise the registrars on the local GP training scheme, where Clare has signed you up to teach.
+ Teaching pays off later: Tom is less likely to walk if you turn down his partnership (`tom_partner`), and Ellie is
+ likelier to come back once she's qualified (`p_trainee_returns`).
+*/
+const TEACH = [['teach_money', 1], ['teach_qof', 4], ['teach_lcs', 5], ['teach_arrs', 6], ['teach_drawings', 9], ['teach_partner', 10]];
+const TEACH_IDS = TEACH.map(x => x[0]);
+// on unless switched off; the simulator has no UI, so it plays with them on, like a new player
+function teachOn() {
+  if (!S || S.practiceKey === 'city') return false;
+  try { return typeof UI === 'undefined' || !UI.settings || UI.settings.teach !== false; } catch (e) { return true; }
+}
+// schedules what's left of year one's explainers: from newGame, or when they're switched on mid-year
+function teachSchedule() {
+  if (!teachOn() || (S.yr || 0)) return;
+  TEACH.forEach(([id, m]) => { if (m > S.month && !S.seen[id] && !S.sched.some(x => x.id === id)) S.sched.push({ id, m }); });
+}
+function teachUnschedule() { S.sched = S.sched.filter(x => !TEACH_IDS.includes(x.id)); }
+// keeps a running or reloaded game in step with the setting
+function teachSync() { if (S) { if (teachOn()) teachSchedule(); else teachUnschedule(); } }
+// who's asking. "Why be a partner?" skips Tom once he is one.
+function tutor(notPartner) {
+  if (hasMod('registrar')) return { who: 'reg', n: 'Ellie', flag: 'taughtEllie' };
+  const tom = S.partners.tom || {};
+  if (tom.status === 'active' && !notPartner) return { who: 'tom', n: 'Tom', flag: 'taughtTom', partner: 1 };
+  if (tom.status === 'salaried' && S.staff.salaried >= 1 && !S.flags.tomGone) return { who: 'tom', n: 'Tom', flag: 'taughtTom' };
+  return { who: 'pcn', n: 'the registrars', scheme: 1 };
+}
+function taught(notPartner) { const t = tutor(notPartner); if (t.flag) S.flags[t.flag] = (S.flags[t.flag] || 0) + 1; }
+// teaching well builds the team, or your name with the local registrars (who are your future recruits)
+const teachFx = (fx, g, notPartner) => Object.assign({}, fx, { [tutor(notPartner).scheme ? 'rep' : 'team']: g });
+function teachAsk(t, own, q) {
+  if (!t.scheme) return `${own} "${q}"`;
+  return `${S.flags.teachScheme ? 'At the training scheme, a hand goes up.' : 'Clare has signed you up to teach the contract to the local GP registrars. A hand goes up.'} "${q}"`;
+}
+function teachDone(notPartner) { if (tutor(notPartner).scheme) S.flags.teachScheme = 1; }
+// a small worked table for the outcome card (plain numbers and our own labels, so nothing to escape)
+const tchN = v => Math.round(v).toLocaleString('en-GB');
+const tchK = v => (v < 0 ? '−£' : '£') + Math.abs(v).toFixed(1) + 'k';
+const tchTable = (title, rows, sum, note) => `<div class="teach"><h3>${title}</h3><dl class="kv small">${rows.map(([l, v, how]) => `<dt>${l}${how ? `<small>${how}</small>` : ''}</dt><dd>${v}</dd>`).join('')}${sum ? `<dt class="sum">${sum[0]}</dt><dd class="sum">${sum[1]}</dd>` : ''}</dl>${note ? `<p class="fc-note">${note}</p>` : ''}</div>`;
+const teachArrsRoles = () => ROLE_ORDER.filter(r => ROLES[r].arrs && S.staff[r] > 0);
+// local services the ICB buys from the practice, each a share of the enhanced-services income (our estimate), in the order they go
+const LCS_LIST = [
+  { id: 'phleb', name: 'phlebotomy', share: 0.35, work: 'the hospital\'s blood forms will keep coming', stop: 'Hospital bloods go back to the hospital, where the queue is two hours long' },
+  { id: 'wound', name: 'wound care', share: 0.25, work: 'the leg ulcers will still need dressing', stop: 'Dressings go to the community nurses, who have a waiting list of their own' },
+  { id: 'ecg', name: 'ECG', share: 0.15, work: 'the hospital will still want an ECG before clinic', stop: 'ECGs go back to the hospital: one more trip for every patient' }
+];
+const lcsNext = () => LCS_LIST.find(x => !S.flags['lcs_' + x.id]);
+// the service ends `inMonths` from now, and its share of enhanced-services income goes for good
+function lcsCut(x, inMonths) { S.flags['lcs_' + x.id] = 1; addMod({ id: 'lcs_' + x.id, label: `${x.name} LCS decommissioned`, lcs: x.name, months: 999, at: S.month + inMonths, esCut: x.share }); }
+
+EVENTS.push(
+{id:'teach_money',arc:1,get who(){ return tutor().who; },title:'Where the money comes from',cond:teachOn,tag:'real',src:['S2','S3'],
+ info:'The global sum pays for essential services: £130.07 per weighted patient a year in 2026/27, paid monthly. The Carr-Hill formula weights each patient for age, sex, illness, care-home residence, new registration, rurality and staff costs. Practices that opt out of out-of-hours care, as nearly all do, lose 4.7%. Vaccinations and enhanced services are paid per item on top.',
+ text:()=>{ const t = tutor(), w = weightedList(), r = w / S.list;
+  const mix = r > 1.01 ? `${tchN(w)}, because they're older and need more than average` : r < 0.99 ? `only ${tchN(w)}, because they're younger than average` : `about ${tchN(w)}: an average mix`;
+  return teachAsk(t, t.who === 'reg' ? 'Ellie has a tutorial on practice finance.' : 'Tom has been reading the practice accounts.', 'Where does the money actually come from?') +
+   ` Mostly the global sum: £130.07 a year for each weighted patient. Weighting counts need as well as heads, so your {list} patients count as ${mix}. Less 4.7% for opting out of out-of-hours care, it pays about £${tchN(calc().inc.gs * 1000)} a month, however many appointments you offer.`; },
+ choices:[
+  {t:'Go through the statement line by line',fx:()=>teachFx({you:-2},2),
+   run(){ const c = calc(), i = c.inc, tot = Object.values(i).reduce((a, b) => a + b, 0); taught();
+    return { html: tchTable(`${prac().surgery}: income this month`, [
+     ['Global sum', tchK(i.gs), `${tchN(weightedList())} weighted patients × £${P.gs} × (1 − 4.7%) ÷ 12`],
+     ['QOF aspiration', tchK(i.qof), '80% of last year\'s QOF, paid monthly'],
+     ['Vaccinations', tchK(i.vacc), 'Paid for each one given'],
+     ['Enhanced services', tchK(i.es), 'Paid for what you deliver, so they fall when appointments run short'],
+     ['Network and PCN', tchK(i.npp + i.pcn), 'Your share of the PCN\'s money'],
+     ['Private fees', tchK(i.priv), 'Reports, medicals and letters']
+    ], ['Income this month', tchK(tot)], 'Staff, locums, rent and running costs all come out of this before the partners see any of it.') }; },
+   o:()=>{ const t = tutor(); return `You go through it together. The global sum is the biggest line by far, and it doesn't rise when demand does. "So being busier doesn't pay," ${t.scheme ? 'says a registrar' : t.n + ' says'}. Only a bigger list does, slowly, and the extra patients bring their own demand.`; }},
+  {t:'"Patients, not appointments." Back to clinic.',fx:()=>teachFx({you:1},-1),
+   o:()=>{ const t = tutor(); return t.scheme ? `It's the right answer, in three words. The registrars write it down and look no wiser.` : `It's the right answer, in three words. ${t.n} writes it down and looks no wiser.`; }}
+ ],
+ after(){ teachDone(); }},
+
+{id:'teach_qof',arc:1,get who(){ return tutor().who; },title:'Points mean money',cond:teachOn,tag:'real',src:['S3','S13'],
+ info:'The Quality and Outcomes Framework: 582 points in 2026/27, each worth £227.95 for a practice of average size (10,295 patients), adjusted for list size and how common each condition is. Practices get 80% of last year\'s value monthly as an aspiration payment, and the balance for what they actually achieve by the end of the following June.',
+ text:()=>{ const t = tutor();
+  return teachAsk(t, `${t.n} has found the QOF dashboard.`, 'Why does everyone care so much about this?') +
+   ` QOF pays for care you can count, like blood pressure control and diabetes reviews: 582 points, each worth about £228 for an average practice, scaled for list size and how common the conditions are. Here, 100% is worth about £${tchN(qofValueK(100) * 1000)} a year, so each 1% is about £${tchN(qofValueK(1) * 1000)}. You're at {qof}% so far; it's counted on 31 March.`; },
+ choices:[
+  {t:()=>tutor().scheme ? 'Walk them through a year of QOF' : `Work through the recall list with ${tutor().n}`,fx:()=>teachFx(tutor().scheme ? {you:-2} : {you:-2,qof:1},1),
+   run(){ const p = prac(); taught();
+    return { html: tchTable(`${p.surgery}: what QOF is worth`, [
+     ['Points available', '582', 'Each point is worth £227.95 for an average practice'],
+     ['Scaled for your list', '× ' + (S.list / P.cpiAvg).toFixed(2), `${tchN(S.list)} patients against the average of ${tchN(P.cpiAvg)}`],
+     ['Scaled for how common the conditions are', '× ' + p.prev.toFixed(2), 'Prevalence against the national average'],
+     ['Paid monthly now', tchK(S.qofAsp), `80% of last year's ${p.lastQof}%, a twelfth a month`]
+    ], ['100% would be worth', `£${tchN(qofValueK(100) * 1000)} a year`], `The balance for what you actually achieve is paid by the end of June ${2027 + (S.yr || 0)}. Achieve less than you were paid for and some of it goes back.`) }; },
+   o:()=>{ const t = tutor(); return t.scheme ? `You show them how the year goes: recalls in the autumn, the scramble in March, the balance in June. "So it's money," says a registrar. "And strokes that don't happen," you say. Both are true.` : `You find four patients with diabetes who only need a foot check, and a man whose blood pressure hasn't been measured since 2019. "So it's money," ${t.n} says. "And a stroke that doesn't happen," you say. Both are true.`; }},
+  {t:()=>tutor().scheme ? '"It keeps the lights on." Next question.' : '"It keeps the lights on. Ask Maureen."',fx:()=>teachFx({you:1},-1),
+   o:()=>{ const t = tutor(); return t.scheme ? `The registrars laugh. One of them writes down "lights".` : `${t.n} asks Maureen, who explains it better than you would have, and mentions it at the practice meeting.`; }}
+ ],
+ after(){ teachDone(); }},
+
+{id:'teach_lcs',arc:1,get who(){ return tutor().who; },title:'What\'s an LES?',cond:teachOn,tag:'real',src:['S27','S101','S99','S72'],
+ info:'Enhanced services are work beyond the core contract, paid separately. National ones are offered to every practice: the adult flu programme pays £10.06 a jab in 2026/27, under a specification that runs for the year. Local enhanced services, also called locally commissioned services, are bought by each ICB, such as phlebotomy, wound care and shared care, and vary in scope and price from area to area. They run for set periods, and ICBs can change, suspend or end them. In April 2026, for example, GP-run community dermatology services in East Sussex were suspended after a review.',
+ text:()=>{ const t = tutor();
+  const ask = t.scheme ? teachAsk(t, '', 'Who pays for the flu clinics?')
+   : S.fluMod > 1 ? teachAsk(t, `${t.n} has just done a Saturday flu clinic.`, 'Is all this in the contract?')
+   : S.fluMod < 1 ? teachAsk(t, `${t.n} wants to know why the pharmacy down the road is doing your flu jabs.`, 'Isn\'t flu part of the contract?')
+   : teachAsk(t, `It's flu season, and ${t.n} has a question.`, 'Is all this in the contract?');
+  return ask + ` Not the core of it. Flu jabs are a national enhanced service, paid by the jab: £${P.fluFee} each. Local ones, an LES or LCS, are bought by the ICB: phlebotomy, wound care, shared-care monitoring, at prices that vary by area. Enhanced services bring {surgery} about £${tchN(calc().inc.es * 1000)} a month. But they last only as long as the ICB keeps buying them.`; },
+ choices:[
+  {t:()=>tutor().scheme ? 'Show them a real local service contract' : `Show ${tutor().n} the local service contracts`,fx:()=>teachFx({you:-2},2),
+   run(){ const i = calc().inc, x = LCS_LIST[0]; taught();
+    return { html: tchTable(`${prac().surgery}: enhanced services`, [
+     ['Enhanced services this month', tchK(i.es), 'Local and national, paid per item or per patient, so they fall when appointments run short'],
+     ['Vaccinations this month', tchK(i.vacc), `Flu jabs at £${P.fluFee} each in the autumn, and the childhood programme`],
+     [`If the ICB ended the ${x.name} service`, `${tchK(-i.es * x.share * 12)} a year`, 'About a third of the enhanced services line']
+    ], null, 'Local services are commissioned for set periods, often a year at a time. When one ends, the income stops, but the staff who ran it are still on the payroll.') }; },
+   o:()=>{ const t = tutor(); return `You go through one: a price for each blood test, an end date and a review clause. "So the money can stop and the work doesn't," ${t.scheme ? 'says a registrar' : t.n + ' says'}. You couldn't have put it better.`; }},
+  {t:'"The ICB pays. For now."',fx:()=>teachFx({you:1},-1),
+   o:()=>{ const t = tutor(); return `${t.scheme ? 'A registrar asks' : t.n + ' asks'} what "for now" means. You say it means until the ICB says otherwise, usually by letter.`; }}
+ ],
+ // sometimes the lesson arrives for real, a few months later
+ after(){ teachDone(); if (lcsNext() && chance(0.4)) schedule('lcs_cut', 3 + Math.floor(Math.random() * 3)); }},
+
+{id:'teach_arrs',arc:1,get who(){ return tutor().who; },title:'Who pays for the pharmacist?',cond:teachOn,tag:'real',src:['S4','S84'],
+ info:'The Additional Roles Reimbursement Scheme pays each PCN £27.668 per weighted patient a year (2026/27) to claim back the pay of set roles, such as clinical pharmacists, physios, paramedics, care coordinators and, from 2026/27, GPs, up to a maximum for each role. Practices still provide the rooms, equipment and supervision, and pay for anything over the budget. The game\'s claim for each role is an estimate.',
+ text:()=>{ const t = tutor(), roles = teachArrsRoles(), b = arrsBudget(), used = arrsSpend(true);
+  const q = t.scheme ? 'Who pays for all the pharmacists and physios?' : roles.length ? `Who pays for the ${ROLES[roles[0]].name.replace(/^[A-Z](?![A-Z])/, c => c.toLowerCase())}?` : 'Other practices have pharmacists and physios. Are they free?';
+  return teachAsk(t, `${t.n} is looking at the rota.`, q) +
+   ` ${roles.length || t.scheme ? 'Mostly the PCN, through' : 'Nearly. The PCN pays, through'} the additional roles scheme, ARRS: £27.67 a year per weighted patient. {surgery}'s share is about £${tchN(b)}k, ${used > 0.5 ? `of which £${tchN(used)}k is spoken for` : 'none of it spoken for yet, and money nobody claims is never paid'}. It pays for set roles, like pharmacists, physios and paramedics, up to a limit for each. The room, the supervision and anything over budget are yours.`; },
+ choices:[
+  {t:()=>tutor().scheme ? 'Show them a real claims spreadsheet' : `Show ${tutor().n} the PCN's claims spreadsheet`,fx:()=>teachFx({you:-2},2),
+   run(){ const b = arrsBudget(), left = arrsLeft(), w = weightedList(); taught();
+    const rows = [['Your share of the PCN budget', `£${tchN(b)}k a year`, `${tchN(w)} weighted patients × £${P.arrs}`]];
+    ROLE_ORDER.filter(r => ROLES[r].arrs).forEach(r => { const n = S.staff[r] + (S.vac[r] || 0); if (n) rows.push([`${ROLES[r].name}${n > 1 ? ' × ' + n : ''}${S.vac[r] ? ' (advert open)' : ''}`, `−£${tchN(arrsClaimOf(r) * n)}k`, `About £${tchN(arrsClaimOf(r))}k a year each (${ROLES[r].band}), claimed back`]); });
+    const gps = arrsGPs() + (S.vac.arrsgp || 0);
+    if (gps) rows.push([`GP${gps > 1 ? 's' : ''} through the PCN`, `−£${tchN(gps * ARRS_GP_CLAIM)}k`, 'Six sessions a week, claimed at their real cost']);
+    const scale = rows.length > 1 ? '' : `Nobody is claimed yet. For scale, a clinical pharmacist costs about £${tchN(arrsClaimOf('pharm'))}k a year with on-costs, so this would cover about ${['none', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'][Math.floor(left / arrsClaimOf('pharm'))] || Math.floor(left / arrsClaimOf('pharm'))}. `;
+    return { html: tchTable(`${prac().surgery}: the additional roles budget`, rows, [left >= 0 ? 'Left to claim' : 'Over budget: the practice pays', `£${tchN(Math.abs(left))}k a year`], `${scale}Each post is claimed back only while it's filled. The practice still finds the room, the kit and a GP to supervise.`) }; },
+   o:()=>{ const t = tutor(); return `You go through how it works: each role is paid back up to its limit, and only while the post is filled. "So they're free," ${t.scheme ? 'says a registrar' : t.n + ' says'}. "Free the way a puppy is free," you say.`; }},
+  {t:'"The PCN pays. Mostly."',fx:()=>teachFx({you:1},-1),
+   o:()=>{ const t = tutor(); return t.scheme ? `True, until the budget runs out. After that, every extra role comes out of profit. The registrars write down "mostly".` : `True, until the budget runs out. After that, every extra role comes out of profit. ${t.n} nods as if that were obvious. It isn't.`; }}
+ ],
+ after(){ teachDone(); }},
+
+{id:'teach_drawings',arc:1,get who(){ return tutor().who; },title:'Drawings aren\'t a salary',cond:teachOn,tag:'real',src:['S21','S22','S23'],
+ info:'Partners aren\'t employees. They take drawings on account of their share of the profit, and the accountant settles the difference once the year\'s accounts are done. Income tax and Class 4 National Insurance are paid through Self Assessment, and partners pay both the member and the employer shares of their NHS pension. Accountants often advise new partners to put about 40% of drawings aside.',
+ text:()=>{ const t = tutor();
+  const ask = t.partner ? teachAsk(t, 'Tom, a partner since the summer, has seen his first tax estimate.', 'Why is it so big? I haven\'t been paid that much.')
+   : teachAsk(t, `It's the week of the partners' tax bills, and ${t.n} has noticed the mood.`, 'Don\'t partners just get paid a salary?');
+  return ask + ` ${t.partner ? 'Because drawings aren\'t pay.' : 'No.'} Partners draw £${drawOf(S.plan.draw)}k a month on account of a profit share that nobody knows until the accounts close on 31 March. So far this year your own share is ${S.year.share < 0 ? `a loss of £${tchN(-S.year.share)}k` : `about £${tchN(S.year.share)}k`}; you've drawn £${tchN(S.drawTotal)}k, and £${tchN(S.penTotal)}k more has gone into your pension. Tax is due on the share, not the drawings, and nobody takes it at source.`; },
+ choices:[
+  {t:'Go through Neville\'s forecast together',fx:()=>teachFx({you:-2},2),
+   run(){ const bal = S.year.share - S.drawTotal - S.penTotal, m = Math.max(1, S.month); taught();
+    return { html: tchTable('Your own money so far this year', [
+     ['Your share of the profit', tchK(S.year.share), `April to ${MONTHS[m - 1]}`],
+     ['Drawings you took', tchK(-S.drawTotal), `${S.plan.draw === 'low' ? 'Lean' : S.plan.draw === 'high' ? 'Generous' : 'Standard'}: £${drawOf(S.plan.draw)}k this month`],
+     ['Your NHS pension', tchK(-S.penTotal), 'Both halves: the member rate and the 14.38% employer share']
+    ], [bal >= 0 ? 'Ahead so far: owed to you' : 'Behind so far: you\'d pay it back in', tchK(Math.abs(bal))], 'The QOF balance is added at the year end. Income tax and Class 4 NI are then due on the whole share, not on what you drew.') }; },
+   o:()=>{ const t = tutor(); return `You go through it: the profit share, less both halves of the NHS pension, less income tax and Class 4 National Insurance. A new partner's first bill, in January 2028, is a whole year's tax plus half as much again, paid on account for the next year. "So put 40% aside," ${t.scheme ? 'says a registrar' : t.n + ' says'}. You nod, as if you had.`; }},
+  {t:'"It\'s more than a salary. In a good year."',fx:()=>teachFx({you:1},-1),
+   o:()=>{ const t = tutor(); return `${t.scheme ? 'A registrar asks' : t.n + ' asks'} what happens in a bad year. You say you'll know in March.`; }}
+ ],
+ after(){ teachDone(); }},
+
+{id:'teach_partner',arc:1,get who(){ return tutor(1).who; },title:'Why be a partner?',cond:teachOn,tag:'real',src:['S8','S23','S83'],
+ info:'NHS England Digital\'s estimates for 2024/25: partner (contractor) GPs averaged £164,200 before tax and salaried GPs £74,800. Neither figure is adjusted for part-time working. Partners share the profits and the decisions, and carry unlimited liability for the practice\'s debts. The number of GP partners under 40 in England fell by 17% in the 15 months to September 2025.',
+ text:()=>{ const t = tutor(1);
+  const ask = t.who === 'reg' ? teachAsk(t, 'Ellie finishes training in the summer, and she has been offered a salaried job.', 'Honestly, why would anyone be a partner?')
+   : teachAsk(t, 'Tom is still thinking about partnership.', t.scheme ? 'Honestly, why would anyone be a partner?' : 'Honestly, why do it?');
+  return ask + ` Partners averaged £164,200 before tax in 2024/25; salaried GPs £74,800, and neither figure is per full-time GP. Partners decide how the practice runs, and they own its problems: the lease, the payroll and the overdraft, with unlimited liability. In England, the number of partners under 40 fell by 17% in 15 months.`; },
+ choices:[
+  {t:()=>tutor(1).scheme ? 'Tell them the truth, good and bad' : `Tell ${tutor(1).n} the truth, good and bad`,fx:()=>teachFx({you:-1},2,1),
+   run(){ taught(1); },
+   o:()=>{ const t = tutor(1); return t.scheme ? `You tell them about the patients you've known for years, the decisions nobody can overrule and the spreadsheet at 2am. Three registrars ask for your email afterwards. One asks about your overdraft.` : `You tell ${t.n} about the patients you've known for years, the decisions nobody can overrule and the spreadsheet at 2am. "So it's worth it if the practice is well run," ${t.n} says. That's the whole answer, really.`; }},
+  {t:'"Somebody has to be the last partner standing."',fx:()=>teachFx({you:1},-1,1),
+   o:()=>{ const t = tutor(1); return t.scheme ? `The room laughs, then stops.` : `${t.n} laughs, then stops.`; }}
+ ],
+ after(){ teachDone(1); }}
+);
+
+/* ---------- the other half of the LES explainer: a real card for every practice ---------- */
+EVENTS.push(
+{id:'lcs_cut',who:'icb',title:'Decommissioned',months:[7,8,9,10],cond:()=>!!lcsNext(),tag:'real',src:['S99','S100','S72'],
+ info:'Locally commissioned services, also called local enhanced services, are extra work ICBs buy from practices, such as phlebotomy, wound care and shared care. They run for set periods and can be changed or ended. NHS England\'s strategic commissioning framework (November 2025) asks ICBs to be bold, and to rearrange and potentially decommission services. In April 2026, GP-run community dermatology services in East Sussex were suspended after a review. The game\'s value for each service is an estimate.',
+ text:()=>{ const x = lcsNext(), k = calc().inc.es * x.share * 12;
+  return `Jonathan from the ICB writes: after "a review of locally commissioned services", the ${x.name} LCS ends in three months. It pays {surgery} about £${tchN(Math.round(k * 10) * 100)} a year. The work doesn't end with it: ${x.work}.`; },
+ choices:[
+  {t:'Stop the work when the money stops',fx:{patients:-3,rep:-1},run(){ const x = lcsNext(); lcsCut(x, 3); return { o: `${x.stop}. The complaints come to you.` }; }},
+  {t:'Keep doing it, unfunded',fx:{team:-3,you:-1},run(){ const x = lcsNext(); lcsCut(x, 3); return { o: `Nothing changes for patients. The ${x.name} clinics stay full, and now the partners pay for them.` }; }},
+  {t:'Push back, with the LMC and the PCN',fx:{you:-2,icb:-2},alt:{p:0.6,fx:{you:-3,icb:-3,patients:-2},run(){ lcsCut(lcsNext(), 3); },o:'The ICB "notes your concerns". The service ends on schedule.'},o:()=>`Six practices and the LMC write together. The ICB agrees to keep the ${lcsNext().name} LCS for another year while it "reviews options".`}
+ ]}
+);
 /* ===================== ENGINE: state, month flow, simulation ===================== */
 let S = null;
 // Weekly challenge games use a seeded random stream (kept in S.rng, so it survives saving); everything else uses the browser's.
@@ -3316,6 +3518,8 @@ function newGame(practiceKey, name, opts) {
   S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
   // a mid-year crunch for the suburb and town, so good players are at risk before the winter (the city has its turnover)
   if (S.practiceKey !== 'city') { S.sched.push({ id: 'twist_summer', m: 2 + Math.floor(Math.random() * 3) }); S.flags.summerGP = S.staff.salaried > 0 && Math.random() < 0.5 ? 1 : 0; }
+  // the contract explained, in six cards through the year (suburb and town, unless switched off)
+  teachSchedule();
   startMonth();
   save();
 }
@@ -3566,6 +3770,8 @@ function calc() {
     pcn: S.list * PER_PATIENT.pcn / 12 / 1000,
     priv: S.list * p.priv / 12 / 1000
   };
+  // local services the ICB has decommissioned take their share of the enhanced-services income with them (lcs_cut)
+  inc.es *= 1 - Math.min(0.9, mods.reduce((a, x) => a + (x.esCut || 0), 0));
   ['gs', 'npp', 'vacc', 'es', 'pcn'].forEach(k => { inc[k] *= 1 + YEAR_FUNDING * yr; });
   let modCash = 0; mods.forEach(x => { if (x.fx && x.fx.cash) modCash += x.fx.cash; });
   let roleCost = 0; for (const r of ROLE_ORDER) roleCost += ROLES[r].cost * S.staff[r];
@@ -4063,7 +4269,7 @@ function sponsorHTML() {
   return `<aside class="sponsor" aria-label="From the maker of this game"><div class="eyebrow">From the maker of this game</div><p><b>${esc(SPONSOR.name)}</b>: ${esc(SPONSOR.line)}</p><a class="btn ghost" href="${esc(SPONSOR.url)}" target="_blank" rel="noopener sponsored">Find out more</a></aside>`;
 }
 const SETTINGS_KEY = 'lps-settings-v1', CARD_SECONDS = 45;
-function loadSettings() { try { return Object.assign({ timer: false, quick: true }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) { return { timer: false, quick: true }; } }
+function loadSettings() { try { return Object.assign({ timer: false, quick: true, teach: true }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) { return { timer: false, quick: true, teach: true }; } }
 function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(UI.settings)); } catch (e) { } }
 UI.settings = loadSettings();
 function timeUp(id, qi) {
@@ -4184,6 +4390,7 @@ function renderTitle() {
       <details class="explain opts"><summary>Options${UI.settings.timer ? ': the 8am pace is on' : ''}</summary>
         <label class="toggle"><input type="checkbox" data-act="timer" ${UI.settings.timer ? 'checked' : ''}> <span><b>The 8am pace</b>: ${CARD_SECONDS} seconds to decide each card, or it gets decided for you. Off by default.</span></label>
         <label class="toggle"><input type="checkbox" data-act="quick" ${UI.settings.quick ? 'checked' : ''}> <span><b>Skip quiet months</b>: when nothing new happened, go straight to the next plan and show last month in a short panel. On by default.</span></label>
+        <label class="toggle"><input type="checkbox" data-act="teach" ${UI.settings.teach ? 'checked' : ''}> <span><b>Explain the contract as you go</b>: in the leafy suburb and the market town, someone asks how the money works and you explain it with your practice's own figures. Six cards through year one. On by default.</span></label>
       </details>
       <div class="setup-actions">
         <button class="btn primary" data-act="start">Sign the partnership deed</button>
@@ -4266,7 +4473,7 @@ function renderPlan() {
     ['QOF aspiration', c.inc.qof, `80% of last year's QOF (${p.lastQof}%) ÷ 12`],
     ['Network participation', c.inc.npp, `£${P.npp} × weighted list ÷ 12`],
     ['Vaccinations', c.inc.vacc, FLU_MONTHS.includes(S.month) ? 'Flu season: September to January' : 'Childhood and routine immunisations'],
-    ['Enhanced services', c.inc.es, c.serviceF < 0.98 ? `Only ${pct(c.serviceF)} claimed: not enough appointments to deliver them all` : 'Local and national enhanced services'],
+    ['Enhanced services', c.inc.es, (c.serviceF < 0.98 ? `Only ${pct(c.serviceF)} claimed: not enough appointments to deliver them all` : 'Local and national enhanced services') + (() => { const cut = activeMods().filter(x => x.esCut).map(x => x.lcs); return cut.length ? `. Decommissioned by the ICB: ${cut.join(', ')}` : ''; })()],
     ['PCN', c.inc.pcn, 'Your share of PCN funding'],
     ['Private fees', c.inc.priv, 'Reports, medicals and letters'],
     ...(c.modCash ? [['Schemes, leases and extras', c.modCash, 'From earlier decisions']] : []),
@@ -4372,7 +4579,7 @@ function hintFor(c) {
   const src = c.run ? String(c.run) : '';
   if (/chance\(/.test(src)) out.gamble = 1;
   if (/plant\(|schedule\(|later/.test(src)) out.later = 1;
-  if (/addMod\(|payX|premX|S\.loan/.test(src)) out.lasting = 1;
+  if (/addMod\(|payX|premX|S\.loan|lcsCut\(/.test(src)) out.lasting = 1;
   return out;
 }
 function chipsFor(c) {
@@ -4629,7 +4836,7 @@ function sourcesHTML() {
 }
 function menuHTML() {
   return `<h2>Menu</h2><p class="muted">Your game saves automatically after every decision, in this browser only.</p>
-  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="honours">The Partners' Board</button><button class="btn" data-act="timer">${UI.settings.timer ? 'Turn off' : 'Turn on'} the ${CARD_SECONDS}-second timer</button><button class="btn" data-act="quick">${UI.settings.quick ? 'Show every month report' : 'Skip quiet month reports'}</button><button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
+  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="honours">The Partners' Board</button><button class="btn" data-act="timer">${UI.settings.timer ? 'Turn off' : 'Turn on'} the ${CARD_SECONDS}-second timer</button><button class="btn" data-act="quick">${UI.settings.quick ? 'Show every month report' : 'Skip quiet month reports'}</button><button class="btn" data-act="teach">${UI.settings.teach ? 'Stop explaining the contract' : 'Explain the contract as you go'}</button><button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
 }
 // a month with nothing to read: no consequences, hires, departures or endings, small meter moves, nothing near the edge
 function quietMonth(R) {
@@ -4677,6 +4884,17 @@ document.addEventListener('click', ev => {
       break; }
     case 'nextyear': go(continueYear); break;
     case 'quick': { UI.settings.quick = !UI.settings.quick; saveSettings(); if (S && UI.screen !== 'title') { closeOverlay(); render(); } else keepScroll(renderTitle); toast(UI.settings.quick ? 'Quiet months now skip straight to the next plan.' : 'You\'ll see every month report.'); break; }
+    case 'teach': {
+      UI.settings.teach = !UI.settings.teach; saveSettings();
+      if (S && UI.screen !== 'title') {
+        // mid-game: schedule what's left of year one, or clear it and skip one that's on screen
+        teachSync();
+        if (!UI.settings.teach && S.phase === 'event' && TEACH_IDS.includes(S.queue[S.qi])) advanceEvent();
+        save(); closeOverlay(); render();
+      } else keepScroll(renderTitle);
+      toast(UI.settings.teach ? 'Contract explainers on: six cards through year one, in the leafy suburb and the market town.' : 'Contract explainers off.');
+      break;
+    }
     case 'timer': { UI.settings.timer = !UI.settings.timer; saveSettings(); if (S && UI.screen !== 'title') { closeOverlay(); render(); } else keepScroll(renderTitle); toast(UI.settings.timer ? `The 8am pace is on: ${CARD_SECONDS} seconds a card.` : 'The 8am pace is off.'); break; }
     case 'takeover': go(takeOver); break;
     case 'honours': openOverlay(partnersBoardHTML(40) + '<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>'); break;
@@ -4686,7 +4904,7 @@ document.addEventListener('click', ev => {
     case 'lookc': UI.look.c = +arg; UI.lookOpen = true; keepScroll(renderTitle); break;
     case 'dice': { UI.nameDraft = diceName(); keepScroll(renderTitle); break; }
     case 'start': { const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; UI.intro = true; go(() => newGame(UI.pickPractice, nm)); break; }
-    case 'continue': { const s = loadSave(); if (s) { S = s; UI.screen = 'game'; go(() => { }); } break; }
+    case 'continue': { const s = loadSave(); if (s) { S = s; teachSync(); UI.screen = 'game'; go(() => { }); } break; }
     case 'menu': openOverlay(menuHTML()); break;
     case 'how': openOverlay(howHTML()); break;
     case 'glossary': openOverlay(glossaryHTML()); break;

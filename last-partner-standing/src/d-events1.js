@@ -89,7 +89,7 @@ EVENTS.push(
  text:`Tom, your salaried GP, catches you by the kettle. "I've been thinking. I'd like to become a partner." He has been reading the accounts. He has questions about the overdraft.`,
  choices:[
   {t:'"Yes. Welcome to the partnership."',fx:{team:4,you:2,capital:25},run(){ S.staff.salaried--; S.partners.tom.status='active'; },o:`Tom buys in with £25,000 of working capital and a bottle of prosecco. He'll share the profits, the decisions and the liability.`},
-  {t:'"Not this year. Let\'s review it in twelve months."',fx:{team:-2},alt:{p:0.5,o:`Tom nods. Six weeks later he hands in his notice. He's joining a practice across town as a partner.`,fx:{team:-3,sched:[['tom_leaves',1]]}},o:`Tom nods slowly. "Fair enough." He stays, but he has stopped volunteering for things.`},
+  {t:'"Not this year. Let\'s review it in twelve months."',fx:{team:-2},alt:{p:()=>S.flags.taughtTom ? 0.25 : 0.5,o:`Tom nods. Six weeks later he hands in his notice. He's joining a practice across town as a partner.`,fx:{team:-3,sched:[['tom_leaves',1]]}},o:`Tom nods slowly. "Fair enough." He stays, but he has stopped volunteering for things.`},
   {t:'Offer him a pay rise to stay salaried',fx:{team:1},run(){ S.tomRaise=0.8; },o:`An extra £800 a month. He takes it. "No liability, no drawings, no HMRC in January," he says. You are briefly jealous of your own employee.`}
  ]},
 

@@ -851,6 +851,9 @@ const SOURCES = {
   S96:['Pulse: How undelivered hospital letters have caused chaos for GPs','https://www.pulsetoday.co.uk/analysis/special-investigations/youve-not-got-mail/how-undelivered-hospital-letters-have-caused-chaos-for-gps/','B'],
   S97:['Pulse: Hospital trust fails to send over 50,000 patient letters to GPs due to IT fault','https://www.pulsetoday.co.uk/news/breaking-news/hospital-trust-fails-to-send-over-50000-patient-letters-to-gps-due-to-it-fault/','B'],
   S98:['Nursing in Practice: Funding for ARRS nurse roles outlined for 2026/27','https://www.nursinginpractice.com/latest-news/funding-for-arrs-nurse-roles-outlined-for-2026-27/','B'],
+  S99:['NHS Networks: Review of GP locally commissioned services','https://networks.nhs.uk/blog/review-of-gp-locally-commissioned-services/','B'],
+  S100:['NHS England: Strategic commissioning framework (November 2025)','https://www.england.nhs.uk/long-read/strategic-commissioning-framework/','A'],
+  S101:['BMA: Enhanced services GP practices can seek funding for','https://www.bma.org.uk/advice-and-support/gp-practices/gp-service-provision/enhanced-services-gp-practices-can-seek-funding-for','B'],
   S94:['NHS England Digital: Appointments in General Practice','https://digital.nhs.uk/data-and-information/publications/statistical/appointments-in-general-practice','A'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
@@ -899,7 +902,8 @@ const GLOSSARY = [
   ['Factual accuracy check','Before a CQC report is published the practice gets a draft and can challenge factual errors, with evidence.',['S53']],
   ['EPS and FP10','The Electronic Prescription Service sends prescriptions straight to the patient\'s chosen pharmacy. When it or the clinical system is down, prescriptions go on paper FP10 forms, signed in ink.',['S61']],
   ['Medicine shortages','The Department of Health issues Medicine Supply Notifications with advice on alternatives, and for serious shortages a Serious Shortage Protocol, which lets pharmacists supply a set alternative without a new prescription.',['S63','S64']],
-  ['LCS','A locally commissioned service: extra work an ICB pays practices to do, such as community dermatology or weight management. Where there isn\'t one, the work often arrives anyway, unfunded.',[]],
+  ['Enhanced services','Work beyond the core contract, paid separately, which practices choose to sign up to. National ones, such as the flu programme (£10.06 a jab in 2026/27) and the PCN DES, are offered to every practice. Local ones (an LES or LCS) are bought by each ICB.',['S101','S27']],
+  ['LCS or LES','A locally commissioned service, or local enhanced service: extra work an ICB pays practices to do, such as phlebotomy, wound care, community dermatology or weight management. Each area has its own list and prices. Services run for set periods, and the ICB can change, suspend or end them. Where there isn\'t one, the work often arrives anyway, unfunded.',['S99','S100','S72']],
   ['Suspected cancer referral','An urgent referral when cancer is a possibility. It used to be called the two-week wait.',[]]
 ];
 /* ---------------- Docman Dash items ---------------- */
@@ -3109,16 +3113,19 @@ EVENTS.push(
  ]}
 );
 /* ===================== EVENTS 10: the contract, explained =====================
- Five cards through year one in the leafy suburb and the market town, pitched at a GP trainee: where the money
- comes from (the global sum), QOF, ARRS, drawings and tax, and why anyone would be a partner. Someone asks, and you
- explain it with the practice's own figures; the teaching choice shows them worked out. On by default, switched off
- under Options or in the menu ("Explain the contract as you go", `UI.settings.teach`).
+ Six cards through year one in the leafy suburb and the market town, pitched at a GP trainee: where the money
+ comes from (the global sum), QOF, enhanced services (national ones, and the local LES or LCS that an ICB can end),
+ ARRS, drawings and tax, and why anyone would be a partner. Someone asks, and you explain it with the practice's own
+ figures; the teaching choice shows them worked out. On by default, switched off under Options or in the menu
+ ("Explain the contract as you go", `UI.settings.teach`).
+ Plus `lcs_cut`, a real card for every practice: the ICB decommissions a local service, and the enhanced-services
+ income falls for good (a mod with `esCut`, read by calc()). After the LES explainer it follows for some players.
  Who asks: Ellie if you became a training practice and she's in post, otherwise Tom while he's at the practice,
  otherwise the registrars on the local GP training scheme, where Clare has signed you up to teach.
  Teaching pays off later: Tom is less likely to walk if you turn down his partnership (`tom_partner`), and Ellie is
  likelier to come back once she's qualified (`p_trainee_returns`).
 */
-const TEACH = [['teach_money', 1], ['teach_qof', 4], ['teach_arrs', 6], ['teach_drawings', 9], ['teach_partner', 10]];
+const TEACH = [['teach_money', 1], ['teach_qof', 4], ['teach_lcs', 5], ['teach_arrs', 6], ['teach_drawings', 9], ['teach_partner', 10]];
 const TEACH_IDS = TEACH.map(x => x[0]);
 // on unless switched off; the simulator has no UI, so it plays with them on, like a new player
 function teachOn() {
@@ -3154,6 +3161,15 @@ const tchN = v => Math.round(v).toLocaleString('en-GB');
 const tchK = v => (v < 0 ? '−£' : '£') + Math.abs(v).toFixed(1) + 'k';
 const tchTable = (title, rows, sum, note) => `<div class="teach"><h3>${title}</h3><dl class="kv small">${rows.map(([l, v, how]) => `<dt>${l}${how ? `<small>${how}</small>` : ''}</dt><dd>${v}</dd>`).join('')}${sum ? `<dt class="sum">${sum[0]}</dt><dd class="sum">${sum[1]}</dd>` : ''}</dl>${note ? `<p class="fc-note">${note}</p>` : ''}</div>`;
 const teachArrsRoles = () => ROLE_ORDER.filter(r => ROLES[r].arrs && S.staff[r] > 0);
+// local services the ICB buys from the practice, each a share of the enhanced-services income (our estimate), in the order they go
+const LCS_LIST = [
+  { id: 'phleb', name: 'phlebotomy', share: 0.35, work: 'the hospital\'s blood forms will keep coming', stop: 'Hospital bloods go back to the hospital, where the queue is two hours long' },
+  { id: 'wound', name: 'wound care', share: 0.25, work: 'the leg ulcers will still need dressing', stop: 'Dressings go to the community nurses, who have a waiting list of their own' },
+  { id: 'ecg', name: 'ECG', share: 0.15, work: 'the hospital will still want an ECG before clinic', stop: 'ECGs go back to the hospital: one more trip for every patient' }
+];
+const lcsNext = () => LCS_LIST.find(x => !S.flags['lcs_' + x.id]);
+// the service ends `inMonths` from now, and its share of enhanced-services income goes for good
+function lcsCut(x, inMonths) { S.flags['lcs_' + x.id] = 1; addMod({ id: 'lcs_' + x.id, label: `${x.name} LCS decommissioned`, lcs: x.name, months: 999, at: S.month + inMonths, esCut: x.share }); }
 
 EVENTS.push(
 {id:'teach_money',arc:1,get who(){ return tutor().who; },title:'Where the money comes from',cond:teachOn,tag:'real',src:['S2','S3'],
@@ -3198,6 +3214,29 @@ EVENTS.push(
    o:()=>{ const t = tutor(); return t.scheme ? `The registrars laugh. One of them writes down "lights".` : `${t.n} asks Maureen, who explains it better than you would have, and mentions it at the practice meeting.`; }}
  ],
  after(){ teachDone(); }},
+
+{id:'teach_lcs',arc:1,get who(){ return tutor().who; },title:'What\'s an LES?',cond:teachOn,tag:'real',src:['S27','S101','S99','S72'],
+ info:'Enhanced services are work beyond the core contract, paid separately. National ones are offered to every practice: the adult flu programme pays £10.06 a jab in 2026/27, under a specification that runs for the year. Local enhanced services, also called locally commissioned services, are bought by each ICB, such as phlebotomy, wound care and shared care, and vary in scope and price from area to area. They run for set periods, and ICBs can change, suspend or end them. In April 2026, for example, GP-run community dermatology services in East Sussex were suspended after a review.',
+ text:()=>{ const t = tutor();
+  const ask = t.scheme ? teachAsk(t, '', 'Who pays for the flu clinics?')
+   : S.fluMod > 1 ? teachAsk(t, `${t.n} has just done a Saturday flu clinic.`, 'Is all this in the contract?')
+   : S.fluMod < 1 ? teachAsk(t, `${t.n} wants to know why the pharmacy down the road is doing your flu jabs.`, 'Isn\'t flu part of the contract?')
+   : teachAsk(t, `It's flu season, and ${t.n} has a question.`, 'Is all this in the contract?');
+  return ask + ` Not the core of it. Flu jabs are a national enhanced service, paid by the jab: £${P.fluFee} each. Local ones, an LES or LCS, are bought by the ICB: phlebotomy, wound care, shared-care monitoring, at prices that vary by area. Enhanced services bring {surgery} about £${tchN(calc().inc.es * 1000)} a month. But they last only as long as the ICB keeps buying them.`; },
+ choices:[
+  {t:()=>tutor().scheme ? 'Show them a real local service contract' : `Show ${tutor().n} the local service contracts`,fx:()=>teachFx({you:-2},2),
+   run(){ const i = calc().inc, x = LCS_LIST[0]; taught();
+    return { html: tchTable(`${prac().surgery}: enhanced services`, [
+     ['Enhanced services this month', tchK(i.es), 'Local and national, paid per item or per patient, so they fall when appointments run short'],
+     ['Vaccinations this month', tchK(i.vacc), `Flu jabs at £${P.fluFee} each in the autumn, and the childhood programme`],
+     [`If the ICB ended the ${x.name} service`, `${tchK(-i.es * x.share * 12)} a year`, 'About a third of the enhanced services line']
+    ], null, 'Local services are commissioned for set periods, often a year at a time. When one ends, the income stops, but the staff who ran it are still on the payroll.') }; },
+   o:()=>{ const t = tutor(); return `You go through one: a price for each blood test, an end date and a review clause. "So the money can stop and the work doesn't," ${t.scheme ? 'says a registrar' : t.n + ' says'}. You couldn't have put it better.`; }},
+  {t:'"The ICB pays. For now."',fx:()=>teachFx({you:1},-1),
+   o:()=>{ const t = tutor(); return `${t.scheme ? 'A registrar asks' : t.n + ' asks'} what "for now" means. You say it means until the ICB says otherwise, usually by letter.`; }}
+ ],
+ // sometimes the lesson arrives for real, a few months later
+ after(){ teachDone(); if (lcsNext() && chance(0.4)) schedule('lcs_cut', 3 + Math.floor(Math.random() * 3)); }},
 
 {id:'teach_arrs',arc:1,get who(){ return tutor().who; },title:'Who pays for the pharmacist?',cond:teachOn,tag:'real',src:['S4','S84'],
  info:'The Additional Roles Reimbursement Scheme pays each PCN £27.668 per weighted patient a year (2026/27) to claim back the pay of set roles, such as clinical pharmacists, physios, paramedics, care coordinators and, from 2026/27, GPs, up to a maximum for each role. Practices still provide the rooms, equipment and supervision, and pay for anything over the budget. The game\'s claim for each role is an estimate.',
@@ -3254,6 +3293,19 @@ EVENTS.push(
    o:()=>{ const t = tutor(1); return t.scheme ? `The room laughs, then stops.` : `${t.n} laughs, then stops.`; }}
  ],
  after(){ teachDone(1); }}
+);
+
+/* ---------- the other half of the LES explainer: a real card for every practice ---------- */
+EVENTS.push(
+{id:'lcs_cut',who:'icb',title:'Decommissioned',months:[7,8,9,10],cond:()=>!!lcsNext(),tag:'real',src:['S99','S100','S72'],
+ info:'Locally commissioned services, also called local enhanced services, are extra work ICBs buy from practices, such as phlebotomy, wound care and shared care. They run for set periods and can be changed or ended. NHS England\'s strategic commissioning framework (November 2025) asks ICBs to be bold, and to rearrange and potentially decommission services. In April 2026, GP-run community dermatology services in East Sussex were suspended after a review. The game\'s value for each service is an estimate.',
+ text:()=>{ const x = lcsNext(), k = calc().inc.es * x.share * 12;
+  return `Jonathan from the ICB writes: after "a review of locally commissioned services", the ${x.name} LCS ends in three months. It pays {surgery} about £${tchN(Math.round(k * 10) * 100)} a year. The work doesn't end with it: ${x.work}.`; },
+ choices:[
+  {t:'Stop the work when the money stops',fx:{patients:-3,rep:-1},run(){ const x = lcsNext(); lcsCut(x, 3); return { o: `${x.stop}. The complaints come to you.` }; }},
+  {t:'Keep doing it, unfunded',fx:{team:-3,you:-1},run(){ const x = lcsNext(); lcsCut(x, 3); return { o: `Nothing changes for patients. The ${x.name} clinics stay full, and now the partners pay for them.` }; }},
+  {t:'Push back, with the LMC and the PCN',fx:{you:-2,icb:-2},alt:{p:0.6,fx:{you:-3,icb:-3,patients:-2},run(){ lcsCut(lcsNext(), 3); },o:'The ICB "notes your concerns". The service ends on schedule.'},o:()=>`Six practices and the LMC write together. The ICB agrees to keep the ${lcsNext().name} LCS for another year while it "reviews options".`}
+ ]}
 );
 /* ===================== ENGINE: state, month flow, simulation ===================== */
 let S = null;
@@ -3434,7 +3486,7 @@ function newGame(practiceKey, name, opts) {
   S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
   // a mid-year crunch for the suburb and town, so good players are at risk before the winter (the city has its turnover)
   if (S.practiceKey !== 'city') { S.sched.push({ id: 'twist_summer', m: 2 + Math.floor(Math.random() * 3) }); S.flags.summerGP = S.staff.salaried > 0 && Math.random() < 0.5 ? 1 : 0; }
-  // the contract explained, in five cards through the year (suburb and town, unless switched off)
+  // the contract explained, in six cards through the year (suburb and town, unless switched off)
   teachSchedule();
   startMonth();
   save();
@@ -3686,6 +3738,8 @@ function calc() {
     pcn: S.list * PER_PATIENT.pcn / 12 / 1000,
     priv: S.list * p.priv / 12 / 1000
   };
+  // local services the ICB has decommissioned take their share of the enhanced-services income with them (lcs_cut)
+  inc.es *= 1 - Math.min(0.9, mods.reduce((a, x) => a + (x.esCut || 0), 0));
   ['gs', 'npp', 'vacc', 'es', 'pcn'].forEach(k => { inc[k] *= 1 + YEAR_FUNDING * yr; });
   let modCash = 0; mods.forEach(x => { if (x.fx && x.fx.cash) modCash += x.fx.cash; });
   let roleCost = 0; for (const r of ROLE_ORDER) roleCost += ROLES[r].cost * S.staff[r];
@@ -4304,7 +4358,7 @@ function renderTitle() {
       <details class="explain opts"><summary>Options${UI.settings.timer ? ': the 8am pace is on' : ''}</summary>
         <label class="toggle"><input type="checkbox" data-act="timer" ${UI.settings.timer ? 'checked' : ''}> <span><b>The 8am pace</b>: ${CARD_SECONDS} seconds to decide each card, or it gets decided for you. Off by default.</span></label>
         <label class="toggle"><input type="checkbox" data-act="quick" ${UI.settings.quick ? 'checked' : ''}> <span><b>Skip quiet months</b>: when nothing new happened, go straight to the next plan and show last month in a short panel. On by default.</span></label>
-        <label class="toggle"><input type="checkbox" data-act="teach" ${UI.settings.teach ? 'checked' : ''}> <span><b>Explain the contract as you go</b>: in the leafy suburb and the market town, someone asks how the money works and you explain it with your practice's own figures. Five cards through year one. On by default.</span></label>
+        <label class="toggle"><input type="checkbox" data-act="teach" ${UI.settings.teach ? 'checked' : ''}> <span><b>Explain the contract as you go</b>: in the leafy suburb and the market town, someone asks how the money works and you explain it with your practice's own figures. Six cards through year one. On by default.</span></label>
       </details>
       <div class="setup-actions">
         <button class="btn primary" data-act="start">Sign the partnership deed</button>
@@ -4387,7 +4441,7 @@ function renderPlan() {
     ['QOF aspiration', c.inc.qof, `80% of last year's QOF (${p.lastQof}%) ÷ 12`],
     ['Network participation', c.inc.npp, `£${P.npp} × weighted list ÷ 12`],
     ['Vaccinations', c.inc.vacc, FLU_MONTHS.includes(S.month) ? 'Flu season: September to January' : 'Childhood and routine immunisations'],
-    ['Enhanced services', c.inc.es, c.serviceF < 0.98 ? `Only ${pct(c.serviceF)} claimed: not enough appointments to deliver them all` : 'Local and national enhanced services'],
+    ['Enhanced services', c.inc.es, (c.serviceF < 0.98 ? `Only ${pct(c.serviceF)} claimed: not enough appointments to deliver them all` : 'Local and national enhanced services') + (() => { const cut = activeMods().filter(x => x.esCut).map(x => x.lcs); return cut.length ? `. Decommissioned by the ICB: ${cut.join(', ')}` : ''; })()],
     ['PCN', c.inc.pcn, 'Your share of PCN funding'],
     ['Private fees', c.inc.priv, 'Reports, medicals and letters'],
     ...(c.modCash ? [['Schemes, leases and extras', c.modCash, 'From earlier decisions']] : []),
@@ -4493,7 +4547,7 @@ function hintFor(c) {
   const src = c.run ? String(c.run) : '';
   if (/chance\(/.test(src)) out.gamble = 1;
   if (/plant\(|schedule\(|later/.test(src)) out.later = 1;
-  if (/addMod\(|payX|premX|S\.loan/.test(src)) out.lasting = 1;
+  if (/addMod\(|payX|premX|S\.loan|lcsCut\(/.test(src)) out.lasting = 1;
   return out;
 }
 function chipsFor(c) {
@@ -4806,7 +4860,7 @@ document.addEventListener('click', ev => {
         if (!UI.settings.teach && S.phase === 'event' && TEACH_IDS.includes(S.queue[S.qi])) advanceEvent();
         save(); closeOverlay(); render();
       } else keepScroll(renderTitle);
-      toast(UI.settings.teach ? 'Contract explainers on: five cards through year one, in the leafy suburb and the market town.' : 'Contract explainers off.');
+      toast(UI.settings.teach ? 'Contract explainers on: six cards through year one, in the leafy suburb and the market town.' : 'Contract explainers off.');
       break;
     }
     case 'timer': { UI.settings.timer = !UI.settings.timer; saveSettings(); if (S && UI.screen !== 'title') { closeOverlay(); render(); } else keepScroll(renderTitle); toast(UI.settings.timer ? `The 8am pace is on: ${CARD_SECONDS} seconds a card.` : 'The 8am pace is off.'); break; }

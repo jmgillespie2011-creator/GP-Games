@@ -1,14 +1,17 @@
 /* ===================== EVENTS 10: the contract, explained =====================
- Five cards through year one in the leafy suburb and the market town, pitched at a GP trainee: where the money
- comes from (the global sum), QOF, ARRS, drawings and tax, and why anyone would be a partner. Someone asks, and you
- explain it with the practice's own figures; the teaching choice shows them worked out. On by default, switched off
- under Options or in the menu ("Explain the contract as you go", `UI.settings.teach`).
+ Six cards through year one in the leafy suburb and the market town, pitched at a GP trainee: where the money
+ comes from (the global sum), QOF, enhanced services (national ones, and the local LES or LCS that an ICB can end),
+ ARRS, drawings and tax, and why anyone would be a partner. Someone asks, and you explain it with the practice's own
+ figures; the teaching choice shows them worked out. On by default, switched off under Options or in the menu
+ ("Explain the contract as you go", `UI.settings.teach`).
+ Plus `lcs_cut`, a real card for every practice: the ICB decommissions a local service, and the enhanced-services
+ income falls for good (a mod with `esCut`, read by calc()). After the LES explainer it follows for some players.
  Who asks: Ellie if you became a training practice and she's in post, otherwise Tom while he's at the practice,
  otherwise the registrars on the local GP training scheme, where Clare has signed you up to teach.
  Teaching pays off later: Tom is less likely to walk if you turn down his partnership (`tom_partner`), and Ellie is
  likelier to come back once she's qualified (`p_trainee_returns`).
 */
-const TEACH = [['teach_money', 1], ['teach_qof', 4], ['teach_arrs', 6], ['teach_drawings', 9], ['teach_partner', 10]];
+const TEACH = [['teach_money', 1], ['teach_qof', 4], ['teach_lcs', 5], ['teach_arrs', 6], ['teach_drawings', 9], ['teach_partner', 10]];
 const TEACH_IDS = TEACH.map(x => x[0]);
 // on unless switched off; the simulator has no UI, so it plays with them on, like a new player
 function teachOn() {
@@ -44,6 +47,15 @@ const tchN = v => Math.round(v).toLocaleString('en-GB');
 const tchK = v => (v < 0 ? '−£' : '£') + Math.abs(v).toFixed(1) + 'k';
 const tchTable = (title, rows, sum, note) => `<div class="teach"><h3>${title}</h3><dl class="kv small">${rows.map(([l, v, how]) => `<dt>${l}${how ? `<small>${how}</small>` : ''}</dt><dd>${v}</dd>`).join('')}${sum ? `<dt class="sum">${sum[0]}</dt><dd class="sum">${sum[1]}</dd>` : ''}</dl>${note ? `<p class="fc-note">${note}</p>` : ''}</div>`;
 const teachArrsRoles = () => ROLE_ORDER.filter(r => ROLES[r].arrs && S.staff[r] > 0);
+// local services the ICB buys from the practice, each a share of the enhanced-services income (our estimate), in the order they go
+const LCS_LIST = [
+  { id: 'phleb', name: 'phlebotomy', share: 0.35, work: 'the hospital\'s blood forms will keep coming', stop: 'Hospital bloods go back to the hospital, where the queue is two hours long' },
+  { id: 'wound', name: 'wound care', share: 0.25, work: 'the leg ulcers will still need dressing', stop: 'Dressings go to the community nurses, who have a waiting list of their own' },
+  { id: 'ecg', name: 'ECG', share: 0.15, work: 'the hospital will still want an ECG before clinic', stop: 'ECGs go back to the hospital: one more trip for every patient' }
+];
+const lcsNext = () => LCS_LIST.find(x => !S.flags['lcs_' + x.id]);
+// the service ends `inMonths` from now, and its share of enhanced-services income goes for good
+function lcsCut(x, inMonths) { S.flags['lcs_' + x.id] = 1; addMod({ id: 'lcs_' + x.id, label: `${x.name} LCS decommissioned`, lcs: x.name, months: 999, at: S.month + inMonths, esCut: x.share }); }
 
 EVENTS.push(
 {id:'teach_money',arc:1,get who(){ return tutor().who; },title:'Where the money comes from',cond:teachOn,tag:'real',src:['S2','S3'],
@@ -88,6 +100,29 @@ EVENTS.push(
    o:()=>{ const t = tutor(); return t.scheme ? `The registrars laugh. One of them writes down "lights".` : `${t.n} asks Maureen, who explains it better than you would have, and mentions it at the practice meeting.`; }}
  ],
  after(){ teachDone(); }},
+
+{id:'teach_lcs',arc:1,get who(){ return tutor().who; },title:'What\'s an LES?',cond:teachOn,tag:'real',src:['S27','S101','S99','S72'],
+ info:'Enhanced services are work beyond the core contract, paid separately. National ones are offered to every practice: the adult flu programme pays £10.06 a jab in 2026/27, under a specification that runs for the year. Local enhanced services, also called locally commissioned services, are bought by each ICB, such as phlebotomy, wound care and shared care, and vary in scope and price from area to area. They run for set periods, and ICBs can change, suspend or end them. In April 2026, for example, GP-run community dermatology services in East Sussex were suspended after a review.',
+ text:()=>{ const t = tutor();
+  const ask = t.scheme ? teachAsk(t, '', 'Who pays for the flu clinics?')
+   : S.fluMod > 1 ? teachAsk(t, `${t.n} has just done a Saturday flu clinic.`, 'Is all this in the contract?')
+   : S.fluMod < 1 ? teachAsk(t, `${t.n} wants to know why the pharmacy down the road is doing your flu jabs.`, 'Isn\'t flu part of the contract?')
+   : teachAsk(t, `It's flu season, and ${t.n} has a question.`, 'Is all this in the contract?');
+  return ask + ` Not the core of it. Flu jabs are a national enhanced service, paid by the jab: £${P.fluFee} each. Local ones, an LES or LCS, are bought by the ICB: phlebotomy, wound care, shared-care monitoring, at prices that vary by area. Enhanced services bring {surgery} about £${tchN(calc().inc.es * 1000)} a month. But they last only as long as the ICB keeps buying them.`; },
+ choices:[
+  {t:()=>tutor().scheme ? 'Show them a real local service contract' : `Show ${tutor().n} the local service contracts`,fx:()=>teachFx({you:-2},2),
+   run(){ const i = calc().inc, x = LCS_LIST[0]; taught();
+    return { html: tchTable(`${prac().surgery}: enhanced services`, [
+     ['Enhanced services this month', tchK(i.es), 'Local and national, paid per item or per patient, so they fall when appointments run short'],
+     ['Vaccinations this month', tchK(i.vacc), `Flu jabs at £${P.fluFee} each in the autumn, and the childhood programme`],
+     [`If the ICB ended the ${x.name} service`, `${tchK(-i.es * x.share * 12)} a year`, 'About a third of the enhanced services line']
+    ], null, 'Local services are commissioned for set periods, often a year at a time. When one ends, the income stops, but the staff who ran it are still on the payroll.') }; },
+   o:()=>{ const t = tutor(); return `You go through one: a price for each blood test, an end date and a review clause. "So the money can stop and the work doesn't," ${t.scheme ? 'says a registrar' : t.n + ' says'}. You couldn't have put it better.`; }},
+  {t:'"The ICB pays. For now."',fx:()=>teachFx({you:1},-1),
+   o:()=>{ const t = tutor(); return `${t.scheme ? 'A registrar asks' : t.n + ' asks'} what "for now" means. You say it means until the ICB says otherwise, usually by letter.`; }}
+ ],
+ // sometimes the lesson arrives for real, a few months later
+ after(){ teachDone(); if (lcsNext() && chance(0.4)) schedule('lcs_cut', 3 + Math.floor(Math.random() * 3)); }},
 
 {id:'teach_arrs',arc:1,get who(){ return tutor().who; },title:'Who pays for the pharmacist?',cond:teachOn,tag:'real',src:['S4','S84'],
  info:'The Additional Roles Reimbursement Scheme pays each PCN £27.668 per weighted patient a year (2026/27) to claim back the pay of set roles, such as clinical pharmacists, physios, paramedics, care coordinators and, from 2026/27, GPs, up to a maximum for each role. Practices still provide the rooms, equipment and supervision, and pay for anything over the budget. The game\'s claim for each role is an estimate.',
@@ -144,4 +179,17 @@ EVENTS.push(
    o:()=>{ const t = tutor(1); return t.scheme ? `The room laughs, then stops.` : `${t.n} laughs, then stops.`; }}
  ],
  after(){ teachDone(1); }}
+);
+
+/* ---------- the other half of the LES explainer: a real card for every practice ---------- */
+EVENTS.push(
+{id:'lcs_cut',who:'icb',title:'Decommissioned',months:[7,8,9,10],cond:()=>!!lcsNext(),tag:'real',src:['S99','S100','S72'],
+ info:'Locally commissioned services, also called local enhanced services, are extra work ICBs buy from practices, such as phlebotomy, wound care and shared care. They run for set periods and can be changed or ended. NHS England\'s strategic commissioning framework (November 2025) asks ICBs to be bold, and to rearrange and potentially decommission services. In April 2026, GP-run community dermatology services in East Sussex were suspended after a review. The game\'s value for each service is an estimate.',
+ text:()=>{ const x = lcsNext(), k = calc().inc.es * x.share * 12;
+  return `Jonathan from the ICB writes: after "a review of locally commissioned services", the ${x.name} LCS ends in three months. It pays {surgery} about £${tchN(Math.round(k * 10) * 100)} a year. The work doesn't end with it: ${x.work}.`; },
+ choices:[
+  {t:'Stop the work when the money stops',fx:{patients:-3,rep:-1},run(){ const x = lcsNext(); lcsCut(x, 3); return { o: `${x.stop}. The complaints come to you.` }; }},
+  {t:'Keep doing it, unfunded',fx:{team:-3,you:-1},run(){ const x = lcsNext(); lcsCut(x, 3); return { o: `Nothing changes for patients. The ${x.name} clinics stay full, and now the partners pay for them.` }; }},
+  {t:'Push back, with the LMC and the PCN',fx:{you:-2,icb:-2},alt:{p:0.6,fx:{you:-3,icb:-3,patients:-2},run(){ lcsCut(lcsNext(), 3); },o:'The ICB "notes your concerns". The service ends on schedule.'},o:()=>`Six practices and the LMC write together. The ICB agrees to keep the ${lcsNext().name} LCS for another year while it "reviews options".`}
+ ]}
 );

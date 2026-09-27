@@ -245,7 +245,7 @@ document.addEventListener('click', ev => {
         if (!UI.settings.teach && S.phase === 'event' && TEACH_IDS.includes(S.queue[S.qi])) advanceEvent();
         save(); closeOverlay(); render();
       } else keepScroll(renderTitle);
-      toast(UI.settings.teach ? 'Contract explainers on: five cards through year one, in the leafy suburb and the market town.' : 'Contract explainers off.');
+      toast(UI.settings.teach ? 'Contract explainers on: six cards through year one, in the leafy suburb and the market town.' : 'Contract explainers off.');
       break;
     }
     case 'timer': { UI.settings.timer = !UI.settings.timer; saveSettings(); if (S && UI.screen !== 'title') { closeOverlay(); render(); } else keepScroll(renderTitle); toast(UI.settings.timer ? `The 8am pace is on: ${CARD_SECONDS} seconds a card.` : 'The 8am pace is off.'); break; }

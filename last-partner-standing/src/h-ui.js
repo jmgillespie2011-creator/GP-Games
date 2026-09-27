@@ -138,7 +138,7 @@ function renderTitle() {
       <details class="explain opts"><summary>Options${UI.settings.timer ? ': the 8am pace is on' : ''}</summary>
         <label class="toggle"><input type="checkbox" data-act="timer" ${UI.settings.timer ? 'checked' : ''}> <span><b>The 8am pace</b>: ${CARD_SECONDS} seconds to decide each card, or it gets decided for you. Off by default.</span></label>
         <label class="toggle"><input type="checkbox" data-act="quick" ${UI.settings.quick ? 'checked' : ''}> <span><b>Skip quiet months</b>: when nothing new happened, go straight to the next plan and show last month in a short panel. On by default.</span></label>
-        <label class="toggle"><input type="checkbox" data-act="teach" ${UI.settings.teach ? 'checked' : ''}> <span><b>Explain the contract as you go</b>: in the leafy suburb and the market town, someone asks how the money works and you explain it with your practice's own figures. Five cards through year one. On by default.</span></label>
+        <label class="toggle"><input type="checkbox" data-act="teach" ${UI.settings.teach ? 'checked' : ''}> <span><b>Explain the contract as you go</b>: in the leafy suburb and the market town, someone asks how the money works and you explain it with your practice's own figures. Six cards through year one. On by default.</span></label>
       </details>
       <div class="setup-actions">
         <button class="btn primary" data-act="start">Sign the partnership deed</button>
@@ -221,7 +221,7 @@ function renderPlan() {
     ['QOF aspiration', c.inc.qof, `80% of last year's QOF (${p.lastQof}%) ÷ 12`],
     ['Network participation', c.inc.npp, `£${P.npp} × weighted list ÷ 12`],
     ['Vaccinations', c.inc.vacc, FLU_MONTHS.includes(S.month) ? 'Flu season: September to January' : 'Childhood and routine immunisations'],
-    ['Enhanced services', c.inc.es, c.serviceF < 0.98 ? `Only ${pct(c.serviceF)} claimed: not enough appointments to deliver them all` : 'Local and national enhanced services'],
+    ['Enhanced services', c.inc.es, (c.serviceF < 0.98 ? `Only ${pct(c.serviceF)} claimed: not enough appointments to deliver them all` : 'Local and national enhanced services') + (() => { const cut = activeMods().filter(x => x.esCut).map(x => x.lcs); return cut.length ? `. Decommissioned by the ICB: ${cut.join(', ')}` : ''; })()],
     ['PCN', c.inc.pcn, 'Your share of PCN funding'],
     ['Private fees', c.inc.priv, 'Reports, medicals and letters'],
     ...(c.modCash ? [['Schemes, leases and extras', c.modCash, 'From earlier decisions']] : []),
@@ -327,7 +327,7 @@ function hintFor(c) {
   const src = c.run ? String(c.run) : '';
   if (/chance\(/.test(src)) out.gamble = 1;
   if (/plant\(|schedule\(|later/.test(src)) out.later = 1;
-  if (/addMod\(|payX|premX|S\.loan/.test(src)) out.lasting = 1;
+  if (/addMod\(|payX|premX|S\.loan|lcsCut\(/.test(src)) out.lasting = 1;
   return out;
 }
 function chipsFor(c) {

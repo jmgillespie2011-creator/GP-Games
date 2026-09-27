@@ -8,6 +8,8 @@ A survival game about one financial year, April 2026 to March 2027, as a new GP 
 
 **Play online:** https://gp-games.vercel.app
 
+**Watch the trailer:** https://gp-games.vercel.app/trailer, 75 seconds drawn with the game's own art (also as [`trailer.mp4`](last-partner-standing/trailer.mp4)).
+
 Or download [`last-partner-standing/last-partner-standing-play.html`](last-partner-standing/last-partner-standing-play.html) and open it in any browser. It's a single file with nothing to install.
 
 - **Real 2026/27 numbers.** Money figures come from the 2026/27 contract and pay rules:

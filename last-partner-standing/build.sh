@@ -2,6 +2,7 @@
 # Assemble the game from src/
 #  last-partner-standing.html  - Artifact source (the publish step adds doctype/head)
 #  last-partner-standing-play.html - standalone copy to open directly in any browser
+#  last-partner-standing-trailer.html - the trailer, a 75-second film drawn with the game's own art (trailer/)
 cd "$(dirname "$0")"
 JS="src/c-data.js src/c2-minidata.js src/c3-art.js src/d-events1.js src/e-events2.js src/f-events3.js src/f2-events4.js src/f3-events5.js src/f4-events6.js src/f5-events7.js src/f6-events8.js src/f7-events9.js src/g-engine.js src/g2-endings.js src/h-ui.js src/h2-screens.js src/h3-board.js src/i-mini.js"
 OUT=last-partner-standing.html
@@ -30,3 +31,6 @@ cat src/a-head.html >> "$PLAY"
 printf '</head>\n<body>\n<div id="app"></div>\n<script>\n' >> "$PLAY"
 cat $JS >> "$PLAY"
 printf '</script>\n</body>\n</html>\n' >> "$PLAY"
+
+# The trailer: trailer/ plus the game's data and drawings, served at /trailer. See trailer/STORYBOARD.md.
+sh trailer/assemble.sh last-partner-standing-trailer.html

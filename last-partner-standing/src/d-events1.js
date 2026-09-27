@@ -137,8 +137,8 @@ EVENTS.push(
  choices:[{t:'Show her how things really are',run(){ return runCQC(); }}]},
 
 {id:'qof_yearend',arc:1,who:'bev',title:'Six weeks to go',tag:'rule',src:['S3','S13'],
- info:'QOF achievement is measured on 31 March. Points scale between lower and upper thresholds for each indicator. The balance above your aspiration payments is paid by the end of June.',
- text:()=>`"QOF year end is 31st March. We're at ${Math.round(S.qof)}%." Each 1% is worth about £${Math.round(qofValueK(1)*1000).toLocaleString('en-GB')}, paid next June. Bev has printed the list of patients still missing their reviews. It's the thickness of a paperback.`,
+ info:'QOF achievement is measured on 31 March. Points scale between lower and upper thresholds for each indicator. The balance above your aspiration payments is paid after the year end, in the summer.',
+ text:()=>`"QOF year end is 31st March. We're at ${Math.round(S.qof)}%." Each 1% is worth about £${Math.round(qofValueK(1)*1000).toLocaleString('en-GB')}, paid next summer. Bev has printed the list of patients still missing their reviews. It's the thickness of a paperback.`,
  choices:[
   {t:'Saturday recall clinics for the rest of the year',fx:()=>({qof:S.qof < 70 ? 13 : 7,you:-5,team:-4,cash:-1.5}),o:`Four Saturdays of spirometry, foot checks and blood pressures. Maureen does her last one wearing a tiara for reasons nobody explains.`},
   {t:'Text blast, and exception-report where it\'s genuinely justified',fx:()=>({qof:S.qof < 70 ? 3 : 5,safety:-1}),o:`The team sends 1,100 texts. Twelve people reply "STOP". One replies with a photo of their cat.`},

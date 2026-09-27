@@ -29,10 +29,11 @@ const P = {
   careHome: 1.43,      // care home residents count 1.43x [S3]
   fluFee: 10.06,       // adult flu jab, unchanged since 2023/24 [S27]
   locumHour: 100,      // typical in-hours locum, £85-£105 an hour [S28]
+  locumPen: 0.9,       // a GP locum's pensionable pay is 90% of the fee; the practice adds employer pension on that [S22]
   sessionHours: 4.17,  // a nominal session is 4h10m
   realHours: 5.8,      // hours a partner actually works per session, with the admin that spills over [S36]
   nlw: 12.71,          // National Living Wage from April 2026 [S18]
-  salaried: 95390,     // mid-range salaried GP, 9 sessions [S17]
+  salaried: 95390,     // salaried GP, 9 sessions: midpoint of the 2025/26 range; the pay_award card adds the 3.5% 2026/27 award [S17]
   partnerAvg: 164200,  // average partner income before tax, 2024/25 [S8]
   gpps: 76.7,          // national "good" overall experience, GP Patient Survey 2026 [S34]
   tiers: [[13259,.052],[28854,.065],[35155,.083],[52778,.098],[67668,.107],[Infinity,.125]], // member pension tiers [S22]
@@ -42,7 +43,7 @@ const P = {
 // an evening or Saturday clinic run by your own staff on overtime: a salaried GP or nurse session at sessional rates,
 // with employer NI and pension, plus a receptionist. Outside core hours, so it needs no core room session.
 const OT_SESSION = 0.32, OT_APPTS = 12, OT_MAX = 4;
-const LOCUM_SESSION = (P.locumHour * P.sessionHours * (1 + P.erPen)) / 1000; // £k, including employer pension on NHS locum work
+const LOCUM_SESSION = (P.locumHour * P.sessionHours * (1 + P.erPen * P.locumPen)) / 1000; // £k, with employer pension on 90% of the fee (NHS locum work)
 const empCostK = (pay, penShare) => (pay + P.niRate * Math.max(0, pay - P.niT) + pay * P.erPen * penShare) / 12 / 1000;
 
 const PRACTICES = {
@@ -309,7 +310,7 @@ const GLOSSARY = [
   ['Global sum','The core payment for essential services: £130.07 per weighted patient a year in 2026/27, paid monthly. Practices that opt out of out-of-hours care lose 4.7%.',['S2','S3']],
   ['Weighted list (Carr-Hill)','Your list adjusted for need: age, sex, care-home residence (1.43x), new registration (1.46x for a year), rurality and staff costs. The global sum is paid on this, not on headcount.',['S3']],
   ['QOF','The Quality and Outcomes Framework. 582 points in 2026/27, each worth £227.95 for an average-sized practice, scaled for list size and disease prevalence.',['S3']],
-  ['Aspiration payment','80% of last year\'s QOF value, paid monthly during the year. The balance for what you actually achieved is due by the end of the following June. Under-achieve and you pay some back.',['S3']],
+  ['Aspiration payment','80% of last year\'s QOF value, paid monthly during the year. The balance for what you actually achieved is paid after the year end, in the summer. Under-achieve and you pay some back.',['S3']],
   ['ARRS','The Additional Roles Reimbursement Scheme. Each PCN gets a budget of £27.668 per weighted patient a year (2026/27) and claims back the pay of pharmacists, physios, paramedics, advanced nurse practitioners (up to £78,534 a year at Band 8a), care coordinators and others, up to a maximum for each role. From 2026/27 GPs can be claimed too, up to £152,900 a year with on-costs. Staff beyond the budget are paid for by the practices. The practice still has to find the room and the supervision.',['S4','S84']],
   ['PCN','Primary Care Network: a group of neighbouring practices working together under the Network Contract DES. Practices get £1.761 per weighted patient for taking part.',['S4']],
   ['ICB','Integrated Care Board: the NHS body that commissions and pays practices in your area, and issues remedial and breach notices.',[]],

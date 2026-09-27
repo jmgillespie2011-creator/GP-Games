@@ -84,7 +84,7 @@ EVENTS.push(
  ]},
 
 {id:'care_home',who:'icb',title:'The care home',tag:'real',src:['S3','S4'],
- info:'Care home residents count 1.43 times in the funding formula, and PCNs get a care home premium of £133.16 per bed. In return: weekly ward rounds, care plans and a lot of phone calls.',
+ info:'Care home residents count 1.43 times in the funding formula, and PCNs get a care home premium for each aligned bed. In return: weekly ward rounds, care plans and a lot of phone calls.',
  text:`The 64-bed care home on Mill Lane has lost its GP practice. The ICB asks if you'll take it on: weekly ward rounds, anticipatory care plans and around 40 calls a week.`,
  choices:[
   {t:'Take it on',fx:{list:64,demand:2,patients:1,icb:4},run(){ S.careBeds+=64; addMod({id:'carehome',label:'Care home ward rounds',months:99,hours:1.5,fx:{cash:0.7}}); },o:`Ward round on Tuesdays. The care staff are wonderful. The funding comes through the formula and the PCN; the phone calls come through you.`},

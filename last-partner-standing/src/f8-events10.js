@@ -82,7 +82,7 @@ EVENTS.push(
  after(){ teachDone(); }},
 
 {id:'teach_qof',arc:1,get who(){ return tutor().who; },title:'Points mean money',cond:teachOn,tag:'real',src:['S3','S13'],
- info:'The Quality and Outcomes Framework: 582 points in 2026/27, each worth £227.95 for a practice of average size (10,295 patients), adjusted for list size and how common each condition is. Practices get 80% of last year\'s value monthly as an aspiration payment, and the balance for what they actually achieve by the end of the following June.',
+ info:'The Quality and Outcomes Framework: 582 points in 2026/27, each worth £227.95 for a practice of average size (10,295 patients), adjusted for list size and how common each condition is. Practices get 80% of last year\'s value monthly as an aspiration payment, and the balance for what they actually achieve after the year end, in the summer.',
  text:()=>{ const t = tutor();
   return teachAsk(t, `${t.n} has found the QOF dashboard.`, 'Why does everyone care so much about this?') +
    ` QOF pays for care you can count, like blood pressure control and diabetes reviews: 582 points, each worth about £228 for an average practice, scaled for list size and how common the conditions are. Here, 100% is worth about £${tchN(qofValueK(100) * 1000)} a year, so each 1% is about £${tchN(qofValueK(1) * 1000)}. You're at {qof}% so far; it's counted on 31 March.`; },
@@ -94,8 +94,8 @@ EVENTS.push(
      ['Scaled for your list', '× ' + (S.list / P.cpiAvg).toFixed(2), `${tchN(S.list)} patients against the average of ${tchN(P.cpiAvg)}`],
      ['Scaled for how common the conditions are', '× ' + p.prev.toFixed(2), 'Prevalence against the national average'],
      ['Paid monthly now', tchK(S.qofAsp), `80% of last year's ${p.lastQof}%, a twelfth a month`]
-    ], ['100% would be worth', `£${tchN(qofValueK(100) * 1000)} a year`], `The balance for what you actually achieve is paid by the end of June ${2027 + (S.yr || 0)}. Achieve less than you were paid for and some of it goes back.`) }; },
-   o:()=>{ const t = tutor(); return t.scheme ? `You show them how the year goes: recalls in the autumn, the scramble in March, the balance in June. "So it's money," says a registrar. "And strokes that don't happen," you say. Both are true.` : `You find four patients with diabetes who only need a foot check, and a man whose blood pressure hasn't been measured since 2019. "So it's money," ${t.n} says. "And a stroke that doesn't happen," you say. Both are true.`; }},
+    ], ['100% would be worth', `£${tchN(qofValueK(100) * 1000)} a year`], `The balance for what you actually achieve is paid in the summer of ${2027 + (S.yr || 0)}. Achieve less than you were paid for and some of it goes back.`) }; },
+   o:()=>{ const t = tutor(); return t.scheme ? `You show them how the year goes: recalls in the autumn, the scramble in March, the balance in the summer. "So it's money," says a registrar. "And strokes that don't happen," you say. Both are true.` : `You find four patients with diabetes who only need a foot check, and a man whose blood pressure hasn't been measured since 2019. "So it's money," ${t.n} says. "And a stroke that doesn't happen," you say. Both are true.`; }},
   {t:()=>tutor().scheme ? '"It keeps the lights on." Next question.' : '"It keeps the lights on. Ask Maureen."',fx:()=>teachFx({you:1},-1),
    o:()=>{ const t = tutor(); return t.scheme ? `The registrars laugh. One of them writes down "lights".` : `${t.n} asks Maureen, who explains it better than you would have, and mentions it at the practice meeting.`; }}
  ],

@@ -17,6 +17,7 @@ function renderReport() {
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap report">
     <div class="clip"><div class="masthead"><span>${esc(prac().paper)}</span><span>${MONTHS[R.month]} ${calY(R.month)}</span></div>
       <h2>${esc(R.headline)}</h2><p>${c.cap} appointments offered a week against ${c.demand} requested (${pct(c.ratio)}).</p></div>
+    ${R.proj ? `<section class="panel projout"><h3>This month's project <small>${esc(R.proj.name)}</small></h3><p>${esc(R.proj.text)}</p>${R.proj.deltas.length ? deltaChips(R.proj.deltas) : ''}</section>` : ''}
     ${(() => { const all = []; STAT_KEYS.forEach(k => c.T[k].why.forEach(([d, l]) => all.push([d, l, k]))); const top = all.filter(x => Math.abs(x[0]) >= 3).sort((a, b) => Math.abs(b[0]) - Math.abs(a[0])).slice(0, 3); return top.length ? `<section class="panel"><h3>What's driving the practice <small>the biggest pulls on your meters right now</small></h3><ul class="why">${top.map(([d, l, k]) => `<li><span class="${d > 0 ? 'good-t' : 'bad-t'}">${d > 0 ? '+' : '−'}${Math.abs(d)}</span> ${STAT_LABEL[k]}: ${esc(l)}</li>`).join('')}</ul></section>` : ''; })()}
     ${R.consq.length ? `<section class="panel consq"><h3>What came of it <small>consequences of earlier decisions and of the state you're in</small></h3><ul class="notes">${R.consq.map(n => `<li>${esc(n)}</li>`).join('')}</ul></section>` : ''}
     <div class="rgrid">
@@ -198,7 +199,8 @@ function quietMonth(R) {
   if (STAT_KEYS.some(k => S.st[k] < 30) || S.cash < S.overdraft + 20) return false;
   return true;
 }
-function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); }
+// stays long enough to read: about 4 seconds, longer for longer messages; tap to dismiss
+function toast(msg) { document.querySelectorAll('.toast').forEach(x => x.remove()); const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg; t.addEventListener('click', () => t.remove()); document.body.appendChild(t); setTimeout(() => t.remove(), Math.min(9000, 3500 + msg.length * 30)); }
 
 /* ---------- render ---------- */
 function render() {
@@ -213,7 +215,7 @@ function render() {
       // quiet months skip straight to the next plan, with a short "last month" panel there instead
       if (UI.settings.quick && quietMonth(S.report)) {
         const R = S.report;
-        S.lastQuiet = { m: R.month, yr: S.yr || 0, headline: R.headline, cap: R.c.cap, demand: R.c.demand, net: R.c.net, cash: S.cash, d: R.deltas.filter(d => STAT_KEYS.includes(d.k)).map(d => [d.k, d.d]) };
+        S.lastQuiet = { m: R.month, yr: S.yr || 0, headline: R.headline, cap: R.c.cap, demand: R.c.demand, net: R.c.net, cash: S.cash, proj: R.proj, d: R.deltas.filter(d => STAT_KEYS.includes(d.k)).map(d => [d.k, d.d]) };
         nextMonth();
         return render();
       }
@@ -276,6 +278,8 @@ document.addEventListener('click', ev => {
     case 'draw': S.plan.draw = arg; save(); keepScroll(renderPlan); break;
     case 'proj': S.plan.project = arg; save(); keepScroll(renderPlan); break;
     case 'hire': {
+      if (UI.lastHire && UI.lastHire.r === arg && Date.now() - UI.lastHire.t < 700) break;
+      UI.lastHire = { r: arg, t: Date.now() };
       if (arg === 'arrsgp') {
         S.vac.arrsgp = (S.vac.arrsgp || 0) + 1; S.cash = r1(S.cash - 1.5); save(); keepScroll(renderPlan);
         const left = arrsLeft();
@@ -295,7 +299,8 @@ document.addEventListener('click', ev => {
     }
     case 'weekly': { const w = weeklyChallenge(); const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; UI.intro = true; go(() => newGame(w.practice, nm, { seed: w.seed, week: w.week })); break; }
     case 'begin': go(beginMonth); break;
-    case 'suggest': { if (S.practiceKey === 'city') break; const why = suggestPlan(); save(); keepScroll(renderPlan); toast('Bev suggests: ' + why.join(', ') + '.'); break; }
+    case 'suggest': { if (S.practiceKey === 'city') break; UI.suggest = { yr: S.yr || 0, m: S.month, why: suggestPlan() }; save(); keepScroll(renderPlan); break; }
+    case 'suggest-x': UI.suggest = null; keepScroll(renderPlan); break;
     case 'choose': chooseAt(+arg); break;
     case 'cont': go(continueOutcome); break;
     case 'next': go(nextMonth); break;

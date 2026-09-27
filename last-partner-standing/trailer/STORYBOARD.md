@@ -38,7 +38,7 @@ Durations are fixed. The scene's `dur` must be exactly the figure above, so the 
 
 Use only these, word for word where quoted. They come from the game's cards (tag in brackets) and `SOURCES` in `src/c-data.js`. Card titles must be the game's exact titles.
 
-- Contract day [real, S1 S2 S25], who `dept` (The Department): "The new contract has landed. Global sum up 5.5% to £130.07 per weighted patient. Online requests can no longer be capped."
+- Contract day [real, S1 S2 S25], who `dept` (The Department): "The new contract has landed. Global sum up 5.5% to £130.07 per weighted patient. Of the GPs who voted in the BMA's referendum, 98.9% rejected it." (Both framings, as the game's writing rules ask.)
 - Monday, 8:02am [rule, S1 S26], who `patient` (Online request): "Online requests can't be capped any more. There are 212 already. One of them just says "hello?""
 - The fish tank [Fiction], who `gerald`: "A CQC inspector asked a practice for the risk assessment for its waiting-room fish tank." Bev looks at Gerald, a goldfish who has outlived three practice managers.
 - Four thousand letters [real, S95 S96 S97], who `hospital` (St Swithin's Hospital): "Two years of clinic letters were never sent to GPs. At 9am the fault sent all of them at once. Docman shows 4,212 new documents."
@@ -48,7 +48,7 @@ Use only these, word for word where quoted. They come from the game's cards (tag
 - Just a joke [real], who `okoye`: Nadia forwards a job advert. "Perth, Western Australia: A$200 an hour guaranteed for six months." "Ha! As if!"
 - G'day from the future [Fiction], who `okoye`: "Nadia's last day. She leaves a card on your desk: "Sorry, not sorry. Come and visit.""
 - Last partner standing [real, S23 S43], who `deed` (The partnership deed, "Clause 31: last partner standing"): "You're the last partner standing. Every lease, loan and redundancy is now yours alone, with unlimited liability. The brass plate has one name on it."
-- Year-end title: "Survived. Technically." Game-over titles: "Burnt out" (You), "Unlimited liability" (the bank), "Nobody came in" (Team), "Special measures" (Safety), "Contract terminated" (Patients).
+- Year-end titles: "Last Partner Standing" (a sole partner reaching 31 March, checked before any other), "Survived. Technically." (lowest meter below 20). Game-over titles: "Burnt out" (You), "Unlimited liability" (the bank), "Nobody came in" (Team), "Special measures" (Safety), "Contract terminated" (Patients).
 - £130.07: the global sum per weighted patient, 2026/27. Source: DHSC, GMS Statement of Financial Entitlements Directions 2026 (S3); BMA (S2).
 - 15%: employer National Insurance, with no Employment Allowance for GP practices. Sources: BMA (S19), HMRC (S20).
 - −17%: GP partners under 40 in England, in the 15 months to September 2025. Source: Institute for Government, Performance Tracker 2025 (S83).
@@ -92,8 +92,8 @@ Components drawn like the game: `TR.cardHTML({who, title, text, tag, stamp})` (a
 Scenes cut or fade into each other. Where the front carries on across a cut, it must match exactly.
 
 - **s1 ends / s2 starts / s2 ends / s3 starts**: `TR.CAM.FULL`, every window lit (`lo` not set), `TR.world()` defaults (Patients 48, Team 52, You 64, Safety 52, bank £30k, month 0, ratio 1, both partners active), the brass plate under the front with all three names, no captions or callouts on screen. Draw the brass plate exactly as s1 does: `TR.place(el, {x: cam.x, y: cam.y + 250 * cam.w / 320, w: cam.w})`.
-- **s3** moves from `TR.CAM.FULL` to `TR.CAM.LEFT` in its first second as the HUD strip slides down from the top, and the brass plate slides away. It ends on `TR.CAM.LEFT` in February 2027 (month 10) with Patients 33, Team 39, You 25, Safety 34, bank −£78k, ratio 0.84, raining.
-- **s4** cuts in on the brass plate close up, in the same February night (Patients 33, Team 39, You 25, Safety 34, bank −£78k, ratio 0.84: dim windows, rain), and fades out to black over its last 0.6 s.
+- **s3** moves from `TR.CAM.FULL` to `TR.CAM.LEFT` in its first second as the HUD strip slides down from the top, and the brass plate slides away. It ends on `TR.CAM.LEFT` in February 2027 (month 10) with Patients 33, Team 39, You 23, Safety 34, bank −£78k, ratio 0.84, raining.
+- **s4** cuts in on the brass plate close up, in the same February night (Patients 33, Team 39, You 23, Safety 34, bank −£78k, ratio 0.84: dim windows, rain), and fades out to black over its last 0.6 s.
 - **s5** fades in and out (0.4 s each).
 - **s6** fades in from black. **s7** may cut or cross from s6's last frame; it holds its final frame still for the last 1.5 s.
 
@@ -108,18 +108,18 @@ Six cards, one after another, dealt onto the right half of the stage (the front 
 | 2 | June (2) | Monday, 8:02am | 42, 47, 55, 49, £12k, 0.93 |
 | 3 | July (3) | The fish tank (choice: write Gerald a risk assessment) | 42, 49, 54, 50, £12k, 0.95 |
 | 4 | October (6) | Four thousand letters | 40, 43, 44, 38, −£34k, 0.90 |
-| 5 | December (8) | Queue in the rain | 33, 39, 33, 34, −£78k, 0.84 |
-| 6 | February (10) | Payroll day (choice: sign the personal guarantee) | 33, 39, 25, 34, −£78k, 0.84 |
+| 5 | January (9) | Queue in the rain | 33, 39, 33, 34, −£78k, 0.84 |
+| 6 | February (10) | Payroll day (choice: sign the personal guarantee) | 33, 39, 23, 34, −£78k, 0.84 |
 
-On the two choice cards the meters move by exactly the game's effects for the choice taken (the risk assessment: Team +2, You −1, Safety +1; the guarantee: You −8). The bank passes the £75k overdraft limit in December, because that is what deals Payroll day in the game.
+On the two choice cards the meters move by exactly the game's effects for the choice taken (the risk assessment: Team +2, You −1, Safety +1; the guarantee: You −8, which the game makes −10 in winter). The bank passes the £75k overdraft limit in January, and Payroll day is dealt at the start of the first month past it: February.
 
-The card's red stamp shows the month (`APR`, `JUN`, `JUL`, `OCT`, `DEC`, `FEB`). By the end: the queue is five long in the rain, you are slumped, the treatment room has its warning sign, Bev has a red letter.
+The card's red stamp shows the month (`APR`, `JUN`, `JUL`, `OCT`, `JAN`, `FEB`). By the end: the queue is five long in the rain, you are slumped, the treatment room has its warning sign, Bev has a red letter.
 
 ### s4: the brass plate
 
 1. The plate, close up and large, in front of the dim front at night: Dr Ashworth · Dr Hartley · Dr Okoye.
 2. "Six months' notice" (Dr Hartley). A stamp or kicker `SEPTEMBER`. His name is struck through.
-3. "G'day from the future" (Dr Okoye; you may open with a glimpse of "Just a joke", the Perth advert). A kicker `NOVEMBER`. Her name is struck through.
+3. "G'day from the future" (Dr Okoye; you may open with a glimpse of "Just a joke", the Perth advert). A kicker `JANUARY` (she works her notice to the end of January). Her name is struck through.
 4. The partnership deed: "Last partner standing", with its line about unlimited liability. One name left on the plate. The other windows may go dark around yours. Fade to black.
 
 ### s5: the numbers are real
@@ -128,7 +128,7 @@ A dark screen (the game's dark paper, `#0D1712`, may carry the game's diagonal h
 
 ### s6: two endings
 
-31 March 2027, or before it. Two fronts side by side: one lit, under a gold banner "Survived. Technically."; one closed (`closed: true`) under a red banner "Burnt out". Then the Partners' Board, the game's honours board (dark wood `#5A3B24` to `#4A2F1C`, gold `#E4C66E` Georgia title "The Partners' Board", italic "Those who served. Some briefly."), with three or four rows: portrait, "Dr Name", practice and how it ended, months served. Use Dr Ashworth, Riverside Surgery, and fictional surnames from `DICE_LAST`, practices from `PRACTICES`, endings from the list above. The line: "How long can you last?"
+31 March 2027, or before it. Two fronts side by side: one still lit on 31 March 2027, under a gold banner "Last Partner Standing" (the game's year-end title for a sole partner, which you are after s4); one closed (`closed: true`) in January of year 2, under a red banner "Burnt out". Then the Partners' Board, the game's honours board (dark wood `#5A3B24` to `#4A2F1C`, gold `#E4C66E` Georgia title "The Partners' Board", italic "Those who served. Some briefly."), with three or four rows: portrait, "Dr Name", practice and how it ended, months served. Use Dr Ashworth, Riverside Surgery, and fictional surnames from `DICE_LAST`, practices from `PRACTICES`, endings from the list above. The line: "How long can you last?"
 
 ### s7: end card
 

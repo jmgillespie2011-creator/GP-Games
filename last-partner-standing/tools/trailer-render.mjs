@@ -143,7 +143,12 @@ if (video) {
     try { ff = execSync('python3 -c "import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())"').toString().trim(); } catch (e2) { console.error('no ffmpeg: set FFMPEG or pip install imageio-ffmpeg'); await done(1); }
   }
   const out = path.resolve(video);
-  const enc = spawn(ff, ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-', '-c:v', 'libx264', '-preset', 'slow', '-crf', String(arg('crf', 20)), '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
+  // H.264 High, yuv420p, keyframes every 2 s, a silent AAC track (some upload pipelines expect audio) and the index at
+  // the front, so it plays as it downloads and uploads cleanly to X, LinkedIn and messaging apps
+  const enc = spawn(ff, ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-',
+    '-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=48000', '-shortest',
+    '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', String(arg('crf', 20)), '-pix_fmt', 'yuv420p', '-g', String(fps * 2),
+    '-c:a', 'aac', '-b:a', '64k', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
   const ended = new Promise((res, rej) => enc.on('close', c => c ? rej(new Error('ffmpeg exited ' + c)) : res()));
   const a = Date.now();
   for (let i = 0; i < N; i++) {

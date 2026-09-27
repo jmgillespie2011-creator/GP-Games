@@ -2,7 +2,7 @@
  The game's loop at speed. A card is dealt on the right, twice a choice is made, then the HUD bars slide to the
  storyboard's next row and the surgery front changes with them: lights dim, the staff room empties, a queue forms.
  Starts on s1's last frame (TR.CAM.FULL, every window lit, three names on the plate). Ends on TR.CAM.LEFT in
- February 2027: Patients 33, Team 39, You 25, Safety 34, the bank at −£78k, a queue of five in the rain. */
+ February 2027: Patients 33, Team 39, You 23, Safety 34, the bank at −£78k, a queue of five in the rain. */
 TR.css(`
 .s3-brass{position:absolute}
 .s3-rain{position:absolute;background-repeat:repeat}
@@ -36,22 +36,22 @@ const S3 = {
     [42, 47, 55, 49, 12, 0.93],
     [42, 49, 54, 50, 12, 0.95],   // the risk assessment: the game's own effects, Team +2, You −1, Safety +1
     [40, 43, 44, 38, -34, 0.90],
-    [33, 39, 33, 34, -78, 0.84],  // past the £75k overdraft limit, which is what deals Payroll day
-    [33, 39, 25, 34, -78, 0.84]   // the personal guarantee: You −8
+    [33, 39, 33, 34, -78, 0.84],  // past the £75k overdraft limit in January, which deals Payroll day in February
+    [33, 39, 23, 34, -78, 0.84]   // the personal guarantee: You −8, a quarter harder in winter (the game's ctxFx)
   ],
   // the six cards: dealt at `at`, meters move `move` seconds later; two show the game's choices, and the first is taken
   // (`press`). Choice chips as the game draws them: a meter with a dot (! for a big one), later, risk, now, follow.
   cards: [
     { who: 'dept', title: 'Contract day', tag: 'real', month: 0, at: 0.8, move: 1.85,
-      text: 'The new contract has landed. Global sum up 5.5% to £130.07 per weighted patient. Online requests can no longer be capped.' },
+      text: 'The new contract has landed. Global sum up 5.5% to £130.07 per weighted patient. Of the GPs who voted in the BMA’s referendum, 98.9% rejected it.' },
     { who: 'patient', title: 'Monday, 8:02am', tag: 'rule', month: 2, at: 4.1, move: 1.85,
       text: 'Online requests can’t be capped any more. There are 212 already. One of them just says “hello?”' },
     { who: 'gerald', title: 'The fish tank', tag: 'story', month: 3, at: 7.4, move: 2.65, press: 2.3,
       text: 'A CQC inspector asked a practice for the risk assessment for its waiting-room fish tank. Bev looks at Gerald, a goldfish who has outlived three practice managers.',
       choices: [['Write Gerald a risk assessment', 'team you safety'], ['Rehome Gerald with Kayleigh', 'patients team now'], ['Leave it. He’s a goldfish.', 'you later']] },
-    { who: 'hospital', title: 'Four thousand letters', tag: 'real', month: 6, at: 11.4, move: 1.85,
+    { who: 'hospital', name: 'St Swithin’s Hospital', title: 'Four thousand letters', tag: 'real', month: 6, at: 11.4, move: 1.85,
       text: 'Two years of clinic letters were never sent to GPs. At 9am the fault sent all of them at once. Docman shows 4,212 new documents.' },
-    { who: 'kayleigh', title: 'Queue in the rain', tag: 'story', month: 8, at: 14.7, move: 1.85,
+    { who: 'kayleigh', title: 'Queue in the rain', tag: 'story', month: 9, at: 14.7, move: 1.85,
       text: 'It’s 7:40am and there are 30 people queuing outside in the rain. Someone has brought a camping chair.' },
     { who: 'bank', title: 'Payroll day', tag: 'real', month: 10, at: 18.0, move: 2.65, press: 2.3,
       text: 'Payroll is due and you’re past the £75k overdraft limit. The bank will extend it by £60,000 if every partner signs a personal guarantee.',
@@ -90,7 +90,7 @@ S3.mix = (a, b, p) => '#' + [1, 3, 5].map(i => Math.round(TR.lerp(parseInt(a.sub
 
 TR.scene({
   id: 's3-year', title: 'The year', dur: 22,
-  lines: ['April to February in six cards: the new contract, uncapped online requests, a risk assessment for Gerald the goldfish, 4,212 hospital letters, a queue in the rain and payroll day.', 'After every card the meters fall and the front shows it: the lights dim, the staff room empties, a queue forms in the rain and you slump at your desk.'],
+  lines: ['April to February in six cards: the new contract, uncapped online requests, a risk assessment for Gerald the goldfish, 4,212 hospital letters, a queue in the rain and payroll day.', 'After each card the meters move, mostly down, and the front shows it: the lights dim, the staff room thins out, a queue forms in the rain and you slump at your desk.'],
   build(root) {
     const K = S3.keys;
     root._street = TR.el('div', 'tr-fill', null, root);
@@ -116,7 +116,7 @@ TR.scene({
     };
     const choice = (ch, j) => `<div class="s3-choice"><span class="t"><span class="s3-kbd">${j + 1}</span>${esc(ch[0])}</span><div class="s3-chips">${ch[1].split(' ').map(chip).join('')}</div></div>`;
     root._cards = S3.cards.map((c, i) => {
-      const slot = TR.el('div', 's3-slot', TR.cardHTML({ who: c.who, title: c.title, text: c.text, tag: c.tag, stamp: `${MON3[c.month].toUpperCase()} · ${i + 1}/6` }), root._deck);
+      const slot = TR.el('div', 's3-slot', TR.cardHTML({ who: c.who, name: c.name, title: c.title, text: c.text, tag: c.tag, stamp: `${MON3[c.month].toUpperCase()} · ${i + 1}/6` }), root._deck);
       const card = slot.firstElementChild;
       // the game's delta chips for what this card's month did to the meters
       const deltas = K.map((k, j) => {

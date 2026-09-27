@@ -32,21 +32,21 @@ TR.css(`
 const S6_ROWS = [
   { n: 'Okafor', p: 'suburb', how: 'Year 3 complete', m: 36, look: 5, c: 3 },
   { n: TR.NAME, p: 'town', how: 'Burnt out, January of year 2', m: 22, look: TR.LOOK.s, c: TR.LOOK.c, me: 1 },
-  { n: 'Pemberton', p: 'city', how: 'Unlimited liability, December', m: 9, look: 2, c: 2 },
-  { n: 'Mehta', p: 'suburb', how: 'Nobody came in, June', m: 3, look: 6, c: 5 }
+  { n: 'Pemberton', p: 'city', how: 'Contract terminated, December', m: 9, look: 2, c: 2 },
+  { n: 'Mehta', p: 'suburb', how: 'Nobody came in, March', m: 3, look: 6, c: 5 }
 ];
 // one row, drawn like the game's plaqueRow(): rank, portrait ringed in the player's colour, name, practice and ending, months
 const s6Row = (x, i) => `<li class="s6-plq"><span class="s6-n">${i + 1}</span><span class="s6-pt" style="--ring:${PLAYER_COLOURS[x.c]}"><svg viewBox="0 0 64 64" width="62" height="62"><rect width="64" height="64" rx="10" fill="${SIL_TILE}"/><g transform="translate(3.2 6.4) scale(0.9)">${silLook(PLAYER_LOOKS[x.look])}</g></svg></span><span class="s6-t"><b>Dr ${esc(x.n)}</b><small>${esc(PRACTICES[x.p].surgery)} · ${esc(x.how)}</small></span><span class="s6-m">${x.m}<small>months</small></span></li>`;
 TR.scene({
   id: 's6-endings', title: 'Two endings', dur: 8, fadeIn: 0.5,
-  lines: ['31 March 2027: the lights are still on at Riverside Surgery. Survived. Technically.', 'Or, one January in year 2, the windows go dark one by one and the door says ask the ICB. Burnt out.', 'The Partners’ Board: every partner you play gets a line, however briefly they served. How long can you last?'],
+  lines: ['31 March 2027: one partner left, and the lights are still on at Riverside Surgery. Last Partner Standing.', 'Or, one January in year 2, the windows go dark one by one and a sign on the door says “Closed. Ask the ICB.” Burnt out.', 'The Partners’ Board: every partner you play gets a line, however briefly they served. How long can you last?'],
   build(root) {
     root._street = TR.el('div', 'tr-fill', null, root);
     root._facL = TR.el('div', 'tr-facade', null, root);
     root._facR = TR.el('div', 'tr-facade', null, root);
     root._kL = TR.el('div', 's6-kick tr-kick', '31 March 2027', root);
     root._kR = TR.el('div', 's6-kick tr-kick', 'January 2028 · year 2', root);
-    root._bL = TR.el('div', 's6-bw', '<span class="s6-ban s6-gold">Survived. Technically.</span>', root);
+    root._bL = TR.el('div', 's6-bw', '<span class="s6-ban s6-gold">Last Partner Standing</span>', root);
     root._bR = TR.el('div', 's6-bw', '<span class="s6-ban s6-red">Burnt out</span>', root);
     root._scrim = TR.el('div', 'tr-fill s6-scrim', null, root);
     // the question sits over the sky, the board under it hides the pavement in the middle
@@ -65,8 +65,9 @@ TR.scene({
     TR.street(root._street, camL);
     TR.cam(root._facL, camL);
     TR.cam(root._facR, camR);
-    // the end of the year: every window lit, nothing to spare, a red letter on Bev's desk
-    TR.facade(root._facL, { st: { patients: 42, team: 47, you: 38, safety: 44 }, cash: -18, month: 11 });
+    // the end of year one with one partner left (the game's title for a sole partner): every window still lit, dimly,
+    // you slumped at your desk, a red letter on Bev's desk
+    TR.facade(root._facL, { st: { patients: 35, team: 40, you: 24, safety: 36 }, cash: -70, month: 11 });
     // January of year 2: You runs down to 0 and your room goes dark (18 or less is dark), then the other windows go
     // out, then the building is shut. The blackouts lift once it's closed, leaving the game's own closed front.
     const you = Math.round(TR.kf(lt, [[0.6, 22], [1.05, 0]], E.in));

@@ -26,7 +26,7 @@ const S2_TOUR = [
   { k: 'patients', room: 'The waiting room', line: 'Fills up when appointments run short. Gerald stays.', side: 'L' },
   { k: 'team', room: 'The staff room', line: 'Empties as morale falls.', side: 'R' },
   { k: 'safety', room: 'The treatment room', line: 'Maureen’s room. Fridges, records, near misses.', side: 'R' },
-  { k: 'cash', room: 'Bev’s office', line: 'Past the overdraft limit, payroll bounces.', side: 'L' },
+  { k: 'cash', room: 'Bev’s office', line: 'Past the overdraft limit, payroll can bounce.', side: 'L' },
   { k: 'you', room: 'Your room', line: 'Yes, you’re a meter.', side: 'R' }
 ];
 const S2_ON = [0.3, 1.95, 3.25, 4.55, 5.85];   // when each window's light takes over from the last

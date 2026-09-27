@@ -23,7 +23,7 @@ JS="../src/c-data.js ../src/c3-art.js t-engine.js $SCENES t-boot.js"
     printf '<meta name="theme-color" content="#E3EDE1" media="(prefers-color-scheme: light)">\n<meta name="theme-color" content="#0D1712" media="(prefers-color-scheme: dark)">\n'
     printf '<meta name="description" content="%s">\n<link rel="canonical" href="%s/trailer">\n' "$DESC" "$SITE"
     printf '<meta property="og:type" content="video.other">\n<meta property="og:site_name" content="Last Partner Standing">\n<meta property="og:url" content="%s/trailer">\n<meta property="og:title" content="Last Partner Standing: the trailer">\n<meta property="og:description" content="%s">\n' "$SITE" "$DESC"
-    printf '<meta property="og:image" content="%s">\n<meta property="og:image:width" content="1280">\n<meta property="og:image:height" content="720">\n<meta property="og:image:alt" content="The Riverside Surgery front at night with its five windows lit, under the Last Partner Standing title.">\n' "$IMG"
+    printf '<meta property="og:image" content="%s">\n<meta property="og:image:width" content="1280">\n<meta property="og:image:height" content="720">\n<meta property="og:image:alt" content="The Last Partner Standing title beside the Riverside Surgery front at night, its five windows lit.">\n' "$IMG"
     printf '<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="Last Partner Standing: the trailer">\n<meta name="twitter:description" content="%s">\n<meta name="twitter:image" content="%s">\n' "$DESC" "$IMG"
     printf '<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,%s">\n<link rel="apple-touch-icon" href="/last-partner-standing/apple-touch-icon.png">\n' "$ICON"
     cat t-head.html

@@ -21,7 +21,7 @@ TR.css(`
 `);
 TR.scene({
   id: 's7-endcard', title: 'End card', dur: 7,
-  lines: ['The lights come back up at Riverside Surgery, and the front becomes a picture on the game’s title screen.', 'Last Partner Standing: a year on England’s 2026/27 GP contract, then as many more as you can survive. Free, in your browser, at last-partner-standing.vercel.app.'],
+  lines: ['The lights come back up at Riverside Surgery, and the front shrinks into a framed picture beside the game’s logo.', 'Last Partner Standing: a year on England’s 2026/27 GP contract, then as many more as you can survive. Free, in your browser, at last-partner-standing.vercel.app.'],
   build(root) {
     TR.el('div', 'tr-fill s7-paper', null, root);
     root._eye = TR.el('div', 's7-ink s7-eye', 'A general practice survival game', root);

@@ -35,8 +35,8 @@ TR.css(`
 .s4-end-s{margin-top:14px;max-width:600px}
 `);
 
-// the February night s3 ends on: Patients 31, Team 38, You 26, Safety 33, bank -£52k, 0.82 of the appointments needed
-const S4_WORLD = { st: { patients: 33, team: 39, you: 25, safety: 34 }, cash: -78, month: 10, ratio: 0.84 };
+// the February night s3 ends on: Patients 33, Team 39, You 23, Safety 34, bank −£78k, 0.84 of the appointments needed
+const S4_WORLD = { st: { patients: 33, team: 39, you: 23, safety: 34 }, cash: -78, month: 10, ratio: 0.84 };
 const S4_PLATE_Y = 452, S4_END_Y = 366;
 const S4_YOURS = TR.WINDOWS.find(w => w.k === 'you');
 // a tile of rain streaks, slanted like the game's (2 across for 6 down), repeated across the stage
@@ -53,7 +53,7 @@ const s4RainTile = (seed, w, h, n, len, sw, op) => {
 
 TR.scene({
   id: 's4-partners', title: 'The brass plate', dur: 12, fadeOut: 0.6,
-  lines: ['September: Dr Hartley retires on six months’ notice. November: Dr Okoye leaves for Perth. Their names are struck off the brass plate.', 'The partnership deed: every lease, loan and redundancy is now yours alone. Last partner standing.'],
+  lines: ['September: Dr Hartley retires on six months’ notice. January: Dr Okoye leaves for Perth. Their names are struck through on the brass plate.', 'The partnership deed: every lease, loan and redundancy is now yours alone. Last partner standing.'],
   build(root) {
     root._street = TR.el('div', 'tr-fill', null, root);
     root._fac = TR.el('div', 'tr-facade s4-fac', null, root);
@@ -82,7 +82,7 @@ TR.scene({
       return el;
     };
     root._hart = beat('September', { who: 'hartley', title: 'Six months’ notice', text: '“I’m retiring at the end of September.”', tag: 'real' }, 640);
-    root._okoye = beat('November', { who: 'okoye', title: 'G’day from the future', text: '“Sorry, not sorry. Come and visit.”', tag: 'story' }, 957);
+    root._okoye = beat('January', { who: 'okoye', title: 'G’day from the future', text: '“Sorry, not sorry. Come and visit.”', tag: 'story' }, 957);
     // the deed: what being the last partner means, over the dark office and staff room
     root._end = TR.el('div', 's4-end', null, root);
     root._end.style.bottom = (720 - S4_END_Y) + 'px';

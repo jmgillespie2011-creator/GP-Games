@@ -1,0 +1,34 @@
+<main>
+  <header class="wrap top">
+    <div class="mark">Last Partner <span class="under">Standing</span></div>
+    <div class="eyebrow" id="tr-length">The trailer</div>
+  </header>
+  <section class="wrap" aria-label="The trailer">
+    <div class="screen" id="screen">
+      <div id="stage" aria-hidden="true"></div>
+      <button class="big-play" id="big-play" type="button" aria-label="Play the trailer"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5Z" fill="currentColor"/></svg>Play the trailer</span></button>
+    </div>
+    <div class="controls">
+      <button class="cbtn main" id="tr-play" type="button" aria-label="Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5Z" fill="currentColor"/></svg></button>
+      <button class="cbtn" id="tr-restart" type="button" aria-label="Start again"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v5h5"/></svg></button>
+      <input class="scrub" id="tr-scrub" type="range" min="0" max="75" step="0.1" value="0" aria-label="Position in the trailer">
+      <span class="clock" id="tr-clock">0:00 / 1:15</span>
+      <button class="cbtn" id="tr-full" type="button" aria-label="Full screen" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    </div>
+  </section>
+  <section class="wrap after">
+    <div class="pitch">
+      <h2>A year on England's 2026/27 GP contract, then as many more as you can survive.</h2>
+      <p>Last Partner Standing is a free browser game about running a GP practice as a new partner. Five things to keep alive, including you. The practices and people are fictional; the rules and the money are real.</p>
+      <div class="acts">
+        <a class="btn primary" href="https://last-partner-standing.vercel.app" target="_blank" rel="noopener">Play the game</a>
+        <a class="btn" id="tr-mp4" href="/last-partner-standing/trailer.mp4" download="last-partner-standing-trailer.mp4" hidden>Download the video (MP4)</a>
+      </div>
+    </div>
+    <nav class="chapters" aria-label="Scenes">
+      <h2>Scenes</h2>
+      <ol id="tr-chapters"></ol>
+    </nav>
+  </section>
+  <footer class="wrap fine"><p>The practices, people and companies are fictional, and the scenarios are satire. Not affiliated with the NHS, the BMA or any government body. The drawings are the game's own.</p></footer>
+</main>

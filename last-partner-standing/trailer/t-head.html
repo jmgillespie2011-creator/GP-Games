@@ -1,0 +1,162 @@
+<title>Last Partner Standing Trailer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* The page around the film uses the game's own tokens, light and dark. The film itself (#stage) has a fixed look,
+   because the same frames also become the MP4. */
+:root{
+  --paper:#E3EDE1;--paper-2:#D7E4D5;--sheet:#F8FBF6;--sheet-2:#EEF4EC;
+  --ink:#15241C;--ink-2:#4A5E52;--ink-3:#6F8577;--rule:#BCCFBF;
+  --accent:#1D6A4D;--accent-ink:#F4FAF6;--accent-soft:#CFE5D8;
+  --stamp:#BF3A2C;--hilite:#F2D449;--hatch:rgba(29,106,77,.055);
+  --shadow:0 1px 0 rgba(21,36,28,.06),0 10px 28px -14px rgba(21,36,28,.35);
+  --display:"Bricolage Grotesque","Avenir Next Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible","Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  --serif:Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0D1712;--paper-2:#122019;--sheet:#15241C;--sheet-2:#1B2D24;
+    --ink:#DCE9E0;--ink-2:#A2B8AA;--ink-3:#7F968A;--rule:#2B4135;
+    --accent:#5CBF90;--accent-ink:#08140E;--accent-soft:#1F3E30;
+    --stamp:#F07C6E;--hilite:#E6C84A;--hatch:rgba(92,191,144,.045);
+    --shadow:0 1px 0 rgba(0,0,0,.4),0 14px 30px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0D1712;--paper-2:#122019;--sheet:#15241C;--sheet-2:#1B2D24;
+  --ink:#DCE9E0;--ink-2:#A2B8AA;--ink-3:#7F968A;--rule:#2B4135;
+  --accent:#5CBF90;--accent-ink:#08140E;--accent-soft:#1F3E30;
+  --stamp:#F07C6E;--hilite:#E6C84A;--hatch:rgba(92,191,144,.045);
+  --shadow:0 1px 0 rgba(0,0,0,.4),0 14px 30px -16px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  background-image:repeating-linear-gradient(135deg,var(--hatch) 0 2px,transparent 2px 9px);-webkit-font-smoothing:antialiased;
+}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--hilite);outline-offset:2px;border-radius:6px}
+h1,h2{font-family:var(--display);line-height:1.08;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:inherit}
+.wrap{width:100%;max-width:1120px;margin:0 auto;padding-inline:16px}
+
+/* ---------- the page ---------- */
+.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 20px;padding-block:22px 14px}
+.mark{font-family:var(--display);font-weight:800;font-size:clamp(26px,3.6vw,38px);letter-spacing:-.03em;line-height:1;font-variation-settings:"opsz" 96}
+.mark .under{background:linear-gradient(var(--hilite),var(--hilite)) left bottom/100% .14em no-repeat;padding-bottom:.06em}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.screen{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;background:#0B0F16;border:1.5px solid var(--ink);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.big-play{position:absolute;inset:0;display:grid;place-items:center;background:rgba(8,11,17,.28);border:0;padding:0;color:#15241C}
+.big-play span{display:inline-flex;align-items:center;gap:.55em;background:#F2D449;border:2px solid #15241C;border-radius:999px;padding:.7em 1.35em;font-family:var(--display);font-weight:800;font-size:clamp(16px,2.4vw,24px);box-shadow:0 4px 0 #15241C}
+.big-play:hover span{transform:translateY(-1px);box-shadow:0 5px 0 #15241C}
+.big-play svg{width:1.1em;height:1.1em}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px;padding-block:12px 4px}
+.controls .scrub{flex:1 1 160px;width:auto;min-width:0}
+.screen:fullscreen{border:0;border-radius:0;background:#000;display:grid;place-items:center}
+.screen:fullscreen #stage{left:50%;top:50%;transform:translate(-50%,-50%) scale(var(--k,1));transform-origin:center}
+.cbtn{display:inline-grid;place-items:center;width:42px;height:42px;border-radius:50%;border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink)}
+.cbtn svg{width:18px;height:18px}
+.cbtn.main{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.scrub{width:100%;accent-color:var(--accent);margin:0}
+.clock{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink-2);white-space:nowrap}
+.after{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px 40px;padding-block:18px 36px;align-items:start}
+.pitch{display:grid;gap:14px;max-width:48ch}
+.pitch h2{font-size:clamp(24px,3vw,30px);letter-spacing:-.02em}
+.pitch p{color:var(--ink-2)}
+.acts{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5em;border:1.5px solid var(--ink);background:var(--sheet);border-radius:999px;padding:.62em 1.2em;font-weight:700;line-height:1.1;text-decoration:none;color:var(--ink)}
+.btn:hover{transform:translateY(-1px);box-shadow:0 3px 0 var(--ink)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chapters h2{font-size:14px;font-family:var(--mono);font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);margin-bottom:8px}
+.chapters ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.chapters button{display:grid;grid-template-columns:3.2em 1fr;gap:10px;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:8px 10px;color:var(--ink)}
+.chapters button:hover{background:var(--sheet-2)}
+.chapters button[aria-current="true"]{background:var(--accent-soft)}
+.chapters time{font-family:var(--mono);font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums;padding-top:1px}
+.chapters b{display:block;font-family:var(--display);font-size:17px;line-height:1.2}
+.chapters small{display:block;color:var(--ink-2);font-size:14px;margin-top:2px}
+.fine{font-size:13px;color:var(--ink-3);padding-block:0 28px}
+.fine p{max-width:80ch}
+@media (max-width:760px){.after{grid-template-columns:1fr}}
+@media (max-width:480px){.controls .clock{order:5;flex-basis:100%;text-align:right;margin-top:-6px}}
+
+/* capture mode (tools/trailer-render.mjs): just the film, 1280x720, top left */
+.capture body{background:#0B0F16}
+.capture .top,.capture .controls,.capture .after,.capture .fine,.capture .big-play{display:none!important}
+.capture .wrap{max-width:none;padding:0}
+.capture .screen{width:1280px;border:0;border-radius:0;box-shadow:none}
+
+/* ---------- the film: a 1280x720 stage, scaled to fit ---------- */
+#stage{
+  position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;transform:scale(var(--k,1));overflow:hidden;
+  background:#0B0F16;color:#F4EEDD;font-family:var(--body);line-height:1.35;
+  --t-sheet:#F8FBF6;--t-ink:#15241C;--t-ink2:#4A5E52;--t-ink3:#6F8577;--t-rule:#BCCFBF;--t-accent:#1D6A4D;--t-accent-soft:#CFE5D8;
+  --t-stamp:#BF3A2C;--t-hilite:#F2D449;--t-cream:#F4EEDD;--t-dim:#C9CFDA;--t-night:#1B2433;--t-brass:#C9A24B;--t-tile:#EFE7D0;--t-sil:#1E1B16;
+  --t-good:#2C8656;--t-warn:#C27C12;--t-bad:#BF3A2C;
+}
+#stage .scene{position:absolute;inset:0;overflow:hidden}
+#stage [hidden]{display:none!important}
+.tr-fill{position:absolute;inset:0}
+.tr-facade{position:absolute;line-height:0}
+.tr-facade svg{display:block;width:100%;height:auto}
+
+/* captions */
+.tr-kick{font-family:var(--mono);font-size:18px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--t-hilite)}
+.tr-cap{font-family:var(--display);font-weight:800;font-size:56px;line-height:1.02;letter-spacing:-.025em;color:var(--t-cream);text-wrap:balance;font-variation-settings:"opsz" 96;text-shadow:0 2px 18px rgba(5,8,14,.55)}
+.tr-sub{font-family:var(--body);font-size:24px;line-height:1.35;color:var(--t-dim)}
+.tr-plate{background:rgba(11,15,22,.78);border-radius:10px;padding:10px 16px}
+.tr-caret{display:inline-block;width:.55em;height:1em;margin-left:.08em;background:currentColor;vertical-align:-.12em}
+
+/* a card, drawn like the game's */
+.tr-card{position:relative;width:540px;background:var(--t-sheet);color:var(--t-ink);border:1.5px solid var(--t-ink);border-radius:14px;padding:22px 28px 24px 30px;box-shadow:0 1px 0 rgba(21,36,28,.06),0 18px 40px -18px rgba(0,0,0,.65)}
+.tr-card::before{content:"";position:absolute;inset:8px auto 8px 8px;width:2px;background:repeating-linear-gradient(to bottom,var(--t-stamp) 0 6px,transparent 6px 10px);opacity:.35;border-radius:2px}
+.tr-card .who{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.tr-card .who b{display:block;font-size:16px;line-height:1.2}
+.tr-card .who small{display:block;color:var(--t-ink2);font-size:13px}
+.tr-card .stampno{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--t-stamp);border:1.5px solid var(--t-stamp);border-radius:5px;padding:2px 7px;transform:rotate(3deg);white-space:nowrap}
+.tr-card .ttl{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.tr-card h2{flex:1 1 auto;font-size:32px;font-weight:800;letter-spacing:-.02em;color:var(--t-ink)}
+.tr-card .text{font-size:18px;line-height:1.45}
+.tr-portrait{flex:none;width:52px;height:52px;border-radius:12px;box-shadow:0 0 0 2.5px var(--ring,var(--t-ink)),0 2px 6px rgba(0,0,0,.18);overflow:hidden;line-height:0}
+.tr-portrait svg{display:block;width:100%;height:100%}
+.tagpill{flex:none;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-radius:99px;padding:3px 9px;border:1.5px solid;margin-top:6px}
+.tagpill.t-real{color:var(--t-accent);border-color:var(--t-accent);background:var(--t-accent-soft)}
+.tagpill.t-rule{color:var(--t-ink);border-color:var(--t-ink)}
+.tagpill.t-story{color:var(--t-ink3);border-color:var(--t-rule)}
+
+/* the HUD strip, drawn like the game's */
+.tr-hud{position:absolute;left:0;top:0;width:1280px;background:rgba(227,237,225,.95);color:var(--t-ink);border-bottom:1px solid var(--t-rule);padding:12px 28px 12px;display:grid;gap:8px;font-family:var(--body)}
+.tr-hud .row{display:flex;align-items:center;gap:14px}
+.tr-hud .nm{font-family:var(--display);font-weight:700;font-size:21px;white-space:nowrap}
+.tr-hud .sub{font-size:14px;color:var(--t-ink2)}
+.tr-hud .mlab{margin-left:auto;font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.tr-hud .pills{display:flex;gap:4px;align-items:flex-end}
+.tr-hud .pills i{display:block;width:26px;height:7px;border-radius:2px;background:var(--t-rule)}
+.tr-hud .pills i.done{background:var(--t-accent)}
+.tr-hud .pills i.now{background:var(--t-hilite);height:12px}
+.tr-hud .meters{display:grid;grid-template-columns:repeat(5,1fr);gap:18px}
+.tr-hud .meter{display:grid;grid-template-columns:auto 1fr;gap:3px 9px;align-items:center}
+.tr-hud .meter svg{width:22px;height:22px;grid-row:span 2}
+.tr-hud .lab{font-size:13px;font-weight:700;display:flex;justify-content:space-between;gap:6px}
+.tr-hud .val{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+.tr-hud .bar{height:9px;border-radius:99px;background:#D7E4D5;border:1px solid var(--t-rule);overflow:hidden}
+.tr-hud .bar b{display:block;height:100%;background:var(--t-accent);border-radius:99px}
+.tr-hud .meter.low .bar b{background:var(--t-warn)}
+.tr-hud .meter.crit .bar b{background:var(--t-bad)}
+.tr-hud .meter.crit .val{color:var(--t-bad)}
+
+/* the brass plate */
+.tr-brass{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:12px 20px;background:linear-gradient(#C9A24B,#A8812F);color:#2B1F0C;font-family:var(--serif);font-size:22px;border-top:2px solid #6B5220;box-shadow:inset 0 1px 0 rgba(255,246,208,.35)}
+.tr-brass .bt{font-family:var(--mono);font-size:13px;letter-spacing:.16em;text-transform:uppercase;opacity:.8;margin-right:4px}
+.tr-brass .bn{position:relative;font-weight:700;white-space:nowrap}
+.tr-brass .bn .ln{position:absolute;left:-3px;right:-3px;top:54%;height:2.5px;background:#2B1F0C;transform-origin:left center;transform:scaleX(0)}
+.tr-brass i{font-style:normal;opacity:.6}
+</style>

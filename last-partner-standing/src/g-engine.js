@@ -98,21 +98,24 @@ function suggestPlan() {
   const pl = S.plan, why = [];
   pl.clin = S.st.you < 40 ? 5 : 6; pl.admin = 1; pl.mgmt = 1; pl.locum = 0; pl.extra = 0;
   pl.leave = S.st.you < 50 && S.leaveUsed < 6;
-  if (pl.leave) why.push('a week off, because You is low');
+  why.push(`${pl.clin} clinical sessions for you${pl.clin < 6 ? ', one fewer because You is low' : ''}, 1 admin, 1 management`);
+  if (pl.leave) why.push('A week off, because You is low');
   pl.draw = S.cash < S.overdraft / 2 ? 'low' : 'std';
-  if (pl.draw === 'low') why.push('lean drawings to protect the bank');
+  why.push(pl.draw === 'low' ? 'Lean drawings, to protect the bank' : 'Standard drawings');
   let c = calc();
   while (c.inboxEnd > 380 && pl.admin < 3) { pl.admin++; c = calc(); }
-  if (pl.admin > 1) why.push(`${pl.admin} admin sessions to keep the inbox safe`);
+  if (pl.admin > 1) why.push(`${pl.admin} admin sessions, to keep the inbox under 400`);
   while (c.ratio < 0.97 && (pl.extra || 0) < 2 && S.st.team >= 50) { pl.extra = (pl.extra || 0) + 1; c = calc(); }
-  if (pl.extra) why.push(`${pl.extra} overtime clinic${pl.extra > 1 ? 's' : ''} a week`);
+  if (pl.extra) why.push(`${pl.extra} evening or Saturday clinic${pl.extra > 1 ? 's' : ''} a week, because appointments are short`);
   while (c.ratio < 0.95 && pl.locum < Math.min(4, locumMax()) && S.cash > S.overdraft + 25) { pl.locum++; c = calc(); }
-  if (pl.locum) why.push(`${pl.locum} locum session${pl.locum > 1 ? 's' : ''} a week`);
+  if (pl.locum) why.push(`${pl.locum} locum session${pl.locum > 1 ? 's' : ''} a week, because appointments are still short`);
   const done = id => (PROJECTS.find(x => x.id === id) || {}).once && S.flags['proj_' + id];
-  pl.project = S.flags.telephony && !done('telephony') ? 'telephony'
-    : S.st.team < 45 ? 'wellbeing' : S.st.safety < 45 ? 'cqc' : S.inbox > 450 ? 'inbox' : S.st.patients < 40 ? 'ppg'
-    : roomsNeeded() + 4 > roomsAvail() && !done('meetingroom') ? 'meetingroom' : S.cash < 0 ? 'claims' : 'qof';
-  why.push(`project: ${(PROJECTS.find(x => x.id === pl.project) || {}).name}`);
+  const [proj, because] = S.flags.telephony && !done('telephony') ? ['telephony', 'the new phones are ready to go live']
+    : S.st.team < 45 ? ['wellbeing', 'the team is worn down'] : S.st.safety < 45 ? ['cqc', 'Safety is low'] : S.inbox > 450 ? ['inbox', 'the inbox is over 450']
+    : S.st.patients < 40 ? ['ppg', 'patients are unhappy']
+    : roomsNeeded() + 4 > roomsAvail() && !done('meetingroom') ? ['meetingroom', 'you are nearly out of clinic rooms'] : S.cash < 0 ? ['claims', 'the bank is overdrawn'] : ['qof', 'QOF is money you can still earn'];
+  pl.project = proj;
+  why.push(`Project: ${(PROJECTS.find(x => x.id === proj) || {}).name}, because ${because}`);
   return why;
 }
 // headcount and FTE against the England averages for a list this size
@@ -603,16 +606,19 @@ function monthEnd() {
   activeMods().forEach(x => { if (x.fx) { const fx = { ...x.fx }; delete fx.cash; applyFx(fx); } });
   // project
   const proj = PROJECTS.find(x => x.id === pl.project) || PROJECTS[0];
+  // what the project did, measured, for the report's "This month's project" panel
+  const px = { before: snap(), rooms: S.rooms, dem: ['digital', 'telephony'].includes(proj.id) ? calc().demand : 0, ads: Object.values(S.vac).reduce((a, n) => a + n, 0) };
   if (proj.id === 'claims') {
     const times = S.counts.proj_claims || 0;
     const found = r1((3 + Math.random() * 6) * Math.pow(0.55, times));
     S.counts.proj_claims = times + 1;
     applyFx({ cash: found });
-    notes.push(`Claims audit found £${found.toFixed(1)}k of unclaimed income.`);
+    px.found = found; px.times = times;
   } else applyFx(proj.fx);
+  px.deltas = diffSnap(px.before, snap());
+  if (px.dem) px.dem = Math.max(0, px.dem - calc().demand);
   if (proj.once) S.flags['proj_' + proj.id] = 1;
   if (proj.id === 'telephony') S.flags.telephonyLive = 1;
-  if (proj.id !== 'none') notes.unshift(`Project: ${proj.name}.`);
   // Nadia watches everything
   S.okoye = clamp(S.okoye + (c.ratio < 0.9 ? 2 : 0) + (S.st.team < 40 ? 2 : 0) - (S.st.team >= 65 ? 2 : 0) + (pl.draw === 'low' ? 4 : pl.draw === 'high' ? -2 : 0) + (c.hours > 52 ? 1 : 0));
   // delayed consequences of earlier decisions
@@ -656,6 +662,8 @@ function monthEnd() {
     }
     if (!S.vac[r]) delete S.vac[r];
   }
+  px.hired = hires.filter(h => / hired/.test(h)).length;
+  const projOut = { name: proj.name, text: projResult(proj.id, px), deltas: px.deltas };
   // modifiers tick down
   S.mods.forEach(x => { if (S.month >= x.from) x.months--; });
   const ended = S.mods.filter(x => x.months <= 0).map(x => x.label);
@@ -669,10 +677,29 @@ function monthEnd() {
   const pool = c.ratio < 0.87 ? HEADLINES.bad : c.ratio >= 1.02 ? HEADLINES.good : HEADLINES.ok;
   const headline = fill(pick(chance(0.25) ? HEADLINES.filler : pool));
   S.lastRatio = c.ratio;
-  S.report = { month: S.month, c, drift, inboxStart, inboxEnd: S.inbox, headline, notes, consq, hires, project: proj.name, news: consq.length + ended.length + logged + hires.filter(h => / hired\.$/.test(h)).length, deltas: diffSnap(before, snap()), cashEnd: S.cash };
+  S.report = { month: S.month, c, drift, inboxStart, inboxEnd: S.inbox, headline, notes, consq, hires, project: proj.name, proj: projOut, news: consq.length + ended.length + logged + hires.filter(h => / hired\.$/.test(h)).length, deltas: diffSnap(before, snap()), cashEnd: S.cash };
   S.history.push({ m: S.month, patients: S.st.patients, team: S.st.team, you: S.st.you, safety: S.st.safety, cash: S.cash, qof: S.qof, ratio: c.ratio });
   S.phase = 'report';
   save();
+}
+// one plain sentence on what this month's project actually did
+function projResult(id, x) {
+  const d = k => (x.deltas.find(e => e.k === k) || {}).d || 0;
+  const pts = (k, n = d(k)) => `${STAT_LABEL[k]} ${n >= 0 ? '+' : '−'}${Math.abs(n)}`;
+  switch (id) {
+    case 'none': return 'No project. The practice ticked over and you got a slightly easier month.';
+    case 'qof': return `The recall texts went out and the Saturday clinic ran: QOF up ${d('qof')} points to ${Math.round(S.qof)}%. The overtime cost £1,200, and the team felt it.`;
+    case 'cqc': return `Policies updated, fridge logs found, fire marshals named. ${pts('safety')} now, and Safety settles a point higher for good.`;
+    case 'wellbeing': return `The practice closed for an afternoon of learning, and pizza. ${pts('team')}. Some patients found the doors shut, and the cover cost £600.`;
+    case 'inbox': return `The admin team now codes letters themselves: the inbox fell by ${Math.abs(d('inbox'))} items, to ${Math.round(S.inbox)}. The training cost £1,500.`;
+    case 'ppg': return `The patient participation group met, with tea and some pointed feedback. ${pts('patients')}, and your reputation in ${prac().place} rose.`;
+    case 'claims': return `The claims audit found £${x.found.toFixed(1)}k of unclaimed income${x.times ? ', less than last time: the easy money has gone' : ''}.`;
+    case 'recruit': return x.ads ? `Adverts, social media and a stall at the training scheme gave your ${x.ads} open advert${x.ads > 1 ? 's' : ''} better odds: ${x.hired ? `${x.hired} hired` : 'nobody suitable yet'}. It cost £1,000.` : 'Adverts, social media and a stall at the training scheme, but you had no posts advertised, so nobody was hired. It cost £1,000. Recruit someone first next time.';
+    case 'meetingroom': return `The meeting room is a clinic room now: ${S.rooms} rooms, about ${ROOM_SESSIONS} more bookable sessions a week, for good. It cost £4,000, and meetings have moved to the staff room.`;
+    case 'digital': return `Clearer online forms: about ${Math.round(x.dem)} fewer requests a week from now on. It cost £800.`;
+    case 'telephony': return `Cloud telephony is live: call-backs, queue positions, no engaged tone. ${pts('patients')}, and Patients settle higher for good. It cost £9,000.`;
+  }
+  return (PROJECTS.find(p => p.id === id) || {}).desc || '';
 }
 function nextMonth() {
   const over = checkOver();

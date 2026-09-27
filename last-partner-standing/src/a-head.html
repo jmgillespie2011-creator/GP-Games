@@ -397,7 +397,8 @@ p{margin:0}
 .dialog h2{font-size:24px;font-weight:800}
 .dialog ul{margin:0;padding-left:1.1em;display:grid;gap:5px;font-size:15px}
 .dialog .row-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--sheet);padding:9px 16px;border-radius:99px;font-size:14px;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--sheet);padding:10px 16px;border-radius:12px;font-size:14.5px;line-height:1.4;box-shadow:var(--shadow);width:max-content;max-width:min(440px,calc(100% - 32px));text-align:left}
+@media (max-width:640px){body:has(.mgo) .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
 
 /* ---------- explainers ---------- */
 details.explain{border-top:1px dashed var(--rule);padding-top:8px}
@@ -479,15 +480,21 @@ details.more-opts[open]>summary{margin-bottom:14px}
 .plan-head .btn[data-act="suggest"]{align-self:center}
 /* ---------- warnings ---------- */
 .warnbox{grid-column:1/-1;border:1.5px solid var(--warn);background:color-mix(in srgb,var(--warn) 12%,var(--sheet));border-radius:12px;padding:10px 14px;font-size:15px}
-.quickhire{margin:4px 0 12px}
-.qh-t{margin:0 0 8px;font-size:14px}
-.qh-btns{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
-.qh{display:grid;gap:2px;text-align:left;padding:8px 10px;border:1.5px solid var(--ink);border-radius:10px;background:var(--sheet-2);cursor:pointer;font:inherit;color:var(--ink)}
-.qh b{font-size:14.5px}.qh small{font-size:12px;color:var(--ink-2)}
-.qh:hover,.qh:focus-visible{background:var(--hilite)}
-.qh.suggest{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent)}
+.qh-t{margin:0 0 6px;font-size:14px}
+.role.need{background:color-mix(in srgb,var(--accent) 8%,transparent);border-radius:8px;padding-inline:8px;margin-inline:-8px}
+.role.need .l b::after{content:"Short";margin-left:8px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+.role .acts .hire{background:var(--accent);border-color:var(--accent);color:var(--sheet)}
+.role .acts .hire small{font-weight:500;opacity:.85;margin-left:3px}
+.role .acts .advert{font-size:12.5px;font-weight:700;color:var(--good);align-self:center;white-space:nowrap}
+.role .acts .advert::before{content:"✓ "}
+.role .acts .fire{border-color:var(--rule);background:transparent}
+.suggestbox{margin-top:10px;border:1.5px solid var(--accent);background:var(--sheet);border-radius:12px;padding:10px 14px;max-width:46ch;font-size:15px}
+.suggestbox .sb-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.suggestbox .sb-x{border:0;background:transparent;font-size:22px;line-height:1;color:var(--ink-2);cursor:pointer;padding:0 4px}
+.suggestbox ul{margin:6px 0;padding-left:1.1em}
+.suggestbox li{margin:3px 0}
+.projout p{margin:0}
 .jump{display:inline-block;margin-top:6px;font-size:13px;padding:.3em .8em}
-@media (max-width:640px){.qh-btns{grid-template-columns:1fr 1fr}}
 .lastq{margin:0 0 14px}.lastq p{margin:6px 0}.lastq-d span{display:inline-block;margin-right:12px;font-weight:700;font-variant-numeric:tabular-nums}
 /* ---------- weekly challenge and goals ---------- */
 .sponsor{display:grid;gap:6px;border:1.5px solid var(--rule);border-radius:12px;padding:12px 14px;background:var(--sheet);margin:14px 0}
@@ -517,7 +524,6 @@ details.more-opts[open]>summary{margin-bottom:14px}
 button,.choice,.bin,summary{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .bin{user-select:none;-webkit-user-select:none}
 .mgo{display:none}
-details.rolebox>summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--accent);padding:4px 0}
 @media (hover:none) and (pointer:coarse){
   .kbd,.kbd-only{display:none}
   .choice:hover:not([disabled]){transform:none;box-shadow:none;background:var(--sheet-2)}

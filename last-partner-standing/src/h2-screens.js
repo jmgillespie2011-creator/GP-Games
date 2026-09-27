@@ -189,8 +189,8 @@ function sourcesHTML() {
   return `<h2>Sources</h2><p class="muted">The figures come from 2026/27 scoping research. Grade A is an official primary source, B a reputable secondary source, C market data or examples.</p>${srcLinks(Object.keys(SOURCES))}<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>`;
 }
 function menuHTML() {
-  return `<h2>Menu</h2><p class="muted">Your game saves automatically after every decision, in this browser only.</p>
-  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="honours">The Partners' Board</button><button class="btn" data-act="timer">${UI.settings.timer ? 'Turn off' : 'Turn on'} the ${CARD_SECONDS}-second timer</button><button class="btn" data-act="quick">${UI.settings.quick ? 'Show every month report' : 'Skip quiet month reports'}</button><button class="btn" data-act="teach">${UI.settings.teach ? 'Stop explaining the contract' : 'Explain the contract as you go'}</button><button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
+  return `<h2>Menu</h2><p class="muted">Your game saves automatically after every decision, in this browser only.${typeof BUILD !== 'undefined' ? ` Version ${BUILD}.` : ''}</p>
+  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="honours">The Partners' Board</button><button class="btn" data-act="timer">${UI.settings.timer ? 'Turn off' : 'Turn on'} the ${CARD_SECONDS}-second timer</button><button class="btn" data-act="quick">${UI.settings.quick ? 'Show every month report' : 'Skip quiet month reports'}</button><button class="btn" data-act="teach">${UI.settings.teach ? 'Stop explaining the contract' : 'Explain the contract as you go'}</button>${updOn() ? '<button class="btn" data-act="update">Check for a new version</button>' : ''}<button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
 }
 // a month with nothing to read: no consequences, hires, departures or endings, small meter moves, nothing near the edge
 function quietMonth(R) {
@@ -261,6 +261,8 @@ document.addEventListener('click', ev => {
     case 'start': { const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; UI.intro = true; go(() => newGame(UI.pickPractice, nm)); break; }
     case 'continue': { const s = loadSave(); if (s) { S = s; teachSync(); UI.screen = 'game'; go(() => { }); } break; }
     case 'menu': openOverlay(menuHTML()); break;
+    case 'update': closeOverlay(); checkUpdate(true); break;
+    case 'reload': { try { if (S) save(); } catch (e) { } location.reload(); break; }
     case 'how': openOverlay(howHTML()); break;
     case 'glossary': openOverlay(glossaryHTML()); break;
     case 'sources': openOverlay(sourcesHTML()); break;

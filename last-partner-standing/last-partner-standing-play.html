@@ -428,6 +428,8 @@ p{margin:0}
 .dialog ul{margin:0;padding-left:1.1em;display:grid;gap:5px;font-size:15px}
 .dialog .row-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--sheet);padding:10px 16px;border-radius:12px;font-size:14.5px;line-height:1.4;box-shadow:var(--shadow);width:max-content;max-width:min(440px,calc(100% - 32px));text-align:left}
+.update{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:70;display:flex;align-items:center;gap:12px;background:var(--sheet);color:var(--ink);border:1.5px solid var(--accent);border-radius:12px;padding:10px 12px 10px 16px;box-shadow:var(--shadow);width:max-content;max-width:min(520px,calc(100% - 24px));font-size:14.5px;line-height:1.4}
+.update .btn{flex:none}
 @media (max-width:640px){body:has(.mgo) .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
 
 /* ---------- explainers ---------- */
@@ -603,6 +605,7 @@ button,.choice,.bin,summary{touch-action:manipulation;-webkit-tap-highlight-colo
 <body>
 <div id="app"></div>
 <script>
+const BUILD = '9cd9278';
 /* ===================== DATA: world, money, people ===================== */
 const MONTHS = ['April','May','June','July','August','September','October','November','December','January','February','March'];
 const MON3 = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
@@ -4889,8 +4892,8 @@ function sourcesHTML() {
   return `<h2>Sources</h2><p class="muted">The figures come from 2026/27 scoping research. Grade A is an official primary source, B a reputable secondary source, C market data or examples.</p>${srcLinks(Object.keys(SOURCES))}<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>`;
 }
 function menuHTML() {
-  return `<h2>Menu</h2><p class="muted">Your game saves automatically after every decision, in this browser only.</p>
-  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="honours">The Partners' Board</button><button class="btn" data-act="timer">${UI.settings.timer ? 'Turn off' : 'Turn on'} the ${CARD_SECONDS}-second timer</button><button class="btn" data-act="quick">${UI.settings.quick ? 'Show every month report' : 'Skip quiet month reports'}</button><button class="btn" data-act="teach">${UI.settings.teach ? 'Stop explaining the contract' : 'Explain the contract as you go'}</button><button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
+  return `<h2>Menu</h2><p class="muted">Your game saves automatically after every decision, in this browser only.${typeof BUILD !== 'undefined' ? ` Version ${BUILD}.` : ''}</p>
+  <div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="how">How it works</button><button class="btn" data-act="glossary">Glossary</button>${boardOn() ? `<button class="btn" data-act="board">Leaderboard</button>` : ''}<button class="btn" data-act="honours">The Partners' Board</button><button class="btn" data-act="timer">${UI.settings.timer ? 'Turn off' : 'Turn on'} the ${CARD_SECONDS}-second timer</button><button class="btn" data-act="quick">${UI.settings.quick ? 'Show every month report' : 'Skip quiet month reports'}</button><button class="btn" data-act="teach">${UI.settings.teach ? 'Stop explaining the contract' : 'Explain the contract as you go'}</button>${updOn() ? '<button class="btn" data-act="update">Check for a new version</button>' : ''}<button class="btn" data-act="sources">Sources</button><button class="btn" data-act="theme">Switch light/dark</button><button class="btn" data-act="restart-ask">Resign from the partnership</button><button class="btn primary" data-act="close">Back to work</button></div>`;
 }
 // a month with nothing to read: no consequences, hires, departures or endings, small meter moves, nothing near the edge
 function quietMonth(R) {
@@ -4961,6 +4964,8 @@ document.addEventListener('click', ev => {
     case 'start': { const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; UI.intro = true; go(() => newGame(UI.pickPractice, nm)); break; }
     case 'continue': { const s = loadSave(); if (s) { S = s; teachSync(); UI.screen = 'game'; go(() => { }); } break; }
     case 'menu': openOverlay(menuHTML()); break;
+    case 'update': closeOverlay(); checkUpdate(true); break;
+    case 'reload': { try { if (S) save(); } catch (e) { } location.reload(); break; }
     case 'how': openOverlay(howHTML()); break;
     case 'glossary': openOverlay(glossaryHTML()); break;
     case 'sources': openOverlay(sourcesHTML()); break;
@@ -5324,6 +5329,29 @@ function miniKey(ev) {
   }
 }
 
+/* ===================== UPDATES ===================== */
+// On the website, an open game checks build.txt (written by build.sh) against its own BUILD when it comes back into view,
+// at most every five minutes, and offers a reload when they differ. The game saves after every decision, so nothing is lost.
+const UPD = { last: 0, shown: false };
+const updOn = () => { try { return typeof BUILD !== 'undefined' && location.protocol === 'https:' && window.self === window.top && /vercel\.app$/.test(location.hostname); } catch (e) { return false; } };
+function checkUpdate(asked) {
+  if (!updOn() || (!asked && (UPD.shown || Date.now() - UPD.last < 300000))) { if (asked && !updOn()) toast('Updates are checked on the website, not here.'); return; }
+  UPD.last = Date.now();
+  fetch('/last-partner-standing/build.txt', { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(t => {
+    t = (t || '').trim();
+    if (/^[0-9a-f]{7}$/.test(t) && t !== BUILD) showUpdate(t);
+    else if (asked) toast(`You have the latest version (${BUILD}).`);
+  }).catch(() => { if (asked) toast('Couldn\'t check for a new version. Are you online?'); });
+}
+function showUpdate(v) {
+  if (UPD.shown) return;
+  UPD.shown = true;
+  const d = document.createElement('div');
+  d.className = 'update'; d.setAttribute('role', 'status');
+  d.innerHTML = `<span><b>A new version of the game is ready.</b> Your game is saved, so reloading loses nothing.</span><button class="btn primary" data-act="reload">Reload</button>`;
+  document.body.appendChild(d);
+}
+
 /* ===================== BOOT ===================== */
 function boot(data) {
   try { loadStats(); } catch (e) { }
@@ -5331,6 +5359,12 @@ function boot(data) {
   try { if ('serviceWorker' in navigator && location.protocol === 'https:' && window.self === window.top && /vercel\.app$/.test(location.hostname)) navigator.serviceWorker.register('/sw.js').catch(() => { }); } catch (e) { }
   try { if (data && data.S && data.S.v === 1) { S = data.S; UI.screen = data.screen || 'game'; } } catch (e) { }
   render();
+  // look for a new release a little after opening, whenever the game comes back into view, and every half hour
+  if (updOn()) {
+    setTimeout(checkUpdate, 4000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkUpdate(); });
+    setInterval(() => { if (document.visibilityState === 'visible') checkUpdate(); }, 1800000);
+  }
 }
 try { if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({ S, screen: UI.screen })); } catch (e) { }
 if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(boot);

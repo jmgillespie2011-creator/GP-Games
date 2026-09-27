@@ -144,6 +144,29 @@ function miniKey(ev) {
   }
 }
 
+/* ===================== UPDATES ===================== */
+// On the website, an open game checks build.txt (written by build.sh) against its own BUILD when it comes back into view,
+// at most every five minutes, and offers a reload when they differ. The game saves after every decision, so nothing is lost.
+const UPD = { last: 0, shown: false };
+const updOn = () => { try { return typeof BUILD !== 'undefined' && location.protocol === 'https:' && window.self === window.top && /vercel\.app$/.test(location.hostname); } catch (e) { return false; } };
+function checkUpdate(asked) {
+  if (!updOn() || (!asked && (UPD.shown || Date.now() - UPD.last < 300000))) { if (asked && !updOn()) toast('Updates are checked on the website, not here.'); return; }
+  UPD.last = Date.now();
+  fetch('/last-partner-standing/build.txt', { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(t => {
+    t = (t || '').trim();
+    if (/^[0-9a-f]{7}$/.test(t) && t !== BUILD) showUpdate(t);
+    else if (asked) toast(`You have the latest version (${BUILD}).`);
+  }).catch(() => { if (asked) toast('Couldn\'t check for a new version. Are you online?'); });
+}
+function showUpdate(v) {
+  if (UPD.shown) return;
+  UPD.shown = true;
+  const d = document.createElement('div');
+  d.className = 'update'; d.setAttribute('role', 'status');
+  d.innerHTML = `<span><b>A new version of the game is ready.</b> Your game is saved, so reloading loses nothing.</span><button class="btn primary" data-act="reload">Reload</button>`;
+  document.body.appendChild(d);
+}
+
 /* ===================== BOOT ===================== */
 function boot(data) {
   try { loadStats(); } catch (e) { }
@@ -151,6 +174,12 @@ function boot(data) {
   try { if ('serviceWorker' in navigator && location.protocol === 'https:' && window.self === window.top && /vercel\.app$/.test(location.hostname)) navigator.serviceWorker.register('/sw.js').catch(() => { }); } catch (e) { }
   try { if (data && data.S && data.S.v === 1) { S = data.S; UI.screen = data.screen || 'game'; } } catch (e) { }
   render();
+  // look for a new release a little after opening, whenever the game comes back into view, and every half hour
+  if (updOn()) {
+    setTimeout(checkUpdate, 4000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkUpdate(); });
+    setInterval(() => { if (document.visibilityState === 'visible') checkUpdate(); }, 1800000);
+  }
 }
 try { if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({ S, screen: UI.screen })); } catch (e) { }
 if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(boot);

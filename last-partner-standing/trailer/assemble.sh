@@ -31,7 +31,8 @@ JS="../src/c-data.js ../src/c3-art.js t-engine.js $SCENES t-boot.js"
   else
     cat t-head.html
   fi
-  cat t-body.html
+  # the artifact copy leaves out the MP4 download link: an artifact can't offer downloads, and the video lives on the website
+  if [ "$MODE" = play ]; then cat t-body.html; else grep -v 'id="tr-mp4"' t-body.html; fi
   printf '<script>\n'
   cat $JS
   printf '</script>\n'

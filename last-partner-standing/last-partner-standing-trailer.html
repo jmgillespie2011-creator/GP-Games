@@ -1996,7 +1996,8 @@ TR.scene({
 
   // the MP4 only exists on the website, and a framed page (the Claude Artifact) can't download files
   let framed = false; try { framed = window.self !== window.top; } catch (e) { framed = true; }
-  if (!framed && /vercel\.app$/.test(location.hostname)) $('tr-mp4').hidden = false;
+  const mp4 = $('tr-mp4');
+  if (mp4 && !framed && /vercel\.app$/.test(location.hostname)) mp4.hidden = false;
 
   let playing = false, t0 = 0, w0 = 0, raf = 0;
   const TOT = TR.mmss(TR.total);
@@ -2028,11 +2029,14 @@ TR.scene({
   big.addEventListener('click', play);
   $('tr-restart').addEventListener('click', () => { started = true; big.hidden = true; seek(0); if (!playing) play(); });
   scrub.addEventListener('input', () => { started = true; big.hidden = true; seek(+scrub.value); });
+  // Space or k plays and pauses (not on a focused control, which Space already presses); the arrow keys skip 5 s
+  // anywhere except in the scrubber, which moves with them itself
   addEventListener('keydown', e => {
-    if (e.target.closest && e.target.closest('input,button,a,textarea,select')) return;
-    if (e.key === ' ' || e.key === 'k') { e.preventDefault(); playing ? pause() : play(); }
-    else if (e.key === 'ArrowRight') { started = true; big.hidden = true; seek(TR.t + 5); }
-    else if (e.key === 'ArrowLeft') { started = true; big.hidden = true; seek(TR.t - 5); }
+    const ctl = e.target.closest ? e.target.closest('input,button,a,textarea,select') : null;
+    if ((e.key === ' ' || e.key === 'k') && !ctl) { e.preventDefault(); playing ? pause() : play(); }
+    else if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && !(ctl && ctl.matches('input,textarea,select'))) {
+      e.preventDefault(); started = true; big.hidden = true; seek(TR.t + (e.key === 'ArrowRight' ? 5 : -5));
+    }
   });
   // full screen where the browser allows it (not on iPhones, and not in every app view)
   const full = $('tr-full');

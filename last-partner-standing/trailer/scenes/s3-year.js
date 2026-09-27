@@ -49,17 +49,18 @@ const S3 = {
     { who: 'gerald', title: 'The fish tank', tag: 'story', month: 3, at: 7.4, move: 2.65, press: 2.3,
       text: 'A CQC inspector asked a practice for the risk assessment for its waiting-room fish tank. Bev looks at Gerald, a goldfish who has outlived three practice managers.',
       choices: [['Write Gerald a risk assessment', 'team you safety'], ['Rehome Gerald with Kayleigh', 'patients team now'], ['Leave it. He’s a goldfish.', 'you later']] },
-    { who: 'hospital', title: 'Four thousand letters', tag: 'real', month: 6, at: 11.4, move: 2.0,
+    { who: 'hospital', title: 'Four thousand letters', tag: 'real', month: 6, at: 11.4, move: 1.85,
       text: 'Two years of clinic letters were never sent to GPs. At 9am the fault sent all of them at once. Docman shows 4,212 new documents.' },
-    { who: 'kayleigh', title: 'Queue in the rain', tag: 'story', month: 8, at: 14.7, move: 2.0,
+    { who: 'kayleigh', title: 'Queue in the rain', tag: 'story', month: 8, at: 14.7, move: 1.85,
       text: 'It’s 7:40am and there are 30 people queuing outside in the rain. Someone has brought a camping chair.' },
-    { who: 'bank', title: 'Payroll day', tag: 'real', month: 10, at: 18.0, move: 2.75, press: 2.35,
+    { who: 'bank', title: 'Payroll day', tag: 'real', month: 10, at: 18.0, move: 2.65, press: 2.3,
       text: 'Payroll is due and you’re past the £75k overdraft limit. The bank will extend it by £60,000 if every partner signs a personal guarantee.',
       choices: [['Sign the personal guarantee', 'you! risk now'], ['Ring Parkside about a merger', 'risk'], ['Refuse. Hand back the contract.', 'follow']] }
   ],
   keys: ['patients', 'team', 'you', 'safety', 'cash'],
   MOVE: 0.6,     // seconds for the meters to slide
-  TURN: 0.45     // seconds for the front to cross into a new month
+  TURN: 0.45,    // seconds for the front to cross into a new month
+  ROW: 42        // px the row of delta chips adds to a card when it opens
 };
 S3.stateOf = (row, month) => { const r = S3.rows[row]; return { st: { patients: r[0], team: r[1], you: r[2], safety: r[3] }, cash: r[4], ratio: r[5], month }; };
 // the front's discrete states in order: a new month as each card is dealt, then the card's consequences
@@ -123,14 +124,13 @@ TR.scene({
         return d ? `<span class="s3-delta ${d > 0 ? 'up' : 'down'}">${STAT_LABEL[k]} ${d > 0 ? '+' : '−'}${k === 'cash' ? '£' + Math.abs(d) + 'k' : Math.abs(d)}</span>` : '';
       }).join('');
       if (c.choices) {
-        // the chosen choice stays; the others fade, and the deltas land where they were
-        const box = TR.el('div', 's3-choices', choice(c.choices[0], 0), card);
-        const rest = TR.el('div', 's3-rest', null, box);
-        slot._pick = box.firstElementChild;
-        slot._others = TR.el('div', 's3-others', c.choices.slice(1).map((ch, j) => choice(ch, j + 1)).join(''), rest);
-        slot._deltas = TR.el('div', 's3-deltas', deltas, rest);
-      } else slot._deltas = TR.el('div', 's3-deltas', deltas, card);
-      slot._chips = [...slot._deltas.children];
+        // the first choice is taken; the others dim, like the game's unavailable ones
+        const box = TR.el('div', 's3-choices', c.choices.map(choice).join(''), card);
+        [slot._pick, ...slot._others] = box.children;
+      }
+      // the row of deltas opens under the card as the meters move
+      slot._dwrap = TR.el('div', 's3-dwrap', `<div class="s3-deltas">${deltas}</div>`, card);
+      slot._chips = [...slot._dwrap.firstElementChild.children];
       return slot;
     });
     // the HUD strip, as the game draws it
@@ -172,22 +172,25 @@ TR.scene({
       const d = mi < 0 ? 0 : S3.rows[mi + 1][j] - S3.rows[mi][j];
       S3.set(b, 'boxShadow', pa > 0.005 && d ? `0 0 0 3px ${d > 0 ? 'rgba(44,134,86,' : 'rgba(191,58,44,'}${(0.5 * pa).toFixed(3)})` : 'none');
     });
-    // the cards: dealt from slightly below with a hint of rotation, and out upwards as the next one lands on top
+    // the cards: dealt from slightly below with a hint of rotation; each leaves upwards just before the next lands
     S3.cards.forEach((c, i) => {
       const slot = root._cards[i], r = lt - c.at, nx = S3.cards[i + 1];
-      const d = E.out(TR.seg(r, 0, 0.45)), x = nx ? E.in(TR.seg(lt, nx.at, nx.at + 0.35)) : 0;
-      const o = E.out(TR.seg(r, 0, 0.28)) * (1 - x);
-      TR.pose(slot, { y: 46 * (1 - d) - 22 * x, r: -1.4 * (1 - d) + 0.8 * x, s: 1 - 0.035 * x, o });
+      const d = E.out(TR.seg(r, 0, 0.45)), x = nx ? E.in(TR.seg(lt, nx.at - 0.28, nx.at + 0.02)) : 0;
+      const o = E.out(TR.seg(r, 0, 0.25)) * (1 - x);
+      // the deltas row opens downwards: the deck centres the card, so half the growth is given back to hold its top still
+      const g = S3.ROW * E.out(TR.seg(r, c.move - 0.05, c.move + 0.3));
+      TR.pose(slot, { y: 46 * (1 - d) - 22 * x + g / 2, r: -1.4 * (1 - d) + 0.8 * x, s: 1 - 0.035 * x, o });
       if (o <= 0.001) return;
+      S3.set(slot._dwrap, 'height', g.toFixed(1) + 'px');
       if (c.press) {
-        // the choice: the pointer arrives (the game's hover), then the press; the other choices fade away
+        // the choice: the pointer arrives (the game's hover), then the press; the other choices dim
         const P = c.press, h = E.out(TR.seg(r, P - 0.32, P - 0.1)), a = E.out(TR.seg(r, P, P + 0.12));
         const dip = TR.kf(r, [[P, 0], [P + 0.07, 1], [P + 0.26, 0]], E.inOut);
         TR.pose(slot._pick, { x: 3 * h, s: 1 - 0.02 * dip });
         S3.set(slot._pick, 'boxShadow', h > 0.001 ? `-4px 0 0 rgba(29,106,77,${h.toFixed(3)})` : 'none');
         S3.set(slot._pick, 'background', S3.mix(S3.mix('#EEF4EC', '#F8FBF6', h), '#CFE5D8', a));
         S3.set(slot._pick, 'borderColor', S3.mix('#15241C', '#1D6A4D', a));
-        TR.pose(slot._others, { o: 1 - E.in(TR.seg(r, P + 0.15, P + 0.4)) });
+        slot._others.forEach(el => TR.pose(el, { o: 1 - 0.62 * E.inOut(TR.seg(r, P + 0.1, P + 0.4)) }));
       }
       // the delta chips land one after another as the meters move
       slot._chips.forEach((el, j) => {

@@ -18,8 +18,8 @@ TR.css(`
 .s4-shine{position:absolute;inset:0;overflow:hidden;border-radius:6px;pointer-events:none}
 .s4-shine i{position:absolute;top:-10px;bottom:-10px;left:0;width:120px;mix-blend-mode:overlay}
 .s4-shine i::before,.s4-shine i::after{content:'';position:absolute;top:0;bottom:0;background:#FFF6D0;transform:skewX(-22deg)}
-.s4-shine i::before{left:0;width:74px;opacity:.55}
-.s4-shine i::after{left:90px;width:14px;opacity:.8}
+.s4-shine i::before{left:0;width:74px;opacity:.45}
+.s4-shine i::after{left:90px;width:14px;opacity:.7}
 .s4-beat{position:absolute;width:440px}
 .s4-beat .tr-kick{margin:0 0 10px 2px;text-shadow:0 1px 3px #05080E,0 0 14px rgba(5,8,14,.9)}
 .s4-beat .tr-card{width:440px;padding:16px 22px 18px 26px}
@@ -110,9 +110,9 @@ TR.scene({
     // the plate: two strikes, and the names that went fade a little further at the end
     const hs = E.inOut(TR.seg(lt, 2.8, 3.35)), os = E.inOut(TR.seg(lt, 5.85, 6.4)), fade = 1 - 0.25 * E.inOut(TR.seg(lt, 8.4, 9.4));
     TR.brass(root._brass, [{ n: 'Dr ' + TR.NAME }, { n: 'Dr Hartley', strike: hs, o: fade }, { n: 'Dr Okoye', strike: os, o: fade }]);
-    // a glint runs along the plate once there is one name on it
-    const g = TR.seg(lt, 9.3, 10.2);
-    TR.pose(root._shine, { x: TR.lerp(-120, 1260, E.inOut(g)), o: g > 0 && g < 1 ? 1 : 0 });
+    // a glint runs along the plate once there is one name on it, after the deed has been read
+    const g = TR.seg(lt, 9.9, 11.0);
+    TR.pose(root._shine, { x: TR.lerp(-130, 1240, g), o: g > 0 && g < 1 ? 1 : 0 });
     // the cards: in from below, out upwards
     const card = (el, a, b) => {
       const i = E.out(TR.seg(lt, a, a + 0.45)), o = E.in(TR.seg(lt, b - 0.4, b));

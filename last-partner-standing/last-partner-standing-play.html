@@ -530,6 +530,13 @@ details.more-opts[open]>summary{margin-bottom:14px}
 .role .acts .fire{border-color:var(--rule);background:transparent}
 .role .acts .fire small,.role .acts .advert small{font-weight:500;opacity:.8;margin-left:2px}
 .role .l .inpost{margin-top:3px;color:var(--ink)}
+.sb-staff{margin-top:10px;padding-top:8px;border-top:1px dashed var(--rule)}
+.suggestbox .sb-staff ul{margin:6px 0 0;padding-left:0;list-style:none;display:grid;gap:8px}
+.sb-staff li{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;font-size:14px}
+.sb-staff li .btn{flex:none}.sb-staff li .btn small{font-weight:500;opacity:.85;margin-left:3px}
+.sb-staff .sb-done{flex:none;font-size:13px;font-weight:700;color:var(--good)}
+.sb-staff .sb-note{color:var(--ink-2)}
+@media (max-width:640px){.sb-staff li{flex-direction:column;gap:6px}}
 .hrs{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:6px}
 .role .hrs{grid-column:1/-1;margin-top:-4px}
 .hrs span{font-size:12px;color:var(--ink-2);margin-right:2px}
@@ -622,7 +629,7 @@ button,.choice,.bin,summary{touch-action:manipulation;-webkit-tap-highlight-colo
 <body>
 <div id="app"></div>
 <script>
-const BUILD = 'a32af4c';
+const BUILD = '4edc1a5';
 /* ===================== DATA: world, money, people ===================== */
 const MONTHS = ['April','May','June','July','August','September','October','November','December','January','February','March'];
 const MON3 = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
@@ -690,7 +697,7 @@ const PRACTICES = {
     key:'city',label:'Inner city',diff:'Brutal',surgery:'Canal Street Medical Centre',place:'Hollowbrook',paper:'The Hollowbrook Herald',
     blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold. One GP per 3,000 patients, and nobody is applying.',
     list:10400,weight:0.96,prev:0.9,lastQof:88,cash:25,overdraft:-95,st:{patients:48,team:50,you:66,safety:50},
-    demandRate:0.106,inboxRate:0.046,qofEase:0.88,hire:0.7,turnover:0.14,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:3000,locumMax:4,accessLine:15,
+    demandRate:0.104,inboxRate:0.046,qofEase:0.88,hire:0.7,turnover:0.14,turnoverYr:0.03,youDragYr:3,youDragYrWhy:'Years of high need in Hollowbrook',patDragYr:5,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:3000,locumMax:4,accessLine:15,
     staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0,anp:0}
   }
 };
@@ -3575,9 +3582,9 @@ function suggestPlan() {
     ['inbox', S.inbox > 450 ? 10 + (S.inbox - 450) / 10 : 0, `the inbox is at ${Math.round(S.inbox)}`],
     ['ppg', S.st.patients < 40 ? 10 + (40 - S.st.patients) * 2 : 0, `Patients is down to ${Math.round(S.st.patients)}`],
     ['meetingroom', roomsNeeded() + 4 > roomsAvail() && !done('meetingroom') && S.cash > S.overdraft + 10 ? 22 : 0, 'you are nearly out of clinic rooms'],
-    ['recruit', Object.keys(S.vac).length ? 14 : 0, 'you have adverts out, and this improves the odds'],
+    ['recruit', ['salaried', 'arrsgp', 'nurse', 'arrsnurse', 'anp'].some(k => S.vac[k]) ? 14 : 0, 'you have an advert out for a post that is hard to fill, and this improves the odds'],
     ['claims', S.cash < 0 ? 12 * Math.pow(0.55, S.counts.proj_claims || 0) : 0, 'the bank is overdrawn and there is money in the claims'],
-    ['qof', 8 + (S.month >= 6 && S.qof < S.month * 8 ? 8 : 0), S.month >= 6 && S.qof < S.month * 8 ? `QOF is behind at ${Math.round(S.qof)}%` : 'QOF is money you can still earn'],
+    ['qof', 8 + (S.month >= 3 && S.qof < S.month * 8 ? 8 : 0), S.month >= 3 && S.qof < S.month * 8 ? `QOF is behind at ${Math.round(S.qof)}%, and recalls on track are part of effective care` : 'QOF is money you can still earn'],
     ['digital', !done('digital') && S.cash > S.overdraft + 10 ? 6 : 0, 'clearer online forms cut demand for good'],
     ['cqc', !recent('cqc') && S.st.safety >= 45 && S.st.safety < 60 ? 4 : 0, 'a check now keeps you ready for CQC'],
     ['ppg', S.st.patients >= 40 && S.st.patients < 55 ? 4 : 0, 'patient feedback lifts your reputation'],
@@ -3589,6 +3596,105 @@ function suggestPlan() {
   pl.project = proj;
   why.push(`Project: ${(PROJECTS.find(x => x.id === proj) || {}).name}, because ${because}${again ? ' (again: it still matters most)' : ''}`);
   return why;
+}
+// what an advert costs the practice up front (£k): a GP advert is dearer; PCN-budget roles are advertised by the PCN
+const advertCost = k => k === 'salaried' || k === 'arrsgp' ? 1.5 : k === 'nurse' || k === 'arrsnurse' ? 0.8 : ROLES[k] && ROLES[k].arrs ? 0 : 0.4;
+// Bev's staffing advice, on the principles of a safe and effective practice, within what the practice can fit and afford:
+// 1. enough appointments from the practice's own staff (not locums or overtime) for the busiest month ahead, with a 3%
+//    margin. Recruiting takes months, so the PCN's budget, which is lost if nobody claims it, is planned for the winter
+//    peak; the practice's own money for the next six months;
+// 2. a receptionist for every 1,600 patients, so the phones get answered;
+// 3. the right role for the need, best value first: a nurse new to general practice (long-term conditions and QOF),
+//    then same-day clinicians, then a salaried GP; a GP assistant for the inbox and a care coordinator for recalls;
+// 4. only what the rooms hold (a part-time post fits the gap, and a meeting room being converted counts) and what the GPs
+//    can supervise; when the building is the limit, say so, and cut demand instead (a social prescriber needs no room);
+// 5. the practice's own money only when the bank can stand it: a GP where there are GPs to find, otherwise an advanced
+//    nurse practitioner, even over the PCN budget, when that costs less than the locums it replaces.
+// It advises, and recruiting stays the player's call. Each item is an advert { k, u (hours), why }, or a { note }.
+function staffAdvice() {
+  const out = [], c = calc(), pl = S.plan, m = Math.min(S.month, 11), capMul = c.capMul || 1;
+  const roleOf = k => k === 'arrsgp' ? 'salaried' : k === 'arrsnurse' ? 'nurse' : k;
+  const open = k => (S.vac[k] || 0) > 0;
+  const base = c.demand / SEASON[m];
+  const peakFree = base * Math.max(...SEASON), peakPaid = base * Math.max(...Array.from({ length: 9 }, (_, i) => SEASON[(m + i) % 12]));
+  // what the practice's own staff give, plus what open adverts would bring; locums and overtime are stopgaps
+  const cover = (pl.locum || 0) * 14 + (pl.extra || 0) * OT_APPTS;
+  const have = c.cap - cover * capMul + Object.keys(S.vac).reduce((a, k) => a + vacUnits(k) * (ROLES[roleOf(k)].cap || 0), 0) * capMul;
+  let gapFree = peakFree * 1.03 - have, gapPaid = peakPaid * 1.03 - have;
+  const convert = pl.project === 'meetingroom' && !S.flags.proj_meetingroom;
+  let rooms = roomsAvail() - (roomsNeeded() - (pl.locum || 0)) - Object.keys(S.vac).reduce((a, k) => a + vacUnits(k) * (ROLES[roleOf(k)].room || 0), 0) + (convert ? ROOM_SESSIONS : 0);
+  let budget = arrsLeft();
+  let sup = ROLE_ORDER.filter(r => ROLES[r].sup).reduce((a, r) => a + S.staff[r] + vacUnits(r), 0);
+  // the most hours of a post (from its choices) that the free rooms can hold
+  const fit = k => { const R = ROLES[roleOf(k)]; return hoursOf(k).find(v => !R.room || R.room * v <= rooms + 0.01) || 0; };
+  const add = (k, u, why) => { const R = ROLES[roleOf(k)]; out.push({ k, u, why }); const got = (R.cap || 0) * u * capMul; gapFree -= got; gapPaid -= got; rooms -= (R.room || 0) * u; if (R.sup) sup += u; };
+  const pct = Math.round(have / Math.max(1, peakFree) * 100);
+  // reception
+  const recGap = r3(c.recepNeed - S.staff.recep - vacUnits('recep'));
+  if (recGap > 0.05) { const u = recGap >= 0.95 ? 1 : [...HOURS_STD].reverse().find(v => v >= recGap - 0.02) || 1; add('recep', u, `reception is ${fteTxt(recGap)} full-time post${recGap > 1.05 ? 's' : ''} short, and one receptionist for every 1,600 patients answers the phones`); }
+  // keep the core team: a practice nurse or healthcare assistant who left is replaced on the same hours
+  for (const r of ['nurse', 'hca']) {
+    const short = r3((p0 => p0 ? p0 : 0)(prac().staff[r]) - (S.staff[r] - pcnPosts(r).reduce((a, q) => a + q.u, 0)) - vacUnits(r));
+    if (short > 0.3) { const u = short >= 0.95 ? 1 : [...HOURS_STD].reverse().find(v => v >= short - 0.02) || 1; add(r, u, `your ${ROLES[r].name.toLowerCase()} team is ${fteTxt(short)} full-time post${short > 1.05 ? 's' : ''} down on what the practice had: replacing leavers keeps the skills and the continuity`); }
+  }
+  // the PCN's budget first, planned for the winter
+  if (gapFree > 15 && !pcnPosts('nurse').length && !open('arrsnurse')) {
+    const u = fit('arrsnurse');
+    if (u && budget >= pcnClaim('nurse', u)) { budget -= pcnClaim('nurse', u); add('arrsnurse', u, `your own staff will cover about ${pct}% of demand in the winter peak: a nurse new to general practice takes on long-term conditions and QOF work, paid from the PCN budget`); }
+  }
+  const DOES = { anp: `an advanced nurse practitioner sees same-day problems start to finish${prac().gpCap ? ', and isn\'t limited by the local shortage of GPs' : ''} (they need a GP supervisor: about two hours a week of yours)`, physio: 'a first contact physio sees backs, knees and shoulders first', para: 'a paramedic does home visits and same-day minor illness, and needs only 4 room sessions' };
+  // rooms are scarce, so the most appointments per room session first (a paramedic 14, an advanced nurse practitioner or
+  // a physio about 9, because their appointments are longer), unless there are no GPs to find, when the ANP comes first
+  const perRoom = r => ROLES[r].cap / ROLES[r].room + (r === 'anp' && prac().gpCap ? 10 : 0);
+  const sameDay = () => ['anp', 'physio', 'para'].filter(r => !S.staff[r] && !open(r) && (r === 'anp' ? S.st.you >= 45 : sup < 3))
+    .sort((a, b) => perRoom(b) - perRoom(a));
+  for (const r of sameDay()) {
+    if (gapFree <= 15) break;
+    // a whole room for 80 appointments only while rooms are plentiful: keep space for GPs, who see 14 per room session
+    if (ROLES[r].cap / ROLES[r].room < 12 && !prac().gpCap && rooms - ROLES[r].room < 9) continue;
+    const u = fit(r); if (!u || budget < arrsClaimOf(r) * u) continue;
+    budget -= arrsClaimOf(r) * u; add(r, u, `still short for the winter: ${DOES[r]}, paid from the PCN budget`);
+  }
+  // then the practice's own money, planned six months ahead, only if the bank can stand it
+  // right-sized: the fewest hours that close the gap, within the rooms
+  const sized = (k, need) => { const R = ROLES[roleOf(k)], fits = hoursOf(k).filter(v => !R.room || R.room * v <= rooms + 0.01).sort((x, y) => x - y); return fits.find(v => R.cap * v * capMul >= need) || fits[fits.length - 1] || 0; };
+  // no more GPs than the England average for a list this size (4.6 full-time per 10,000 patients), give or take half a
+  // day: beyond that the salaries outrun the income, and the practice runs out of money in the long run
+  const gpRoom = u => benchmark()[0][1] + (u + vacUnits('salaried') + vacUnits('arrsgp')) * 6 / GP_FTE_SESSIONS <= BENCH.gp * S.list / BENCH.patients + 0.6;
+  if (gapPaid > Math.max(15, peakPaid * 0.03) && S.cash > S.overdraft + 40) {
+    if (gpHeadroom() >= 4) {
+      const u = sized('salaried', gapPaid);
+      if (u && gpHeadroom() >= u * 6 && !open('salaried') && !open('arrsgp') && gpRoom(u))
+        add('salaried', u, `appointments will still be short in the months ahead: a salaried GP for ${Math.round(u * 6)} sessions, which is about what's needed${u < 1.4 && fit('salaried') <= u ? ' and what the free rooms hold' : ''}, paid by the practice`);
+    }
+    // no GPs to find here: an advanced nurse practitioner over the PCN budget still costs less than the locums they replace
+    else if (!S.staff.anp && !open('anp') && S.st.you >= 45 && S.cash > S.overdraft + 60) {
+      const v = sized('anp', gapPaid), over = Math.max(0, arrsClaimOf('anp') * v - Math.max(0, budget));
+      if (v) add('anp', v, `no GPs to be found here, so an advanced nurse practitioner${over > 0.5 ? `, over the PCN budget: about £${Math.round(over)}k a year from the practice, less than locums for the same appointments` : ', paid from the PCN budget'}`);
+    }
+  }
+  // the inbox: a GP assistant from the PCN budget codes letters and preps results
+  if (c.inboxEnd > 400 && !S.staff.gpa && !open('gpa') && budget >= arrsClaimOf('gpa')) { budget -= arrsClaimOf('gpa'); out.push({ k: 'gpa', u: 1, why: `the inbox will reach ${c.inboxEnd} this month, and a GP assistant codes letters and preps results, paid from the PCN budget` }); }
+  // recalls behind: a care coordinator from the PCN budget chases reviews and care plans
+  if (S.month >= 3 && S.qof < S.month * 8 && !S.staff.cc && !open('cc') && budget >= arrsClaimOf('cc')) { budget -= arrsClaimOf('cc'); out.push({ k: 'cc', u: 1, why: `QOF is at ${Math.round(S.qof)}%, behind for ${MONTHS[S.month]}, and a care coordinator chases recalls and care plans, paid from the PCN budget` }); }
+  // when the building is the limit: say so, and cut demand instead, but not while a room is on its way
+  if (gapFree > 15 && rooms < 3.2) {
+    if (!convert && S.staff.sp + vacUnits('sp') < 2 && budget >= arrsClaimOf('sp')) { budget -= arrsClaimOf('sp'); out.push({ k: 'sp', u: 1, why: `the rooms are full, and a social prescriber needs none: they help with debt, housing and loneliness, which takes about 2% off demand, paid from the PCN budget` }); }
+    if (!convert) out.push({ note: S.flags.proj_meetingroom ? 'The clinic rooms are full, so another clinician won\'t fit. Evening and Saturday clinics need no room.' : 'The clinic rooms are full, so another clinician won\'t fit. Convert the meeting room into a clinic room (a project), or add evening and Saturday clinics, which need no room.' });
+  }
+  return out;
+}
+// Bev's whole plan: the month (suggestPlan), then the staffing. If the staff she'd recruit need a room the building hasn't
+// got, and it can still be made, the month's project becomes the meeting room, and the staffing is worked out again.
+function bevAdvice() {
+  const why = suggestPlan();
+  let staff = staffAdvice();
+  if (staff.some(a => a.note) && !S.flags.proj_meetingroom && S.plan.project !== 'meetingroom' && S.cash > S.overdraft + 10) {
+    S.plan.project = 'meetingroom';
+    why[why.length - 1] = `Project: ${PROJECTS.find(x => x.id === 'meetingroom').name}, because the staff below need a clinic room`;
+    staff = staffAdvice();
+  }
+  return { why, staff };
 }
 // headcount and FTE against the England averages for a list this size
 function benchmark() {
@@ -3966,7 +4072,9 @@ function targets(c) {
     [-5 * c.recepShort, 'Reception short: nobody answers the phone'],
     [ib > 700 ? -8 : ib > 400 ? -3 : 0, 'Results and letters waiting too long'],
     [WINTER.includes(m) ? -3 : 0, 'Winter: everyone is ill at once'],
-    [p.key === 'city' ? -3 : 0, 'High need and a transient list']
+    [p.key === 'city' ? -3 : 0, 'High need and a transient list'],
+    // unmet need builds up year on year where the need is highest (patDragYr, the city)
+    [-(p.patDragYr || 0) * (S.yr || 0), `Unmet need building up: year ${(S.yr || 0) + 1}`]
   ]);
   build('team', 58, [
     [-clamp(90 * (0.97 - r), 0, 30), 'Short of appointments: everyone is firefighting'],
@@ -3989,7 +4097,9 @@ function targets(c) {
     [S.plan.leave ? 8 : 0, 'A week off'],
     [activeOthers() === 0 ? -4 : 0, 'Carrying it alone'],
     [p.key === 'city' ? -2 : 0, 'Interpreter line on hold, again'],
-    [-(p.youDrag || 0), p.youDragWhy || '']
+    [-(p.youDrag || 0), p.youDragWhy || ''],
+    // in the hardest places the wear builds up: the drag grows with every year you stay (the city)
+    [-(p.youDragYr || 0) * (S.yr || 0), `${p.youDragYrWhy || ''}: year ${(S.yr || 0) + 1}`]
   ]);
   build('safety', 56, [
     [Math.min(S.plan.mgmt, 3) * 4, 'Management time for governance'],
@@ -4022,13 +4132,13 @@ function incidents(c) {
     add({ staff: { salaried: -1 } }, 'Because morale is low: a salaried GP left to locum. "At £100 an hour I can choose my days."');
     if (!S.flags.tomGone) S.flags.tomGone = 1;
   }
-  // high-turnover areas lose staff even when morale is fine
-  const tv = prac().turnover || 0;
+  // high-turnover areas lose staff even when morale is fine, and more each year the pressure goes on (turnoverYr, the city)
+  const tv = (prac().turnover || 0) + (prac().turnoverYr || 0) * (S.yr || 0);
   if (tv && chance(tv)) {
     const pool = ['recep', 'nurse', 'hca'].filter(r => S.staff[r] > (r === 'recep' ? 2 : 0));
     if (pool.length) {
       const r = pick(pool);
-      add({ staff: { [r]: -1 }, team: -2 }, `Because staff turnover is high in ${prac().place}: a ${ROLES[r].name.toLowerCase()} left for a job nearer home that pays a little more.`);
+      add({ staff: { [r]: -1 }, team: -2 }, `Because staff turnover is high in ${prac().place}${prac().turnoverYr && S.yr ? ', and rising' : ''}: a ${ROLES[r].name.toLowerCase()} left for a job nearer home that pays a little more.`);
     }
   }
   if (c.ratio < 0.87 && chance(0.5))
@@ -4589,10 +4699,18 @@ function hireNeeds(c) {
 }
 // Recruit places one advert, on the hours chosen above it. Once one is out the button says so, and a second takes a deliberate "one more".
 function hireBtns(k, desc, via) {
-  const cost = k === 'salaried' || k === 'arrsgp' ? '£1.5k' : k === 'nurse' || k === 'arrsnurse' ? '£800' : ROLES[k] && ROLES[k].arrs ? 'PCN budget' : '£400';
+  const ac = advertCost(k), cost = !ac ? 'PCN budget' : ac >= 1 ? `£${ac}k` : `£${Math.round(ac * 1000)}`;
   const lbl = via ? ` ${via}` : '', ads = adsOf(k);
   if (!ads.length) return `<button class="hire" data-act="hire" data-arg="${k}" ${desc ? `aria-describedby="${desc}"` : ''}>Recruit${lbl} <small>${cost}</small></button>`;
   return `<span class="advert">${ads.length} advert${ads.length > 1 ? 's' : ''} out${lbl} <small>${ads.map(u => hrsShort(k, u)).join(', ')}</small></span><button data-act="unvac" data-arg="${k}">Withdraw</button><button data-act="hire" data-arg="${k}" aria-label="Advertise one more${lbl}">+1 more</button>`;
+}
+// Bev's staffing suggestions under her plan: each with its reason and a one-tap advert on the hours she suggests
+const ADVISE_NAME = { arrsnurse: 'A nurse through the PCN', arrsgp: 'A GP through the PCN', salaried: 'A salaried GP', recep: 'A receptionist', anp: 'An advanced nurse practitioner', para: 'A paramedic', physio: 'A first contact physio', sp: 'A social prescriber', gpa: 'A GP assistant', cc: 'A care coordinator', nurse: 'A practice nurse', hca: 'A healthcare assistant', pharm: 'A clinical pharmacist', mhp: 'A mental health practitioner' };
+function staffAdviceHTML(list) {
+  if (!list) return '';
+  const items = list.map((a, i) => a.note ? `<li class="sb-note">${esc(a.note)}</li>`
+    : `<li><span><b>${esc(ADVISE_NAME[a.k] || a.k)}, ${esc(hrsTxt(a.k, a.u))}:</b> ${esc(a.why)}.</span>${a.done ? '<span class="sb-done">Advertised ✓</span>' : `<button class="btn small" data-act="advise" data-arg="${i}">Advertise${advertCost(a.k) ? ` <small>${advertCost(a.k) >= 1 ? '£' + advertCost(a.k) + 'k' : '£' + Math.round(advertCost(a.k) * 1000)}</small>` : ''}</button>`}</li>`).join('');
+  return `<div class="sb-staff"><b>Staffing</b>${items ? `<ul>${items}</ul><p class="fc-note">Bev only suggests: nothing is advertised until you say so.</p>` : '<p class="fc-note">Nothing to recruit: appointments and reception cover the busiest month ahead.</p>'}</div>`;
 }
 // the hours chosen for the next advert in each role (full time, or six sessions for a GP, until changed)
 const hrsPick = r => (UI.hrs && UI.hrs[r === 'arrsgp' ? 'salaried' : r === 'arrsnurse' ? 'nurse' : r]) || 1;
@@ -4684,7 +4802,7 @@ function renderPlan() {
   const moneyTable = `<dl class="kv small">${moneyRows.map(([l, v, how]) => `<dt>${esc(l)}<small>${esc(how)}</small></dt><dd class="${v < 0 ? '' : 'good-t'}">${v < 0 ? '−' : '+'}${fmtK(Math.abs(v))}</dd>`).join('')}<dt class="sum">Net this month</dt><dd class="sum">${signK(c.net)}</dd></dl>`;
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap">
     <div class="plan-top"><section class="front${intro ? ' intro' : ''}" aria-label="Your surgery">${intro ? `<div class="intro-cap" aria-hidden="true">${calY(0) === 2026 ? 'Wednesday 1 April 2026' : '1 April'}, 7:59am</div>` : ''}${facadeSVG(c, { intro })}${brassPlate(intro)}<p class="front-hint">Each lit window is a meter. Tap one to see what's pulling it.</p></section>
-    <div class="plan-head"><div><div class="eyebrow">Month plan</div><h1>${MONTHS[S.month]}</h1><a class="btn ghost jump" href="#h-team">Recruit staff ↓</a></div><p class="brief">${esc(BRIEF[S.month])} ${S.queue.length} things will land on your desk this month.${S.month === 0 && !S.yr && (S.gen || 1) === 1 ? (S.practiceKey === 'city' ? ' Nobody is going to tell you what to do here. Set your clinical sessions and pick a project; everything else can wait.' : ' New here? Set your clinical sessions and pick a project, or let Bev suggest a plan. Everything else can wait.') : ''}</p>${S.practiceKey === 'city' ? '' : '<button class="btn small" data-act="suggest" title="Sets sessions, cover, drawings and project for this month">Suggest a plan</button>'}${(() => { const g = UI.suggest; if (!g || g.m !== S.month || g.yr !== (S.yr || 0)) return ''; return `<div class="suggestbox" role="status"><div class="sb-h"><b>Bev's plan for ${MONTHS[S.month]}</b><button class="sb-x" data-act="suggest-x" aria-label="Close Bev's plan">×</button></div><ul>${g.why.map(w => `<li>${esc(w)}</li>`).join('')}</ul><p class="fc-note">It's set below. Change anything you like, then start the month.</p></div>`; })()}</div></div>
+    <div class="plan-head"><div><div class="eyebrow">Month plan</div><h1>${MONTHS[S.month]}</h1><a class="btn ghost jump" href="#h-team">Recruit staff ↓</a></div><p class="brief">${esc(BRIEF[S.month])} ${S.queue.length} things will land on your desk this month.${S.month === 0 && !S.yr && (S.gen || 1) === 1 ? (S.practiceKey === 'city' ? ' Nobody is going to tell you what to do here. Set your clinical sessions and pick a project; everything else can wait.' : ' New here? Set your clinical sessions and pick a project, or let Bev suggest a plan. Everything else can wait.') : ''}</p>${S.practiceKey === 'city' ? '' : '<button class="btn small" data-act="suggest" title="Sets sessions, cover, drawings and project for this month">Suggest a plan</button>'}${(() => { const g = UI.suggest; if (!g || g.m !== S.month || g.yr !== (S.yr || 0)) return ''; return `<div class="suggestbox" role="status"><div class="sb-h"><b>Bev's plan for ${MONTHS[S.month]}</b><button class="sb-x" data-act="suggest-x" aria-label="Close Bev's plan">×</button></div><ul>${g.why.map(w => `<li>${esc(w)}</li>`).join('')}</ul><p class="fc-note">It's set below. Change anything you like, then start the month.</p>${staffAdviceHTML(g.staff)}</div>`; })()}</div></div>
     ${(() => { const q = S.lastQuiet; if (!q || q.yr !== (S.yr || 0) || q.m !== S.month - 1) return ''; return `<section class="panel lastq" aria-label="Last month"><h3>${MONTHS[q.m]}: a quiet month <small>nothing new landed, so the report was skipped</small></h3><p>“${esc(q.headline)}” ${q.cap} appointments a week offered against ${q.demand} requested. The bank ${q.net >= 0 ? 'rose' : 'fell'} ${fmtK(Math.abs(q.net))} to ${fmtK(q.cash)}.</p>${q.d.length ? `<p class="lastq-d">${q.d.map(([k, d]) => `<span class="${d > 0 ? 'good-t' : 'bad-t'}">${STAT_LABEL[k]} ${d > 0 ? '+' : '−'}${Math.abs(d)}</span>`).join(' ')}</p>` : ''}${q.proj ? `<p><b>Project: ${esc(q.proj.name)}.</b> ${esc(q.proj.text)}</p>` : ''}<p class="fc-note">Prefer every report? Switch it in the menu.</p></section>`; })()}
     <div class="plan-grid">
       ${(() => { const Ty = c.T.you.v; const winterAhead = S.month >= 6 && S.month <= 9; if (!(winterAhead && Ty < 42) && !(S.st.you < 30)) return ''; return `<div class="warnbox" role="note"><b>${winterAhead ? 'Winter is coming for you.' : 'You are running on empty.'}</b> ${winterAhead ? 'January and February are when most partners burn out, and' : ''} your You meter is at ${Math.round(S.st.you)} and heading for ${Ty}. Book a week of leave, drop a clinical session, or add cover now, before the winter peak.</div>`; })()}
@@ -5053,6 +5171,16 @@ function quietMonth(R) {
   if (STAT_KEYS.some(k => S.st[k] < 30) || S.cash < S.overdraft + 20) return false;
   return true;
 }
+// places an advert for k (a role, or arrsgp / arrsnurse through the PCN) on hours u; returns the message to show
+function placeAdvert(k, u) {
+  const role = k === 'arrsgp' ? 'salaried' : k === 'arrsnurse' ? 'nurse' : k, R = ROLES[role], pcn = role !== k;
+  if (!R) return '';
+  const claim = R.arrs ? arrsClaimOf(role) * u : pcn ? pcnClaim(role, u) : 0;
+  const overK = claim ? Math.max(0, Math.min(claim, claim - arrsLeft())) : 0;
+  const cost = advertCost(k);
+  advertise(k, u); S.cash = r1(S.cash - cost);
+  return `${R.name}${isGP(role) || Math.abs(u - 1) > 0.01 ? ` (${hrsTxt(role, u)})` : ''} advertised${pcn ? ' through the PCN\'s additional-roles budget' : ''}${cost ? ` (${fmtK(cost)})` : ''}.${role === 'salaried' && gpHeadroom() < 0 ? ` Don't hold your breath: ${prac().place} already has one GP per ${prac().gpCap.toLocaleString('en-GB')} patients, and the local GPs are all taken.` : ' Results at month end.'}${overK > 0.5 ? ` Over the PCN budget: about £${Math.round(overK)}k a year from the practice.` : ''}`;
+}
 // stays long enough to read: about 4 seconds, longer for longer messages; tap to dismiss
 function toast(msg) { document.querySelectorAll('.toast').forEach(x => x.remove()); const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg; t.addEventListener('click', () => t.remove()); document.body.appendChild(t); setTimeout(() => t.remove(), Math.min(9000, 3500 + msg.length * 30)); }
 
@@ -5136,13 +5264,12 @@ document.addEventListener('click', ev => {
     case 'hire': {
       if (UI.lastHire && UI.lastHire.r === arg && Date.now() - UI.lastHire.t < 700) break;
       UI.lastHire = { r: arg, t: Date.now() };
-      const role = arg === 'arrsgp' ? 'salaried' : arg === 'arrsnurse' ? 'nurse' : arg, R = ROLES[role], pcn = role !== arg, u = hrsPick(arg);
-      if (!R) break;
-      const claim = R.arrs ? arrsClaimOf(role) * u : pcn ? pcnClaim(role, u) : 0;
-      const overK = claim ? Math.max(0, Math.min(claim, claim - arrsLeft())) : 0;
-      const cost = role === 'salaried' ? 1.5 : role === 'nurse' ? 0.8 : R.arrs ? 0 : 0.4;
-      advertise(arg, u); S.cash = r1(S.cash - cost); save(); keepScroll(renderPlan);
-      toast(`${R.name}${isGP(role) || Math.abs(u - 1) > 0.01 ? ` (${hrsTxt(role, u)})` : ''} advertised${pcn ? ' through the PCN\'s additional-roles budget' : ''}${cost ? ` (${fmtK(cost)})` : ''}.${role === 'salaried' && gpHeadroom() < 0 ? ` Don't hold your breath: ${prac().place} already has one GP per ${prac().gpCap.toLocaleString('en-GB')} patients, and the local GPs are all taken.` : ' Results at month end.'}${overK > 0.5 ? ` Over the PCN budget: about £${Math.round(overK)}k a year from the practice.` : ''}`); break;
+      const t = placeAdvert(arg, hrsPick(arg)); if (t) { save(); keepScroll(renderPlan); toast(t); } break;
+    }
+    // one of Bev's staffing suggestions, on the hours she suggested
+    case 'advise': {
+      const g = UI.suggest, a = g && g.staff && g.staff[+arg]; if (!a || a.done || !a.k) break;
+      const t = placeAdvert(a.k, a.u); if (t) { a.done = 1; save(); keepScroll(renderPlan); toast(t); } break;
     }
     case 'hrs': { const [r, v] = String(arg).split(':'); if (ROLES[r] && +v > 0) { (UI.hrs = UI.hrs || {})[r] = +v; keepScroll(renderPlan); } break; }
     case 'unvac': if (S.vac[arg]) { unadvertise(arg); save(); keepScroll(renderPlan); } break;
@@ -5154,7 +5281,7 @@ document.addEventListener('click', ev => {
     }
     case 'weekly': { const w = weeklyChallenge(); const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; UI.intro = true; go(() => newGame(w.practice, nm, { seed: w.seed, week: w.week })); break; }
     case 'begin': go(beginMonth); break;
-    case 'suggest': { if (S.practiceKey === 'city') break; UI.suggest = { yr: S.yr || 0, m: S.month, why: suggestPlan() }; save(); keepScroll(renderPlan); break; }
+    case 'suggest': { if (S.practiceKey === 'city') break; UI.suggest = { yr: S.yr || 0, m: S.month, ...bevAdvice() }; save(); keepScroll(renderPlan); break; }
     case 'suggest-x': UI.suggest = null; keepScroll(renderPlan); break;
     case 'choose': chooseAt(+arg); break;
     case 'cont': go(continueOutcome); break;

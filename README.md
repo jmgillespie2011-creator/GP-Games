@@ -17,6 +17,9 @@ Or download [`last-partner-standing/last-partner-standing-play.html`](last-partn
   - QOF at £227.95 a point, with 80% aspiration payments;
   - 15% employer NI with no Employment Allowance, and 14.38% employer pension;
   - locum rates, and a partner's own pension, income tax and Class 4 NI.
+  - the PCN's additional-roles budget (ARRS) at each role's 2026/27 maximum, now including GPs and practice nurses recruited through the PCN;
+  - profit shares close to what real partners earned in 2024/25 (about £158,700 in practices of 5,000 to 10,000 patients).
+- **Staff on the hours you choose.** Recruit full time or part time (37.5, 30, 22.5 or 15 hours, or 9, 8, 6 or 4 GP sessions). Pay, appointments, inbox work and room bookings follow the hours, and each part-timer has their own NI threshold.
 - **Consequences that feel natural.** Meters drift toward wherever the practice's situation is taking them, and the month plan shows why. Decisions can change where things settle, or come back months later.
 - **Explainers everywhere.** Cards built on real figures or rules have a "What's real here?" dropdown with graded sources. The month plan and the accounts explain how everything is calculated, and there's a glossary.
 - **The contract, explained as you go.** In the leafy suburb and the market town, six cards through year one explain the GP contract at a trainee's level (the global sum, QOF, enhanced services and the local ones an ICB can cancel, ARRS, drawings and tax, and why anyone would be a partner), using your own practice's figures. They're on by default and can be switched off under Options. And in any practice, the ICB can decommission a local service, taking its income with it.

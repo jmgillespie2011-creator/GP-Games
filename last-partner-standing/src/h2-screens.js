@@ -293,22 +293,21 @@ document.addEventListener('click', ev => {
     case 'hire': {
       if (UI.lastHire && UI.lastHire.r === arg && Date.now() - UI.lastHire.t < 700) break;
       UI.lastHire = { r: arg, t: Date.now() };
-      if (arg === 'arrsgp') {
-        S.vac.arrsgp = (S.vac.arrsgp || 0) + 1; S.cash = r1(S.cash - 1.5); save(); keepScroll(renderPlan);
-        const left = arrsLeft();
-        toast(`GP advertised through the PCN's additional-roles budget (£1.5k).${gpHeadroom() < 0 ? ` Don't hold your breath: ${prac().place} already has one GP per ${prac().gpCap.toLocaleString('en-GB')} patients, and the local GPs are all taken.` : ' Results at month end.'}${left < 0 ? ` The budget is now over by about £${Math.round(-left)}k a year, which the practice pays.` : ''}`); break;
-      }
-      const R = ROLES[arg]; const overK = R.arrs ? Math.max(0, Math.min(arrsClaimOf(arg), arrsClaimOf(arg) - arrsLeft())) : 0;
-      const cost = arg === 'salaried' ? 1.5 : arg === 'nurse' ? 0.8 : R.arrs ? 0 : 0.4;
-      S.vac[arg] = (S.vac[arg] || 0) + 1; S.cash = r1(S.cash - cost); save(); keepScroll(renderPlan);
-      toast(`${R.name} advertised${cost ? ` (${fmtK(cost)})` : ''}.${arg === 'salaried' && gpHeadroom() < 0 ? ` Don't hold your breath: ${prac().place} already has one GP per ${prac().gpCap.toLocaleString('en-GB')} patients, and the local GPs are all taken.` : ' Results at month end.'}${overK > 0.5 ? ` Over the PCN budget: about £${Math.round(overK)}k a year from the practice.` : ''}`); break;
+      const role = arg === 'arrsgp' ? 'salaried' : arg === 'arrsnurse' ? 'nurse' : arg, R = ROLES[role], pcn = role !== arg, u = hrsPick(arg);
+      if (!R) break;
+      const claim = R.arrs ? arrsClaimOf(role) * u : pcn ? pcnClaim(role, u) : 0;
+      const overK = claim ? Math.max(0, Math.min(claim, claim - arrsLeft())) : 0;
+      const cost = role === 'salaried' ? 1.5 : role === 'nurse' ? 0.8 : R.arrs ? 0 : 0.4;
+      advertise(arg, u); S.cash = r1(S.cash - cost); save(); keepScroll(renderPlan);
+      toast(`${R.name}${isGP(role) || Math.abs(u - 1) > 0.01 ? ` (${hrsTxt(role, u)})` : ''} advertised${pcn ? ' through the PCN\'s additional-roles budget' : ''}${cost ? ` (${fmtK(cost)})` : ''}.${role === 'salaried' && gpHeadroom() < 0 ? ` Don't hold your breath: ${prac().place} already has one GP per ${prac().gpCap.toLocaleString('en-GB')} patients, and the local GPs are all taken.` : ' Results at month end.'}${overK > 0.5 ? ` Over the PCN budget: about £${Math.round(overK)}k a year from the practice.` : ''}`); break;
     }
-    case 'unvac': if (S.vac[arg]) { S.vac[arg]--; if (!S.vac[arg]) delete S.vac[arg]; save(); keepScroll(renderPlan); } break;
+    case 'hrs': { const [r, v] = String(arg).split(':'); if (ROLES[r] && +v > 0) { (UI.hrs = UI.hrs || {})[r] = +v; keepScroll(renderPlan); } break; }
+    case 'unvac': if (S.vac[arg]) { unadvertise(arg); save(); keepScroll(renderPlan); } break;
     case 'fire': {
-      if (!S.staff[arg]) break;
-      S.staff[arg]--; const big = ['salaried', 'nurse'].includes(arg);
+      const p = headcount(arg) ? loseStaff(arg, 'last') : null; if (!p) break;
+      const big = ['salaried', 'nurse'].includes(arg);
       S.st.team = clamp(S.st.team - (big ? 6 : 3)); save(); keepScroll(renderPlan);
-      toast(`${ROLES[arg].name} let go. Team morale ${big ? '−6' : '−3'}.`); break;
+      toast(`${ROLES[arg].name} (${hrsTxt(arg, p.u)}) let go. Team morale ${big ? '−6' : '−3'}.`); break;
     }
     case 'weekly': { const w = weeklyChallenge(); const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; UI.intro = true; go(() => newGame(w.practice, nm, { seed: w.seed, week: w.week })); break; }
     case 'begin': go(beginMonth); break;

@@ -158,17 +158,28 @@ function renderTitle() {
 // which roles the practice is short of, and why (highlighted in the staff list)
 function hireNeeds(c) {
   const need = new Set(); need.why = [];
-  if (c.recepShort) { need.add('recep'); need.why.push(`Reception is ${c.recepShort} short`); }
+  if (c.recepShort > 0.05) { need.add('recep'); need.why.push(`Reception is ${fteTxt(c.recepShort)} full-time ${c.recepShort > 1.05 ? 'posts' : 'post'} short`); }
   if (c.ratio < 0.95) { ['salaried', 'anp', 'nurse', 'pharm', 'physio', 'para'].forEach(r => need.add(r)); need.why.push('You\'re short of appointments'); }
   if (c.roomsOver) need.why.push('No free clinic rooms: new clinicians will need room sessions');
   return need;
 }
-// Recruit places one advert. Once one is out the button says so, and a second takes a deliberate "one more".
-function hireBtns(r, vac, desc, via) {
-  const cost = r === 'salaried' || r === 'arrsgp' ? '£1.5k' : r === 'nurse' ? '£800' : ROLES[r] && ROLES[r].arrs ? 'PCN budget' : '£400';
-  const lbl = via ? ` ${via}` : '';
-  if (!vac) return `<button class="hire" data-act="hire" data-arg="${r}" ${desc ? `aria-describedby="${desc}"` : ''}>Recruit${lbl} <small>${cost}</small></button>`;
-  return `<span class="advert">${vac} advert${vac > 1 ? 's' : ''} out${lbl}</span><button data-act="unvac" data-arg="${r}">Withdraw</button><button data-act="hire" data-arg="${r}" aria-label="Advertise one more${lbl}">+1 more</button>`;
+// Recruit places one advert, on the hours chosen above it. Once one is out the button says so, and a second takes a deliberate "one more".
+function hireBtns(k, desc, via) {
+  const cost = k === 'salaried' || k === 'arrsgp' ? '£1.5k' : k === 'nurse' || k === 'arrsnurse' ? '£800' : ROLES[k] && ROLES[k].arrs ? 'PCN budget' : '£400';
+  const lbl = via ? ` ${via}` : '', ads = adsOf(k);
+  if (!ads.length) return `<button class="hire" data-act="hire" data-arg="${k}" ${desc ? `aria-describedby="${desc}"` : ''}>Recruit${lbl} <small>${cost}</small></button>`;
+  return `<span class="advert">${ads.length} advert${ads.length > 1 ? 's' : ''} out${lbl} <small>${ads.map(u => hrsShort(k, u)).join(', ')}</small></span><button data-act="unvac" data-arg="${k}">Withdraw</button><button data-act="hire" data-arg="${k}" aria-label="Advertise one more${lbl}">+1 more</button>`;
+}
+// the hours chosen for the next advert in each role (full time, or six sessions for a GP, until changed)
+const hrsPick = r => (UI.hrs && UI.hrs[r === 'arrsgp' ? 'salaried' : r === 'arrsnurse' ? 'nurse' : r]) || 1;
+const hrsBtn = (k, u) => isGP(k) ? String(Math.round(u * 6)) : Math.abs(u - 1) < 0.01 ? 'Full time' : `${+(u * 37.5).toFixed(1)}h`;
+const hrsShort = (k, u) => isGP(k) ? `${Math.round(u * 6)} sess.` : hrsBtn(k, u);
+const cap1 = t => t.charAt(0).toUpperCase() + t.slice(1);
+// "In post: 4 full time, 1 on 22.5 hours, 4.6 FTE"
+function postsSummary(r, posts) {
+  const g = new Map();
+  posts.forEach(p => { const k = (Math.abs(p.u - 1) < 0.01 && !isGP(r) ? 'full time' : `on ${hrsTxt(r, p.u)}`) + (p.pcn ? ', paid by the PCN' : ''); g.set(k, (g.get(k) || 0) + 1); });
+  return `In post: ${[...g].map(([k, n]) => `${n} ${k}`).join('; ')}${isGP(r) ? '' : ` (${fteTxt(S.staff[r])} FTE)`}.`;
 }
 
 function stepper(act, v, minusOff, plusOff, label) {
@@ -201,16 +212,27 @@ function renderPlan() {
     return `<button class="proj" data-act="proj" data-arg="${x.id}" aria-pressed="${pl.project === x.id}" ${done ? 'disabled' : ''}><b>${esc(x.name)}${done ? ' (done)' : ''}</b><small>${esc(x.desc)}</small></button>`;
   }).join('');
   const need = hireNeeds(c);
+  const yrF = 1 + YEAR_STAFF * (S.yr || 0);
   const roles = ROLE_ORDER.map(r => {
-    const R = ROLES[r], n = S.staff[r], vac = S.vac[r] || 0;
+    const R = ROLES[r], posts = postsOf(r), n = posts.length, vac = S.vac[r] || 0, u = hrsPick(r);
+    // GPs and nurses can also be recruited through the PCN's additional-roles budget
+    const pk = r === 'salaried' ? 'arrsgp' : r === 'nurse' ? 'arrsnurse' : '', pv = pk ? (S.vac[pk] || 0) : 0;
     const arrsFull = r === 'salaried' && gpHeadroom() < 6;
-    const over = R.arrs ? Math.min(arrsClaimOf(r), Math.max(0, arrsClaimOf(r) - arrsLeft())) : 0;
-    const costTxt = (R.arrs ? `About £${Math.round(arrsClaimOf(r))}k a year (${R.band}), claimed from the PCN budget` : `£${(R.cost * 12).toFixed(1)}k a year each, all in`) + (R.room ? `, ${R.room} room sessions a week` : r === 'recep' ? ', no clinic room' : '');
-    const gpA = r === 'salaried' ? arrsGPs() : 0, gpAv = r === 'salaried' ? (S.vac.arrsgp || 0) : 0;
-    const gpArrsTxt = r === 'salaried' ? ` Or recruit one through the PCN's additional-roles budget: about £${Math.round(ARRS_GP_CLAIM * (1 + YEAR_STAFF * (S.yr || 0)))}k a year claimed from ARRS instead of paid by the practice${gpA ? `. ${gpA} of yours ${gpA === 1 ? 'is' : 'are'} claimed this way` : ''}.` : '';
-    return `<div class="role${need.has(r) ? ' need' : ''}"><div class="l"><b>${esc(R.name)}</b>${R.arrs ? '<span class="tag arrs">ARRS</span>' : ''}${vac ? `<span class="tag vac">${vac} advertised</span>` : ''}${gpAv ? `<span class="tag arrs">${gpAv} PCN ad${gpAv > 1 ? "s" : ""} open</span>` : ''}<small>${esc(R.desc)} ${costTxt}.${gpArrsTxt}</small></div>
+    const claim = R.arrs ? arrsClaimOf(r) * u : 0;
+    const over = claim ? Math.min(claim, Math.max(0, claim - arrsLeft())) : 0;
+    const week = [R.cap ? `${Math.round(R.cap * u)} appointments` : '', R.room ? `${fteTxt(R.room * u)} room sessions` : r === 'recep' ? 'no clinic room' : ''].filter(Boolean).join(' and ');
+    const costTxt = `${cap1(hrsTxt(r, u))}: ` + (R.arrs ? `about £${Math.round(claim)}k a year (${R.band}), claimed from the PCN budget` : `£${(costOf(r, u) * 12 * yrF).toFixed(1)}k a year, all in`) + (week ? `, ${week} a week` : '');
+    const pcnN = pk ? pcnPosts(r).length : 0;
+    const pcnTxt = !pk ? '' : r === 'salaried'
+      ? ` Or recruit through the PCN's additional-roles budget: the PCN claims their real cost, about £${Math.round(pcnClaim(r, u))}k a year, instead of the practice paying it.${pcnN ? ` ${pcnN} of yours ${pcnN === 1 ? 'is' : 'are'} paid this way.` : ''}`
+      : ` Or recruit a new nurse through the PCN's additional-roles budget: the PCN claims their real cost, about £${Math.round(pcnClaim(r, u))}k a year. Nurses who worked in the PCN in the last 12 months can't be claimed, so fewer apply, and your current nurses stay on the practice payroll.${pcnN ? ` ${pcnN} of yours ${pcnN === 1 ? 'is' : 'are'} paid this way.` : ''}`;
+    const inPost = n && (isGP(r) || posts.some(p => p.pcn || Math.abs(p.u - 1) > 0.01)) ? `<small class="inpost">${esc(postsSummary(r, posts))}</small>` : '';
+    const last = n ? posts[n - 1] : null;
+    const hrs = `<div class="hrs" role="group" aria-label="${isGP(r) ? 'Sessions a week' : 'Hours a week'} for a new ${esc(R.name.toLowerCase())}"><span>${isGP(r) ? 'Sessions' : 'Hours'}</span>${hoursOf(r).map(v => `<button data-act="hrs" data-arg="${r}:${v}" aria-pressed="${Math.abs(v - u) < 0.01}">${hrsBtn(r, v)}</button>`).join('')}</div>`;
+    return `<div class="role${need.has(r) ? ' need' : ''}"><div class="l"><b>${esc(R.name)}</b>${R.arrs ? '<span class="tag arrs">ARRS</span>' : ''}${vac ? `<span class="tag vac">${vac} advertised</span>` : ''}${pv ? `<span class="tag arrs">${pv} PCN ad${pv > 1 ? 's' : ''} open</span>` : ''}<small>${esc(R.desc)} ${esc(costTxt)}.${esc(pcnTxt)}</small>${inPost}</div>
       <span class="n" aria-label="${n} in post">${n}</span>
-      <div class="acts">${hireBtns(r, vac, arrsFull ? `off-${r}` : '')}${r === 'salaried' ? hireBtns('arrsgp', gpAv, '', 'via PCN') : ''}<button class="fire" data-act="fire" data-arg="${r}" ${n ? '' : 'disabled'}>Let go</button></div>
+      <div class="acts">${hireBtns(r, arrsFull ? `off-${r}` : '')}${pk ? hireBtns(pk, '', 'via PCN') : ''}<button class="fire" data-act="fire" data-arg="${r}" ${n ? `aria-label="Let go of the newest ${esc(R.name.toLowerCase())} (${hrsTxt(r, last.u)})"` : 'disabled'}>Let go${last && (isGP(r) || Math.abs(last.u - 1) > 0.01) ? ` <small>${hrsShort(r, last.u)}</small>` : ''}</button></div>
+      ${hrs}
       ${arrsFull ? `<p class="role-off" id="off-${r}">You can advertise, but don't expect anyone: ${esc(prac().place)} already has more GPs than local applicants will fill.</p>` : over > 0.5 ? `<p class="role-off">Over the PCN budget: about <b>£${Math.round(over)}k a year</b> of another one would come from the practice.</p>` : ''}</div>`;
   }).join('');
   const ratio = c.ratio;
@@ -273,10 +295,10 @@ function renderPlan() {
         </section>
         </details>
         <section class="panel" aria-labelledby="h-team">
-          <h3 id="h-team">Team <small><span class="${arrsLeft() < 0 ? 'bad-t' : ''}">PCN roles budget £${Math.round(arrsSpend(true))}k of £${Math.round(arrsBudget())}k a year used</span> · room sessions ${c.rNeed} of ${c.rAvail} booked · receptionists ${S.staff.recep} of ${c.recepNeed} needed</small></h3>
+          <h3 id="h-team">Team <small><span class="${arrsLeft() < 0 ? 'bad-t' : ''}">PCN roles budget £${Math.round(arrsSpend(true))}k of £${Math.round(arrsBudget())}k a year used</span> · room sessions ${Math.round(c.rNeed)} of ${c.rAvail} booked · receptionists ${fteTxt(S.staff.recep)} of ${c.recepNeed} needed</small></h3>
           ${(() => { const w = hireNeeds(c).why; return `<p class="qh-t"><b>Recruit</b> <span class="muted">Each advert runs to the end of the month, when you find out who applied.</span>${w.length ? ` <span class="bad-t">${esc(w.join('. '))}.</span>` : ''}</p>`; })()}
           <div class="roles" aria-label="Staff">${roles}</div>
-          ${explain('Staff costs, ARRS and recruitment', `<p>Every salary carries 15% employer NI above £5,000. GP practices can't claim the Employment Allowance that offsets NI for most small employers. Staff in the NHS Pension Scheme also cost 14.38% employer pension.</p><p>ARRS roles (pharmacists, physios, paramedics, advanced nurse practitioners and others) are paid from the PCN's additional-roles budget: £27.668 per weighted patient a year. Your practice's share is about <b>£${Math.round(arrsBudget())}k a year</b>, and <b>£${Math.round(arrsSpend(true))}k</b> is committed (staff in post plus open adverts). Each role is claimed up to a national maximum that includes employer NI and pension (2026/27: £71,725 for a clinical pharmacist or first contact physio, £78,534 for an advanced practitioner, £38,739 for a care coordinator). The game claims each post at its maximum. Staff beyond the budget are paid for by the practice. Clinicians still need somewhere to see patients, and supervising more than two adds to your hours. From 2026/27 PCNs can also claim GPs, up to £152,900 a year with on-costs.</p><p><b>Rooms are booked by the session.</b> Your ${S.rooms + activeMods().reduce((a, m) => a + (m.rooms || 0), 0)} consulting and treatment rooms give about ${ROOM_SESSIONS} bookable sessions a week each: ten core half-days, Monday to Friday mornings and afternoons, less one lost to double-bookings, cleaning and practice meetings. Evening and Saturday clinics are outside core hours, so they don't count. A meeting room can be turned into a clinic room as a project. A GP books a room for each clinical session. A nurse books about 8 a week, a pharmacist or paramedic about 4 (the rest is phone work or home visits). Receptionists work on headsets at the front desk, and care coordinators, social prescribers and GP assistants don't need a clinic room.</p><p>Recruiting opens an advert. Results come at month end and can fail. Low morale and a poor local reputation make it harder. Letting someone go hurts morale.</p>${srcLinks(['S19', 'S20', 'S22', 'S4', 'S84'])}`)}
+          ${explain('Staff costs, ARRS and recruitment', `<p>Every salary carries 15% employer NI above £5,000. GP practices can't claim the Employment Allowance that offsets NI for most small employers. Staff in the NHS Pension Scheme also cost 14.38% employer pension.</p><p>ARRS roles (pharmacists, physios, paramedics, advanced nurse practitioners and others) are paid from the PCN's additional-roles budget: £27.668 per weighted patient a year. Your practice's share is about <b>£${Math.round(arrsBudget())}k a year</b>, and <b>£${Math.round(arrsSpend(true))}k</b> is committed (staff in post plus open adverts). Each role is claimed up to a national maximum that includes employer NI and pension (2026/27: £71,725 for a clinical pharmacist or first contact physio, £78,534 for an advanced practitioner, £38,739 for a care coordinator). The game claims each post at its maximum. Staff beyond the budget are paid for by the practice. Clinicians still need somewhere to see patients, and supervising more than two adds to your hours. From 2026/27 PCNs can also claim GPs (up to £152,900 a year full time) and practice nurses (up to £46,447 new to general practice, £57,114 experienced) at their real cost, but only new recruits: anyone who worked in the PCN in the last 12 months can't be claimed.</p><p><b>Posts can be part time.</b> Choose the hours before you recruit: pay, appointments, inbox work and room sessions follow them. Each employee has their own £5,000 NI threshold, so two part-timers cost a little less than one full-timer on the same hours. Part-time posts are a little easier to fill, because most GPs and practice nurses work part time.</p><p><b>Rooms are booked by the session.</b> Your ${S.rooms + activeMods().reduce((a, m) => a + (m.rooms || 0), 0)} consulting and treatment rooms give about ${ROOM_SESSIONS} bookable sessions a week each: ten core half-days, Monday to Friday mornings and afternoons, less one lost to double-bookings, cleaning and practice meetings. Evening and Saturday clinics are outside core hours, so they don't count. A meeting room can be turned into a clinic room as a project. A GP books a room for each clinical session. A nurse books about 8 a week, a pharmacist or paramedic about 4 (the rest is phone work or home visits). Receptionists work on headsets at the front desk, and care coordinators, social prescribers and GP assistants don't need a clinic room.</p><p>Recruiting opens an advert. Results come at month end and can fail. Low morale and a poor local reputation make it harder. Letting someone go hurts morale.</p>${srcLinks(['S19', 'S20', 'S22', 'S4', 'S84'])}`)}
           ${explain('How you compare with England', `<dl class="kv small">${benchmark().map(([l, you, nat, how]) => `<dt>${esc(l)}${how ? `<small>${esc(how)}</small>` : ''}</dt><dd><b class="${you < nat * 0.85 ? 'warn-t' : ''}">${you.toFixed(1)}</b> <span class="muted">vs ${nat.toFixed(1)}</span></dd>`).join('')}</dl><p>England averages for ${S.list.toLocaleString('en-GB')} patients, from the August 2026 workforce figures: about 4.6 fully qualified GPs, 2.6 nurses, 2.9 other clinical staff and 12.3 admin and reception staff per 10,000 patients. That's about ${Math.round(BENCH.patients / BENCH.gp).toLocaleString('en-GB')} patients per full-time GP. Averages aren't targets: an older or poorer list needs more.</p>${srcLinks(['S58', 'S59'])}`)}
           ${p.gpCap ? `<div class="fc-note"><p class="${gpHeadroom() < 6 ? 'bad-t' : ''}"><b>GPs are hard to find here.</b> Practices like yours can't recruit past about one GP per ${p.gpCap.toLocaleString('en-GB')} patients, against ${Math.round(BENCH.patients / BENCH.gp).toLocaleString('en-GB')} nationally. ${gpHeadroom() < 6 ? 'Nobody will apply for a salaried GP post unless your GP numbers fall below that.' : 'There\'s room for one more salaried GP.'} Locums are scarce too: at most ${locumMax()} sessions a week.</p>${explain('Why', `<p>GP numbers vary a lot by area. The worst-covered ICB, North West London, had one full-time GP for every 2,746 patients in late 2025, against about 2,200 nationally. Parts of Kent and Medway are worse: about 38 GPs per 100,000 people against 60 nationally, with some practices far beyond that. Deprived areas usually have the most patients per GP and the hardest time recruiting.</p>${srcLinks(['S66', 'S67', 'S59'])}`)}</div>` : ''}
         </section>
@@ -297,7 +319,7 @@ function renderPlan() {
           <div class="headings">${headingHTML(c)}</div>
           ${explain('How the meters move', '<p>Each month, every meter moves part of the way toward where your practice\'s situation is taking it: capacity against demand, the inbox, staffing, pay, rooms, your hours and your reputation. Open a meter above to see why.</p><p>Decisions give one-off jolts that fade, unless they change the situation. Hiring, pay, policies, rooms and hours change where things settle. Some decisions come back months later.</p>')}</div>
         ${c.roomsOver ? `<p class="fc-note bad-t">${c.rNeed - c.rAvail} clinic sessions a week have no room. Capacity and morale will suffer.</p>` : ''}
-        ${c.recepShort ? `<p class="fc-note bad-t">Reception is ${c.recepShort} short for a list this size.</p>` : ''}
+        ${c.recepShort ? `<p class="fc-note bad-t">Reception is ${fteTxt(c.recepShort)} full-time post${c.recepShort > 1.05 ? 's' : ''} short for a list this size.</p>` : ''}
         <button class="btn primary" data-act="begin" style="justify-self:start">Start ${MONTHS[S.month]} →</button>
       </aside>
     </div>

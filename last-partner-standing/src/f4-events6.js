@@ -48,7 +48,7 @@ EVENTS.push(
 {id:'twist_summer',arc:1,who:'bev',title:'A letter in the pigeonhole',tag:'real',src:['S58'],
  info:'Staff turnover in general practice is high, and resignations cluster when other jobs open up. Summer is when annual leave, school holidays and locum shortages meet.',
  text:()=>`${S.flags.summerGP ? `One of your salaried GPs is leaving for a portfolio job` : `A practice nurse has taken a Band 6 post at St Swithin's`}, with a month's notice, at the start of the summer holidays. Two receptionists are already booked off for the same fortnight. The rota was held together with Post-it notes. Now it's held together with hope.`,
- after(){ if (S.flags.summerGP && S.staff.salaried) { S.staff.salaried--; S.vac.salaried = (S.vac.salaried || 0) + 1; } else if (S.staff.nurse) { S.staff.nurse--; S.vac.nurse = (S.vac.nurse || 0) + 1; } delete S.flags.summerGP; },
+ after(){ if (S.flags.summerGP && S.staff.salaried) vacate('salaried', 'std'); else if (S.staff.nurse) vacate('nurse', 'std'); delete S.flags.summerGP; },
  choices:[
   {t:'Agency locums for the summer',fx:{you:-2},run(){ addMod({ id: 'summerloc', label: 'Summer agency cover', months: 2, capAdd: 70, fx: { cash: -3.2 } }); },o:`The agency sends three different GPs in three weeks. Each one asks where the toilets are. It costs about £3,200 a month for two months, and the adverts are out.`},
   {t:'Cancel leave and cover it ourselves',fx:{team:-5,you:-3},run(){ addMod({ id: 'summerleave', label: 'Summer leave cancelled', months: 2, capAdd: 45, aim: { team: -3, you: -1 } }); },o:`Nobody gets their August week. Everybody gets a very clear view of what the partners think matters. The adverts are out.`},

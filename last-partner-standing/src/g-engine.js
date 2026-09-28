@@ -50,16 +50,80 @@ const activeOthers = () => Object.values(S.partners).filter(p => p.status === 'a
 const hasFlag = f => !!S.flags[f];
 const activeMods = () => S.mods.filter(m => S.month >= m.from);
 const hasMod = id => activeMods().some(m => m.id === id);
-const arrsCount = () => ROLE_ORDER.filter(r => ROLES[r].arrs).reduce((n, r) => n + S.staff[r] + (S.vac[r] || 0), 0);
+// ---- staff: people in posts, with hours ----
+// Each person in post has hours: `u` is their share of the role's standard post (full time, 37.5 hours; for a salaried GP,
+// six sessions). S.staff[r] is the total, which every sum uses (appointments, inbox, QOF, rooms, benchmarks); S.posts[r]
+// lists the people, with pcn: 1 for a GP or nurse whose pay the PCN claims from its additional-roles budget.
+// S.vac[k] counts adverts and S.adu[k] holds each advert's hours. Totals changed directly (old saves, simple cards)
+// are reconciled here: whole posts come in, and whoever matches the change leaves.
+const r3 = v => Math.round(v * 1000) / 1000;
+const HOURS_STD = [1, 0.8, 0.6, 0.4];     // 37.5, 30, 22.5 and 15 hours a week
+const HOURS_GP = [1.5, 4 / 3, 1, 2 / 3];  // 9 sessions (full time), 8, 6 and 4
+const isGP = k => k === 'salaried' || k === 'arrsgp';
+const hoursOf = k => isGP(k) ? HOURS_GP : HOURS_STD;
+const hrsTxt = (k, u) => isGP(k) ? `${Math.round(u * 6)} sessions` : Math.abs(u - 1) < 0.01 ? 'full time' : `${+(u * 37.5).toFixed(1)} hours`;
+const fteTxt = v => (Math.round(v * 10) / 10).toString();
+function postsOf(r) {
+  const all = S.posts || (S.posts = {}), a = all[r] || (all[r] = []);
+  if (!(S.staff[r] > 0)) S.staff[r] = 0;
+  const tot = S.staff[r];
+  let sum = a.reduce((x, p) => x + p.u, 0);
+  while (sum < tot - 0.01) { const u = r3(Math.min(1, tot - sum)); a.push({ u }); sum += u; }
+  while (sum > tot + 0.01 && a.length) {
+    const ex = sum - tot;
+    let i = a.findIndex(p => Math.abs(p.u - ex) < 0.01); if (i < 0) i = a.length - 1;
+    if (a[i].u <= ex + 0.01) { sum -= a[i].u; a.splice(i, 1); } else { a[i].u = r3(a[i].u - ex); sum = tot; }
+  }
+  return a;
+}
+const headcount = r => postsOf(r).length;
+function addStaff(r, u, pcn) { const a = postsOf(r); u = u || 1; a.push(pcn ? { u, pcn: 1 } : { u }); S.staff[r] = r3(S.staff[r] + u); }
+// someone leaves, with their hours: 'std' is a named colleague on standard hours, 'last' the newest; otherwise anyone
+function loseStaff(r, how) {
+  const a = postsOf(r); if (!a.length) return null;
+  let i = how === 'last' ? a.length - 1 : how === 'std' ? a.findIndex(p => !p.pcn && Math.abs(p.u - 1) < 0.01) : Math.floor(Math.random() * a.length);
+  if (i < 0) i = a.length - 1;
+  const p = a.splice(i, 1)[0];
+  S.staff[r] = r3(Math.max(0, S.staff[r] - p.u));
+  return p;
+}
+function adsOf(k) {
+  const n = S.vac[k] || 0, all = S.adu || (S.adu = {});
+  if (!n) { delete all[k]; return []; }
+  const a = all[k] || (all[k] = []);
+  while (a.length < n) a.push(1);
+  a.length = n;
+  return a;
+}
+function advertise(k, u) { const a = adsOf(k); a.push(u || 1); S.vac[k] = a.length; S.adu[k] = a; }
+function unadvertise(k) { const a = adsOf(k); a.pop(); S.vac[k] = a.length; if (!a.length) { delete S.vac[k]; delete S.adu[k]; } }
+// someone leaves and their post is advertised on the same hours (and through the PCN again, if that's how they were paid)
+function vacate(r, how) { const p = loseStaff(r, how); if (p) advertise(p.pcn ? (r === 'salaried' ? 'arrsgp' : 'arrsnurse') : r, p.u); return p; }
+const vacUnits = k => adsOf(k).reduce((x, u) => x + u, 0);
+// part-time posts are a little easier to fill and full-time GP posts a little harder: most GPs and practice nurses work part time
+const hoursF = (k, u) => isGP(k) ? (u < 0.99 ? 1.1 : u > 1.01 ? 0.85 : 1) : (u < 0.99 ? 1 + 0.25 * (1 - u) : 1);
+// what one person costs the practice a month (£k): pay follows their hours, and each employee has their own NI threshold
+const costOf = (r, u) => ROLES[r].pay ? empCostK(ROLES[r].pay * u, ROLES[r].pen) : ROLES[r].cost * u;
+// the practice's pay bill for a role, less anyone the PCN pays for
+const staffCost = r => postsOf(r).reduce((a, p) => a + (p.pcn ? 0 : costOf(r, p.u)), 0);
+const arrsCount = () => ROLE_ORDER.filter(r => ROLES[r].arrs).reduce((n, r) => n + S.staff[r] + vacUnits(r), 0);
 // the PCN's additional-roles budget, as the practice's share (£k a year); pay grows faster than the budget in later years
 const arrsBudget = () => weightedList() * P.arrs / 1000 * (1 + YEAR_FUNDING * ((S && S.yr) || 0));
 const arrsClaimOf = r => (ROLES[r].claim || 0) * (1 + YEAR_STAFF * ((S && S.yr) || 0));
-// from 2026/27 a PCN can claim a GP from the same budget: up to £152,900 a year full time; our salaried GP works six sessions
-// a GP through ARRS is reimbursed at actual salary plus on-costs, up to £152,900 a year full time (2026/27);
-// ours work six sessions, so the claim is their real cost, capped at six ninths of the maximum
-const ARRS_GP_CLAIM = Math.min(152.9 * 6 / 9, ROLES.salaried.cost * 12);
-const arrsGPs = () => Math.min(S.arrsGP || 0, S.staff.salaried);
-const arrsSpend = withAdverts => ROLE_ORDER.filter(r => ROLES[r].arrs).reduce((a, r) => a + arrsClaimOf(r) * (S.staff[r] + (withAdverts ? (S.vac[r] || 0) : 0)), 0) + (arrsGPs() + (withAdverts ? (S.vac.arrsgp || 0) : 0)) * ARRS_GP_CLAIM * (1 + YEAR_STAFF * ((S && S.yr) || 0));
+// From 2026/27 a PCN can also claim GPs and practice nurses from the same budget, at their real pay and on-costs up to a
+// maximum: a full-time GP £152,900; a nurse £46,447 new to general practice or £57,114 experienced (DES Table 2) [S4].
+// Only new recruits: anyone who worked in the PCN in the last 12 months can't be claimed, so current staff stay on the payroll.
+const PCN_MAX = { salaried: 152.9 * 6 / 9, nurse: 57.114 }; // £k a year for a standard post (six GP sessions; a full-time nurse)
+const pcnClaim = (r, u) => Math.min(PCN_MAX[r] * u, costOf(r, u) * 12) * (1 + YEAR_STAFF * ((S && S.yr) || 0));
+const ARRS_GP_CLAIM = Math.min(PCN_MAX.salaried, ROLES.salaried.cost * 12); // six sessions, 2026/27 (£k a year)
+const pcnPosts = r => postsOf(r).filter(p => p.pcn);
+const arrsGPs = () => pcnPosts('salaried').length;
+const arrsSpend = withAdverts => {
+  let a = ROLE_ORDER.filter(r => ROLES[r].arrs).reduce((x, r) => x + arrsClaimOf(r) * (S.staff[r] + (withAdverts ? vacUnits(r) : 0)), 0);
+  ['salaried', 'nurse'].forEach(r => pcnPosts(r).forEach(p => { a += pcnClaim(r, p.u); }));
+  if (withAdverts) { adsOf('arrsgp').forEach(u => { a += pcnClaim('salaried', u); }); adsOf('arrsnurse').forEach(u => { a += pcnClaim('nurse', u); }); }
+  return a;
+};
 const arrsLeft = () => arrsBudget() - arrsSpend(true);
 const EVMAP = {};
 EVENTS.forEach(e => { EVMAP[e.id] = e; });
@@ -80,7 +144,7 @@ function roomsAvail() { return ROOM_SESSIONS * (S.rooms + activeMods().reduce((a
 // Under-doctored areas: some practices can't recruit GPs past a local ceiling (patients per full-time GP).
 // Your own sessions count as one full-time GP, so working harder never blocks a hire.
 function gpHiredSessions() {
-  let n = GP_FTE_SESSIONS + 6 * (S.staff.salaried + (S.vac.salaried || 0) + (S.vac.arrsgp || 0));
+  let n = GP_FTE_SESSIONS + 6 * (S.staff.salaried + vacUnits('salaried') + vacUnits('arrsgp'));
   for (const id in S.partners) if (isActive(id)) n += S.partners[id].clin + 1;
   if (hasMod('scheme')) n += 2;
   return n;
@@ -147,7 +211,7 @@ function benchmark() {
     ['GPs (FTE, excluding trainees)', gpSess / GP_FTE_SESSIONS, BENCH.gp * k, 'Your sessions and your partners\', salaried GPs\' and scheme sessions, at 9 a week each'],
     ['Nurses', S.staff.nurse + (S.staff.anp || 0), BENCH.nurse * k, 'Practice nurses and advanced nurse practitioners'],
     ['Other clinical staff', other, BENCH.dpc * k, 'Nationally this counts practice staff only. PCN-funded ARRS roles come on top.'],
-    ['Admin and reception', S.staff.recep + office, BENCH.admin * k, `${S.staff.recep} receptionists and about ${office.toFixed(1)} office staff`]
+    ['Admin and reception', S.staff.recep + office, BENCH.admin * k, `${fteTxt(S.staff.recep)} full-time-equivalent receptionists and about ${office.toFixed(1)} office staff`]
   ];
 }
 function weightedList() {
@@ -334,7 +398,7 @@ function applyFx(fx) {
   if (fx.icb) S.icb = clamp(S.icb + fx.icb);
   if (fx.rep) S.rep = clamp(S.rep + fx.rep);
   if (fx.aim) for (const k in fx.aim) S.aim[k] = (S.aim[k] || 0) + fx.aim[k];
-  if (fx.staff) for (const r in fx.staff) S.staff[r] = Math.max(0, (S.staff[r] || 0) + fx.staff[r]);
+  if (fx.staff) for (const r in fx.staff) { const d = fx.staff[r]; for (let i = 0; i < Math.abs(d); i++) { if (d > 0) addStaff(r, 1); else loseStaff(r); } }
   if (fx.flags) Object.assign(S.flags, fx.flags);
   if (fx.sched) fx.sched.forEach(([id, n]) => schedule(id, n));
   if (fx.mod) addMod(fx.mod);
@@ -423,7 +487,7 @@ function calc() {
   let capMul = 1;
   mods.forEach(x => { if (x.capMul) capMul *= x.capMul; });
   const recepNeed = Math.round(S.list / 1600); // about 6 per 10,000 patients: within the national 12.3 admin staff per 10,000 [S58]
-  const recepShort = Math.max(0, recepNeed - S.staff.recep);
+  const recepShort = Math.max(0, r3(recepNeed - S.staff.recep));
   capMul *= 1 - 0.04 * recepShort;
   const rNeed = roomsNeeded(), rAvail = roomsAvail();
   const roomsOver = Math.max(0, rNeed - rAvail) / ROOM_SESSIONS; // in rooms' worth of sessions
@@ -456,8 +520,7 @@ function calc() {
   inc.es *= 1 - Math.min(0.9, mods.reduce((a, x) => a + (x.esCut || 0), 0));
   ['gs', 'npp', 'vacc', 'es', 'pcn'].forEach(k => { inc[k] *= 1 + YEAR_FUNDING * yr; });
   let modCash = 0; mods.forEach(x => { if (x.fx && x.fx.cash) modCash += x.fx.cash; });
-  let roleCost = 0; for (const r of ROLE_ORDER) roleCost += ROLES[r].cost * S.staff[r];
-  roleCost -= arrsGPs() * ROLES.salaried.cost; // a GP claimed through the PCN is paid from the ARRS budget instead
+  let roleCost = 0; for (const r of ROLE_ORDER) roleCost += staffCost(r); // GPs and nurses claimed through the PCN are paid from the ARRS budget instead
   const cost = {
     staff: (roleCost + S.list * CORE_ADMIN + S.payX + S.tomRaise) * (1 + YEAR_STAFF * yr),
     locum: pl.locum * WEEKS * LOCUM_SESSION + (pl.extra || 0) * WEEKS * OT_SESSION,
@@ -482,9 +545,9 @@ function calc() {
   const addH = (h, why) => { if (h > 0.4) { hours += h; hWhy.push([h, why]); } };
   addH(Math.min(10, Math.max(0, inboxEnd - 400) / 60), 'Results and letters in the evenings');
   addH(Math.min(8, Math.max(0, 1 - ratio) * 30), 'Extras squeezed in when demand outruns capacity');
-  addH(Math.max(0, supN - 2) * 1.2, `Supervising ${supN} ARRS clinicians`);
+  addH(Math.max(0, supN - 2) * 1.2, `Supervising ${ROLE_ORDER.filter(r => ROLES[r].sup).reduce((a, r) => a + headcount(r), 0)} ARRS clinicians`);
   // advanced practitioners need a named GP supervisor and regular debriefs from day one
-  addH((S.staff.anp || 0) * 2, `Supervising ${S.staff.anp === 1 ? 'your advanced nurse practitioner' : `${S.staff.anp} advanced nurse practitioners`}`);
+  addH((S.staff.anp || 0) * 2, `Supervising ${headcount('anp') === 1 ? 'your advanced nurse practitioner' : `${headcount('anp')} advanced nurse practitioners`}`);
   addH(activeOthers() === 0 ? 8 : activeOthers() === 1 ? 3 : 0, activeOthers() === 0 ? 'Doing every partner job yourself' : 'Only two partners to share the running of it');
   mods.forEach(x => { if (x.hours) addH(x.hours, x.label); });
   const qofGain = (1.5 + S.staff.nurse * 1.1 + S.staff.hca * 0.7 + S.staff.pharm * 0.7 + S.staff.cc * 1.8 + pl.mgmt * 1.1) * p.qofEase;
@@ -667,26 +730,21 @@ function monthEnd() {
     S.forceOver = 'patients';
     consq.push('Because patients still couldn\'t get through, three months running after the ICB\'s notice: the ICB has given notice to terminate the contract.');
   } else if (f.remedialAt != null && f.lowAccess === 2) consq.push('Warning: two months in a row of poor access since the ICB\'s notice. A third means the contract can be terminated.');
-  // recruitment: harder when morale or reputation is poor
+  // recruitment: harder when morale or reputation is poor, a little easier for part-time posts
   const hires = [];
-  for (const r in S.vac) {
-    let n = S.vac[r];
-    while (n > 0) {
+  for (const k of Object.keys(S.vac)) {
+    const r = k === 'arrsgp' ? 'salaried' : k === 'arrsnurse' ? 'nurse' : k, R = ROLES[r], pcn = r !== k, live = adsOf(k);
+    live.slice().forEach(u => {
+      const hrs = isGP(k) || Math.abs(u - 1) > 0.01 ? ` (${hrsTxt(k, u)})` : '';
       // in an under-doctored area a salaried GP advert can run, but nobody applies
-      if ((r === 'salaried' || r === 'arrsgp') && gpHeadroom() < 0) { hires.push(pick(NO_GP_REPLIES)); n--; continue; }
-      // a GP through the PCN's additional-roles budget: a salaried GP whose pay is claimed from ARRS.
-      // Since 2026/27 any GP can be claimed, so the pool is a little wider than for a practice post.
-      if (r === 'arrsgp') {
-        if (chance(Math.min(0.95, ROLES.salaried.hire * 1.25 * p.hire * (1 + (proj.hireBoost || 0)) * (0.8 + S.rep / 250) * (S.st.team < 35 ? 0.7 : 1)))) { S.staff.salaried++; S.arrsGP = (S.arrsGP || 0) + 1; S.vac.arrsgp--; hires.push('Salaried GP hired through the PCN\'s additional-roles budget.'); }
-        else hires.push('GP through the PCN budget: no suitable applicants yet.');
-        n--; continue;
-      }
-      const pr = Math.min(0.95, ROLES[r].hire * p.hire * (1 + (proj.hireBoost || 0)) * (0.8 + S.rep / 250) * (S.st.team < 35 ? 0.7 : 1));
-      if (chance(pr)) { S.staff[r]++; S.vac[r]--; hires.push(`${ROLES[r].name} hired.`); }
-      else hires.push(`${ROLES[r].name}: no suitable applicants yet.`);
-      n--;
-    }
-    if (!S.vac[r]) delete S.vac[r];
+      if (r === 'salaried' && gpHeadroom() < 0) { hires.push(pick(NO_GP_REPLIES)); return; }
+      // Through the PCN, a GP's pool is a little wider than a practice post's: since 2026/27 any GP who hasn't worked
+      // in the PCN for a year can be claimed. A nurse's is smaller: local practice nurses from the last 12 months can't be.
+      const pr = Math.min(0.95, R.hire * (k === 'arrsgp' ? 1.25 : k === 'arrsnurse' ? 0.75 : 1) * p.hire * (1 + (proj.hireBoost || 0)) * (0.8 + S.rep / 250) * (S.st.team < 35 ? 0.7 : 1) * hoursF(k, u));
+      if (chance(pr)) { live.splice(live.indexOf(u), 1); S.vac[k] = live.length; addStaff(r, u, pcn); hires.push(`${R.name}${hrs} hired${pcn ? ', paid from the PCN\'s additional-roles budget' : ''}.`); }
+      else hires.push(`${R.name}${hrs}${pcn ? ' through the PCN' : ''}: no suitable applicants yet.`);
+    });
+    if (!live.length) { delete S.vac[k]; delete S.adu[k]; }
   }
   px.hired = hires.filter(h => / hired/.test(h)).length;
   const projOut = { name: proj.name, text: projResult(proj.id, px), deltas: px.deltas };
@@ -697,13 +755,13 @@ function monthEnd() {
   ended.forEach(l => { if (l) notes.push(`Ended: ${l}.`); });
   const logged = S.log.length;
   S.log.forEach(l => notes.push(l)); S.log = [];
-  if (c.recepShort) notes.push(`Reception is ${c.recepShort} short for a list this size.`);
+  if (c.recepShort) notes.push(`Reception is ${fteTxt(c.recepShort)} full-time post${c.recepShort > 1.05 ? 's' : ''} short for a list this size.`);
   if (c.roomsOver) notes.push(`${c.rNeed - c.rAvail} clinic sessions a week had no room. Someone is consulting in the baby-change.`);
   if (activeOthers() === 0) notes.push('You are the only partner. Every decision, and every liability, is yours.');
   const pool = c.ratio < 0.87 ? HEADLINES.bad : c.ratio >= 1.02 ? HEADLINES.good : HEADLINES.ok;
   const headline = fill(pick(chance(0.25) ? HEADLINES.filler : pool));
   S.lastRatio = c.ratio;
-  S.report = { month: S.month, c, drift, inboxStart, inboxEnd: S.inbox, headline, notes, consq, hires, project: proj.name, proj: projOut, news: consq.length + ended.length + logged + hires.filter(h => / hired\.$/.test(h)).length, deltas: diffSnap(before, snap()), cashEnd: S.cash };
+  S.report = { month: S.month, c, drift, inboxStart, inboxEnd: S.inbox, headline, notes, consq, hires, project: proj.name, proj: projOut, news: consq.length + ended.length + logged + hires.filter(h => / hired\b/.test(h)).length, deltas: diffSnap(before, snap()), cashEnd: S.cash };
   S.history.push({ m: S.month, patients: S.st.patients, team: S.st.team, you: S.st.you, safety: S.st.safety, cash: S.cash, qof: S.qof, ratio: c.ratio });
   S.phase = 'report';
   save();

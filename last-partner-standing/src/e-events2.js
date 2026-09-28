@@ -72,7 +72,7 @@ EVENTS.push(
  choices:[
   {t:'Raise pay for the whole reception team',fx:{team:6,aim:{team:3}},run(){ S.payX=(S.payX||0)+1.1; },o:`The team gets a raise, costing about £1,100 a month. Reception morale is the best it has been in years.`},
   {t:'Match it for Kayleigh only',fx:{team:-1},run(){ S.payX=(S.payX||0)+0.3; addMod({id:'resent',label:'Resentment over a pay rise for one',months:3,aim:{team:-3}}); },o:`She stays. Everyone finds out within the hour.`},
-  {t:'Wish her well',fx:{team:-5},run(){ S.staff.recep--; },o:`She goes. The Aldi on the bypass now has the best customer service in the county.`}
+  {t:'Wish her well',fx:{team:-5},run(){ loseStaff('recep','std'); },o:`She goes. The Aldi on the bypass now has the best customer service in the county.`}
  ]},
 
 {id:'home_visit',who:'patient',title:'A home visit request',tag:'story',

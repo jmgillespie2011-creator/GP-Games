@@ -96,7 +96,7 @@ function finishYear(exit) {
   const perHour = pers.takeHome / hours;
   const st = S.st, others = activeOthers();
   const cqcB = S.cqc ? { o: 40, g: 20, ri: -10, i: -40 }[S.cqc.overall] : 0;
-  let score = st.patients + st.team + st.you + st.safety + S.qof + clamp(annualK - 120, -60, 60) * 0.35 + cqcB + others * 8 + (others === 0 && !exit ? 25 : 0) + (S.cash < 0 ? -15 : 0);
+  let score = st.patients + st.team + st.you + st.safety + S.qof + clamp(annualK - 140, -60, 60) * 0.35 + cqcB + others * 8 + (others === 0 && !exit ? 25 : 0) + (S.cash < 0 ? -15 : 0);
   const goalMet = !exit && S.goal && GOALS[S.goal] ? !!GOALS[S.goal].ok() : false;
   if (goalMet) score += GOAL_BONUS;
   if (exit) score *= EXITS[exit].f;
@@ -127,7 +127,7 @@ function continueYear() {
     S.flags.settle = r1(out / partnersN);
   }
   // drawings follow what the practice actually earned last year
-  if (E && !E.exit) S.drawBase = clamp(r1((E.shareK - S.penTotal) / 12), 3, 13);
+  if (E && !E.exit) S.drawBase = clamp(r1((E.shareK - S.penTotal) / 12), 3, 15);
   S.yr = (S.yr || 0) + 1;
   S.qofAsp = P.qofAsp * qofValueK(S.qof) / 12;
   S.qof = 0;
@@ -202,9 +202,9 @@ function archetype(shareK, others) {
   const min = Math.min(st.patients, st.team, st.you, st.safety);
   const counter = { counter: 'Partners averaged £164,200 before tax in 2024/25. The median was £151,200.', src: ['S8'] };
   if (others === 0) return { t: 'Last Partner Standing', s: 'Sole partner', d: 'Everyone else left. You held the contract, the lease and the overdraft on your own, and you are still here on 31st March. It\'s either heroic or a cry for help. Possibly both.', counter: 'Full-time equivalent partners in England fell by 336 in the year to August 2026.', src: ['S11'] };
-  if (st.patients >= 65 && st.team >= 65 && st.you >= 65 && st.safety >= 65 && shareK >= 145) return { t: 'The Unicorn', s: 'Mythical', d: 'Happy patients, happy team, a safe practice, a decent income and your sanity intact. Other partners will not believe you exist.', ...counter };
-  if (shareK >= 185 && st.you < 40) return { t: 'Golden Handcuffs', s: 'Well paid', d: 'The accountant is thrilled. You are exhausted. You\'ve made excellent money, and you\'re too tired to spend it.', ...counter };
-  if (st.patients >= 75 && shareK < 125) return { t: `Patron Saint of ${place}`, s: 'Beloved', d: 'The patients adore you. Mrs Higgins has put you in her will (the shortbread tin). Financially, it has been a vocation rather than a business.', ...counter };
+  if (st.patients >= 65 && st.team >= 65 && st.you >= 65 && st.safety >= 65 && shareK >= 165) return { t: 'The Unicorn', s: 'Mythical', d: 'Happy patients, happy team, a safe practice, a decent income and your sanity intact. Other partners will not believe you exist.', ...counter };
+  if (shareK >= 205 && st.you < 40) return { t: 'Golden Handcuffs', s: 'Well paid', d: 'The accountant is thrilled. You are exhausted. You\'ve made excellent money, and you\'re too tired to spend it.', ...counter };
+  if (st.patients >= 75 && shareK < 145) return { t: `Patron Saint of ${place}`, s: 'Beloved', d: 'The patients adore you. Mrs Higgins has put you in her will (the shortbread tin). Financially, it has been a vocation rather than a business.', ...counter };
   if (st.you >= 75 && st.patients < 45) return { t: 'Master of Boundaries', s: 'Well rested', d: 'You leave at 6:30pm, eat lunch sitting down and never read the Facebook group. The patients have noticed. You\'ve noticed that you don\'t mind.', ...counter };
   if (S.cqc && S.cqc.overall === 'o') return { t: 'The Inspector\'s Darling', s: 'Outstanding', d: 'Outstanding. The certificate is in reception, the policies are colour-coded, and Patricia Sharpe uses your practice as an example in training.', counter: 'About 5% of practices are rated Requires Improvement or Inadequate. Outstanding is rarer still.', src: ['S33'] };
   if (st.team >= 80) return { t: 'Everybody\'s Favourite Boss', s: 'Much loved', d: 'The team would walk through fire for you. Maureen has stopped threatening to retire. Kayleigh stayed rather than go to Aldi. That\'s the real prize.', ...counter };
@@ -215,7 +215,18 @@ function archetype(shareK, others) {
 /* ---------- storage ---------- */
 function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { } }
 function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) { } }
-function loadSave() { try { const t = localStorage.getItem(SAVE_KEY); if (!t) return null; const s = JSON.parse(t); if (s && s.staff && s.staff.anp == null) s.staff.anp = 0; return s && s.v === 2 && s.phase !== 'over' && !(s.phase === 'end' && s.end && s.end.exit) ? s : null; } catch (e) { return null; } }
+// older saves: no ANP, and GPs claimed through the PCN were a count (S.arrsGP) before staff became posts with hours
+function migrateSave(s) {
+  if (!s || !s.staff) return;
+  if (s.staff.anp == null) s.staff.anp = 0;
+  if (s.arrsGP) {
+    const n = Math.round(s.staff.salaried || 0), k = Math.min(s.arrsGP, n);
+    s.posts = s.posts || {};
+    if (!s.posts.salaried) s.posts.salaried = Array.from({ length: n }, (_, i) => i < k ? { u: 1, pcn: 1 } : { u: 1 });
+    delete s.arrsGP;
+  }
+}
+function loadSave() { try { const t = localStorage.getItem(SAVE_KEY); if (!t) return null; const s = JSON.parse(t); migrateSave(s); return s && s.v === 2 && s.phase !== 'over' && !(s.phase === 'end' && s.end && s.end.exit) ? s : null; } catch (e) { return null; } }
 function loadBest() { try { const b = JSON.parse(localStorage.getItem(BEST_KEY) || '[]'); return Array.isArray(b) ? b : []; } catch (e) { return []; } }
 function recordBest(end) {
   const entry = end

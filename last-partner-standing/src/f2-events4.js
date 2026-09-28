@@ -1,6 +1,6 @@
 /* ===================== EVENTS 4: the real calendar, crises and other endings ===================== */
 const gppsPct = () => Math.round(clamp(58 + S.st.patients * 0.36 + (S.rep - 55) * 0.1, 40, 96));
-const nonGpPayroll = () => ['recep','nurse','hca'].reduce((a, r) => a + ROLES[r].cost * S.staff[r], 0) + S.list * CORE_ADMIN;
+const nonGpPayroll = () => ['recep','nurse','hca'].reduce((a, r) => a + staffCost(r), 0) + S.list * CORE_ADMIN;
 
 EVENTS.push(
 /* ---------- the calendar (scheduled) ---------- */
@@ -14,11 +14,11 @@ EVENTS.push(
 
 {id:'pay_award',arc:1,who:'bev',title:'The pay awards',tag:'real',src:['S2','S15','S17'],
  info:'In 2026/27 doctors got 3.5% (DDRB) and Agenda for Change staff 3.3%. Salaried GPs on the model contract follow the doctors\' award. Practice staff aren\'t on Agenda for Change, and a third of practice nurses got no rise the year before. Every rise also costs 15% employer NI and, for pension members, 14.38% employer pension.',
- text:()=>`The pay awards are in: 3.5% for doctors and 3.3% for Agenda for Change staff. Your salaried GP's contract follows the doctors' award. The rest of your staff aren't on Agenda for Change, but they've noticed. Matching it costs about £${Math.round((nonGpPayroll()*0.033+ROLES.salaried.cost*S.staff.salaried*0.035)*1000).toLocaleString('en-GB')} a month.`,
+ text:()=>`The pay awards are in: 3.5% for doctors and 3.3% for Agenda for Change staff. Your salaried GP's contract follows the doctors' award. The rest of your staff aren't on Agenda for Change, but they've noticed. Matching it costs about £${Math.round((nonGpPayroll()*0.033+staffCost('salaried')*0.035)*1000).toLocaleString('en-GB')} a month.`,
  choices:[
-  {t:'Match both awards',fx:{team:5,aim:{team:3}},run(){ S.payX+=nonGpPayroll()*0.033+ROLES.salaried.cost*S.staff.salaried*0.035; },o:`Everyone gets their rise in the June payroll, with arrears. People say thank you in the corridor.`},
-  {t:'Doctors\' award, 2% for everyone else',fx:{team:-3},run(){ S.payX+=nonGpPayroll()*0.02+ROLES.salaried.cost*S.staff.salaried*0.035; addMod({id:'pay2',label:'Staff feel the 2% rise was a pay cut',months:6,aim:{team:-4}}); },o:`It's received with resignation, which is better than resignations. Just.`},
-  {t:'Only what the contracts require',fx:{team:-7},run(){ S.payX+=ROLES.salaried.cost*S.staff.salaried*0.035; addMod({id:'pay0',label:'No pay rise for practice staff',months:9,aim:{team:-7}}); },later:[{in:3,p:0.5,fx:{staff:{nurse:-1},qof:-3},note:'Because staff got no pay rise: a practice nurse left for a Band 6 job at the hospital.'}],o:`Maureen asks to see the partners' drawings. You change the subject. She notices.`}
+  {t:'Match both awards',fx:{team:5,aim:{team:3}},run(){ S.payX+=nonGpPayroll()*0.033+staffCost('salaried')*0.035; },o:`Everyone gets their rise in the June payroll, with arrears. People say thank you in the corridor.`},
+  {t:'Doctors\' award, 2% for everyone else',fx:{team:-3},run(){ S.payX+=nonGpPayroll()*0.02+staffCost('salaried')*0.035; addMod({id:'pay2',label:'Staff feel the 2% rise was a pay cut',months:6,aim:{team:-4}}); },o:`It's received with resignation, which is better than resignations. Just.`},
+  {t:'Only what the contracts require',fx:{team:-7},run(){ S.payX+=staffCost('salaried')*0.035; addMod({id:'pay0',label:'No pay rise for practice staff',months:9,aim:{team:-7}}); },later:[{in:3,p:0.5,fx:{staff:{nurse:-1},qof:-3},note:'Because staff got no pay rise: a practice nurse left for a Band 6 job at the hospital.'}],o:`Maureen asks to see the partners' drawings. You change the subject. She notices.`}
  ]},
 
 {id:'survey',arc:1,who:'paper',title:'The GP Patient Survey',tag:'real',src:['S34'],

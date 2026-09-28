@@ -250,6 +250,8 @@ function staffAdvice() {
   let gapFree = peakFree * 1.03 - have, gapPaid = peakPaid * 1.03 - have;
   const convert = pl.project === 'meetingroom' && !S.flags.proj_meetingroom;
   let rooms = roomsAvail() - (roomsNeeded() - (pl.locum || 0)) - Object.keys(S.vac).reduce((a, k) => a + vacUnits(k) * (ROLES[roleOf(k)].room || 0), 0) + (convert ? ROOM_SESSIONS : 0);
+  // the building is full only when the people already in post fill it: posts still to be filled don't need a room yet
+  const fullNow = roomsAvail() - (roomsNeeded() - (pl.locum || 0)) + (convert ? ROOM_SESSIONS : 0) < 3.2;
   let budget = arrsLeft();
   let sup = ROLE_ORDER.filter(r => ROLES[r].sup).reduce((a, r) => a + S.staff[r] + vacUnits(r), 0);
   // the most hours of a post (from its choices) that the free rooms can hold
@@ -283,42 +285,50 @@ function staffAdvice() {
     budget -= arrsClaimOf(r) * u; add(r, u, `still short for the winter: ${DOES[r]}, paid from the PCN budget`);
   }
   // then the practice's own money, planned six months ahead, only if the bank can stand it
-  // right-sized: the fewest hours that close the gap, within the rooms
-  const sized = (k, need) => { const R = ROLES[roleOf(k)], fits = hoursOf(k).filter(v => !R.room || R.room * v <= rooms + 0.01).sort((x, y) => x - y); return fits.find(v => R.cap * v * capMul >= need) || fits[fits.length - 1] || 0; };
+  // right-sized: the fewest hours that close the gap, within the rooms. A GP or an ANP takes months to recruit, so they
+  // may count on the meeting room too: it's converted once the people in post fill the rooms, before they start.
+  const later = !convert && !S.flags.proj_meetingroom ? ROOM_SESSIONS : 0;
+  let needRoom = false;
+  const sized = (k, need, extra = 0) => { const R = ROLES[roleOf(k)], fits = hoursOf(k).filter(v => !R.room || R.room * v <= rooms + extra + 0.01).sort((x, y) => x - y); return fits.find(v => R.cap * v * capMul >= need) || fits[fits.length - 1] || 0; };
+  const roomNote = (k, u) => { if ((ROLES[roleOf(k)].room || 0) * u <= rooms + 0.01) return ''; needRoom = true; return '. They\'ll need a clinic room: convert the meeting room once the rooms are full'; };
   // no more GPs than the England average for a list this size (4.6 full-time per 10,000 patients), give or take half a
   // day: beyond that the salaries outrun the income, and the practice runs out of money in the long run
   const gpRoom = u => benchmark()[0][1] + (u + vacUnits('salaried') + vacUnits('arrsgp')) * 6 / GP_FTE_SESSIONS <= BENCH.gp * S.list / BENCH.patients + 0.6;
   if (gapPaid > Math.max(15, peakPaid * 0.03) && S.cash > S.overdraft + 40) {
     if (gpHeadroom() >= 4) {
-      const u = sized('salaried', gapPaid);
+      const u = sized('salaried', gapPaid, later);
       if (u && gpHeadroom() >= u * 6 && !open('salaried') && !open('arrsgp') && gpRoom(u))
-        add('salaried', u, `appointments will still be short in the months ahead: a salaried GP for ${Math.round(u * 6)} sessions, which is about what's needed${u < 1.4 && fit('salaried') <= u ? ' and what the free rooms hold' : ''}, paid by the practice`);
+        add('salaried', u, `appointments will still be short in the months ahead: a salaried GP for ${Math.round(u * 6)} sessions, which is about what's needed${u < 1.4 && fit('salaried') <= u ? ' and what the free rooms hold' : ''}, paid by the practice${roomNote('salaried', u)}`);
     }
     // no GPs to find here: an advanced nurse practitioner over the PCN budget still costs less than the locums they replace
     else if (!S.staff.anp && !open('anp') && S.st.you >= 45 && S.cash > S.overdraft + 60) {
-      const v = sized('anp', gapPaid), over = Math.max(0, arrsClaimOf('anp') * v - Math.max(0, budget));
-      if (v) add('anp', v, `no GPs to be found here, so an advanced nurse practitioner${over > 0.5 ? `, over the PCN budget: about £${Math.round(over)}k a year from the practice, less than locums for the same appointments` : ', paid from the PCN budget'}`);
+      const v = sized('anp', gapPaid, later), over = Math.max(0, arrsClaimOf('anp') * v - Math.max(0, budget));
+      if (v) add('anp', v, `no GPs to be found here, so an advanced nurse practitioner${over > 0.5 ? `, over the PCN budget: about £${Math.round(over)}k a year from the practice, less than locums for the same appointments` : ', paid from the PCN budget'}${roomNote('anp', v)}`);
     }
   }
   // the inbox: a GP assistant from the PCN budget codes letters and preps results
   if (c.inboxEnd > 400 && !S.staff.gpa && !open('gpa') && budget >= arrsClaimOf('gpa')) { budget -= arrsClaimOf('gpa'); out.push({ k: 'gpa', u: 1, why: `the inbox will reach ${c.inboxEnd} this month, and a GP assistant codes letters and preps results, paid from the PCN budget` }); }
   // recalls behind: a care coordinator from the PCN budget chases reviews and care plans
   if (S.month >= 3 && S.qof < S.month * 8 && !S.staff.cc && !open('cc') && budget >= arrsClaimOf('cc')) { budget -= arrsClaimOf('cc'); out.push({ k: 'cc', u: 1, why: `QOF is at ${Math.round(S.qof)}%, behind for ${MONTHS[S.month]}, and a care coordinator chases recalls and care plans, paid from the PCN budget` }); }
-  // when the building is the limit: say so, and cut demand instead, but not while a room is on its way
-  if (gapFree > 15 && rooms < 3.2) {
-    if (!convert && S.staff.sp + vacUnits('sp') < 2 && budget >= arrsClaimOf('sp')) { budget -= arrsClaimOf('sp'); out.push({ k: 'sp', u: 1, why: `the rooms are full, and a social prescriber needs none: they help with debt, housing and loneliness, which takes about 2% off demand, paid from the PCN budget` }); }
-    if (!convert) out.push({ note: S.flags.proj_meetingroom ? 'The clinic rooms are full, so another clinician won\'t fit. Evening and Saturday clinics need no room.' : 'The clinic rooms are full, so another clinician won\'t fit. Convert the meeting room into a clinic room (a project), or add evening and Saturday clinics, which need no room.' });
+  // when the building is the limit: say so, and cut demand instead, but not while a room is on its way. If it's only the
+  // posts suggested or advertised that would fill the rooms, say that, and leave the meeting room until they're in post.
+  if (gapFree > 15 && rooms < 3.2 && !convert) {
+    if (fullNow) {
+      if (S.staff.sp + vacUnits('sp') < 2 && budget >= arrsClaimOf('sp')) { budget -= arrsClaimOf('sp'); out.push({ k: 'sp', u: 1, why: `the rooms are full, and a social prescriber needs none: they help with debt, housing and loneliness, which takes about 2% off demand, paid from the PCN budget` }); }
+      out.push({ full: true, note: S.flags.proj_meetingroom ? 'The clinic rooms are full, so another clinician won\'t fit. Evening and Saturday clinics need no room.' : 'The clinic rooms are full, so another clinician won\'t fit. Convert the meeting room into a clinic room (a project), or add evening and Saturday clinics, which need no room.' });
+    } else if (!needRoom) out.push({ note: S.flags.proj_meetingroom ? 'These posts would fill the free clinic rooms. If appointments are still short once they\'re in post, evening and Saturday clinics need no room.' : 'These posts would fill the free clinic rooms. If appointments are still short once they\'re in post, convert the meeting room into a clinic room then, or add evening and Saturday clinics, which need no room.' });
   }
   return out;
 }
-// Bev's whole plan: the month (suggestPlan), then the staffing. If the staff she'd recruit need a room the building hasn't
-// got, and it can still be made, the month's project becomes the meeting room, and the staffing is worked out again.
+// Bev's whole plan: the month (suggestPlan), then the staffing. If the people already in post fill the clinic rooms and
+// appointments are still short, and the meeting room can still be converted, that becomes the month's project and the
+// staffing is worked out again. While there are free rooms, she fills them first.
 function bevAdvice() {
   const why = suggestPlan();
   let staff = staffAdvice();
-  if (staff.some(a => a.note) && !S.flags.proj_meetingroom && S.plan.project !== 'meetingroom' && S.cash > S.overdraft + 10) {
+  if (staff.some(a => a.full) && !S.flags.proj_meetingroom && S.plan.project !== 'meetingroom' && S.cash > S.overdraft + 10) {
     S.plan.project = 'meetingroom';
-    why[why.length - 1] = `Project: ${PROJECTS.find(x => x.id === 'meetingroom').name}, because the staff below need a clinic room`;
+    why[why.length - 1] = `Project: ${PROJECTS.find(x => x.id === 'meetingroom').name}, because the clinic rooms are full and appointments are still short`;
     staff = staffAdvice();
   }
   return { why, staff };

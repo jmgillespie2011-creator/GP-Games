@@ -24,17 +24,26 @@ let MG = null;
 const miniDur = game => Math.round(MINI[game].dur * Math.max(0.66, 1 - 0.08 * ((S && S.yr) || 0)) / 1000) * 1000;
 const miniPen = () => 2000 + 500 * Math.min(4, (S && S.yr) || 0);
 function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+// A career meets a game's whole pool before anything comes back: items it hasn't answered are dealt first. S.miniSeen keeps
+// a short key for each item answered, per game; when fewer than a round's worth are left unseen, the next round starts.
+const miniItemKey = it => { let h = 5381; for (const ch of it.b) h = (h * 33 + ch.charCodeAt(0)) >>> 0; return h.toString(36); };
+function miniDeck(game) {
+  const pool = MINI[game].items, seen = new Set(((S.miniSeen || {})[game]) || []);
+  const fresh = pool.filter(it => !seen.has(miniItemKey(it))), old = pool.filter(it => seen.has(miniItemKey(it)));
+  if (fresh.length < 12 && S.miniSeen) S.miniSeen[game] = [];
+  return shuffle(fresh).concat(shuffle(old));
+}
 
 function startMini(game, choiceIdx) {
   S.phase = 'mini';
-  MG = { game, choiceIdx, stage: 'intro', items: shuffle(MINI[game].items), idx: 0, score: 0, correct: 0, wrong: 0, danger: 0, streak: 0, best: 0, t0: 0, penalty: 0, left: miniDur(game), timer: null, last: null };
+  MG = { game, choiceIdx, stage: 'intro', items: miniDeck(game), idx: 0, score: 0, correct: 0, wrong: 0, danger: 0, streak: 0, best: 0, t0: 0, penalty: 0, left: miniDur(game), timer: null, last: null };
   save(); render(); window.scrollTo(0, 0);
 }
 function ensureMG() {
   if (MG) return true;
   const e = currentEvent();
   if (!e || e.kind !== 'mini') { S.phase = 'event'; return false; }
-  MG = { game: e.game, choiceIdx: e.choices.findIndex(c => c.play), stage: 'intro', items: shuffle(MINI[e.game].items), idx: 0, score: 0, correct: 0, wrong: 0, danger: 0, streak: 0, best: 0, t0: 0, penalty: 0, left: miniDur(e.game), timer: null, last: null };
+  MG = { game: e.game, choiceIdx: e.choices.findIndex(c => c.play), stage: 'intro', items: miniDeck(e.game), idx: 0, score: 0, correct: 0, wrong: 0, danger: 0, streak: 0, best: 0, t0: 0, penalty: 0, left: miniDur(e.game), timer: null, last: null };
   return true;
 }
 function renderMini() {
@@ -105,6 +114,8 @@ function miniAnswer(k) {
   const G = MINI[MG.game];
   const it = MG.items[MG.idx % MG.items.length];
   const ok = it.a.includes(k);
+  const seen = (S.miniSeen = S.miniSeen || {})[MG.game] = S.miniSeen[MG.game] || [], key = miniItemKey(it);
+  if (!seen.includes(key)) seen.push(key);
   const label = kk => (G.bins.find(b => b.k === kk) || {}).l || kk;
   if (ok) { MG.correct++; MG.streak++; MG.best = Math.max(MG.best, MG.streak); }
   else {

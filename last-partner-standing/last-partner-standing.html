@@ -597,7 +597,7 @@ button,.choice,.bin,summary{touch-action:manipulation;-webkit-tap-highlight-colo
 </style>
 <div id="app"></div>
 <script>
-const BUILD = '0a55f7f';
+const BUILD = '05ee810';
 /* ===================== DATA: world, money, people ===================== */
 const MONTHS = ['April','May','June','July','August','September','October','November','December','January','February','March'];
 const MON3 = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
@@ -3213,6 +3213,9 @@ function teachDone(notPartner) { if (tutor(notPartner).scheme) S.flags.teachSche
 // a small worked table for the outcome card (plain numbers and our own labels, so nothing to escape)
 const tchN = v => Math.round(v).toLocaleString('en-GB');
 const tchK = v => (v < 0 ? '−£' : '£') + Math.abs(v).toFixed(1) + 'k';
+// A year's income at this month's rate, with QOF at the full value of last year's score (the monthly payments are only
+// 80% of it; the rest comes the following June). Used to say what share of the money each stream brings.
+const yearIncomeK = () => { const i = calc().inc; return (Object.values(i).reduce((a, b) => a + b, 0) - i.qof) * 12 + qofValueK(prac().lastQof); };
 const tchTable = (title, rows, sum, note) => `<div class="teach"><h3>${title}</h3><dl class="kv small">${rows.map(([l, v, how]) => `<dt>${l}${how ? `<small>${how}</small>` : ''}</dt><dd>${v}</dd>`).join('')}${sum ? `<dt class="sum">${sum[0]}</dt><dd class="sum">${sum[1]}</dd>` : ''}</dl>${note ? `<p class="fc-note">${note}</p>` : ''}</div>`;
 const teachArrsRoles = () => ROLE_ORDER.filter(r => ROLES[r].arrs && S.staff[r] > 0);
 // local services the ICB buys from the practice, each a share of the enhanced-services income (our estimate), in the order they go
@@ -3231,17 +3234,18 @@ EVENTS.push(
  text:()=>{ const t = tutor(), w = weightedList(), r = w / S.list;
   const mix = r > 1.01 ? `${tchN(w)}, because they're older and need more than average` : r < 0.99 ? `only ${tchN(w)}, because they're younger than average` : `about ${tchN(w)}: an average mix`;
   return teachAsk(t, t.who === 'reg' ? 'Ellie has a tutorial on practice finance.' : 'Tom has been reading the practice accounts.', 'Where does the money actually come from?') +
-   ` Mostly the global sum: £130.07 a year for each weighted patient. Weighting counts need as well as heads, so your {list} patients count as ${mix}. Less 4.7% for opting out of out-of-hours care, it pays about £${tchN(calc().inc.gs * 1000)} a month, however many appointments you offer.`; },
+   ` Mostly the global sum: £130.07 a year for each weighted patient. Weighting counts need as well as heads, so your {list} patients count as ${mix}. Less 4.7% for opting out of out-of-hours care, it pays about £${tchN(calc().inc.gs * 1000)} a month, however many appointments you offer: about ${Math.round(calc().inc.gs * 12 / yearIncomeK() * 100)}% of everything the practice earns. QOF is next, at about ${Math.round(qofValueK(prac().lastQof) / yearIncomeK() * 100)}% of a year's income, then the PCN's money, vaccinations, enhanced services and private fees.`; },
  choices:[
   {t:'Go through the statement line by line',fx:()=>teachFx({you:-2},2),
    run(){ const c = calc(), i = c.inc, tot = Object.values(i).reduce((a, b) => a + b, 0); taught();
-    return { html: tchTable(`${prac().surgery}: income this month`, [
-     ['Global sum', tchK(i.gs), `${tchN(weightedList())} weighted patients × £${P.gs} × (1 − 4.7%) ÷ 12`],
-     ['QOF aspiration', tchK(i.qof), '80% of last year\'s QOF, paid monthly'],
-     ['Vaccinations', tchK(i.vacc), 'Paid for each one given'],
-     ['Enhanced services', tchK(i.es), 'Paid for what you deliver, so they fall when appointments run short'],
-     ['Network and PCN', tchK(i.npp + i.pcn), 'Your share of the PCN\'s money: core funding, evening and weekend access, the IIF'],
-     ['Private fees', tchK(i.priv), 'Reports, medicals and letters']
+    const sh = v => `${tchK(v)} · ${Math.round(v / tot * 100)}%`;
+    return { html: tchTable(`${prac().surgery}: income this month, and each line's share`, [
+     ['Global sum', sh(i.gs), `${tchN(weightedList())} weighted patients × £${P.gs} × (1 − 4.7%) ÷ 12`],
+     ['QOF aspiration', sh(i.qof), `80% of last year's QOF, paid monthly. With the balance in June, QOF is about ${Math.round(qofValueK(prac().lastQof) / yearIncomeK() * 100)}% of a year's income`],
+     ['Vaccinations', sh(i.vacc), 'Paid for each one given, so more in the flu season'],
+     ['Enhanced services', sh(i.es), 'Paid for what you deliver, so they fall when appointments run short'],
+     ['Network and PCN', sh(i.npp + i.pcn), 'Your share of the PCN\'s money: core funding, evening and weekend access, the IIF'],
+     ['Private fees', sh(i.priv), 'Reports, medicals and letters']
     ], ['Income this month', tchK(tot)], 'Staff, locums, rent and running costs all come out of this before the partners see any of it.') }; },
    o:()=>{ const t = tutor(); return `You go through it together. The global sum is the biggest line by far, and it doesn't rise when demand does. "So being busier doesn't pay," ${t.scheme ? 'says a registrar' : t.n + ' says'}. Only a bigger list does, slowly, and the extra patients bring their own demand.`; }},
   {t:'"Patients, not appointments." Back to clinic.',fx:()=>teachFx({you:1},-1),
@@ -3253,7 +3257,7 @@ EVENTS.push(
  info:'The Quality and Outcomes Framework: 582 points in 2026/27, each worth £227.95 for a practice of average size (10,295 patients), adjusted for list size and how common each condition is. Practices get 80% of last year\'s value monthly as an aspiration payment, and the balance for what they actually achieve by the end of the following June.',
  text:()=>{ const t = tutor();
   return teachAsk(t, `${t.n} has found the QOF dashboard.`, 'Why does everyone care so much about this?') +
-   ` QOF pays for care you can count, like blood pressure control and diabetes reviews: 582 points, each worth about £228 for an average practice, scaled for list size and how common the conditions are. Here, 100% is worth about £${tchN(qofValueK(100) * 1000)} a year, so each 1% is about £${tchN(qofValueK(1) * 1000)}. You're at {qof}% so far; it's counted on 31 March.`; },
+   ` QOF pays for care you can count, like blood pressure control and diabetes reviews: 582 points, each worth about £228 for an average practice, scaled for list size and how common the conditions are. Here, 100% is worth about £${tchN(qofValueK(100) * 1000)} a year, so each 1% is about £${tchN(qofValueK(1) * 1000)}. Last year's ${prac().lastQof}% was about ${Math.round(qofValueK(prac().lastQof) / yearIncomeK() * 100)}% of the practice's income: the global sum is most of the rest. You're at {qof}% so far; it's counted on 31 March.`; },
  choices:[
   {t:()=>tutor().scheme ? 'Walk them through a year of QOF' : `Work through the recall list with ${tutor().n}`,fx:()=>teachFx(tutor().scheme ? {you:-2} : {you:-2,qof:1},1),
    run(){ const p = prac(); taught();
@@ -3614,6 +3618,8 @@ function staffAdvice() {
   let gapFree = peakFree * 1.03 - have, gapPaid = peakPaid * 1.03 - have;
   const convert = pl.project === 'meetingroom' && !S.flags.proj_meetingroom;
   let rooms = roomsAvail() - (roomsNeeded() - (pl.locum || 0)) - Object.keys(S.vac).reduce((a, k) => a + vacUnits(k) * (ROLES[roleOf(k)].room || 0), 0) + (convert ? ROOM_SESSIONS : 0);
+  // the building is full only when the people already in post fill it: posts still to be filled don't need a room yet
+  const fullNow = roomsAvail() - (roomsNeeded() - (pl.locum || 0)) + (convert ? ROOM_SESSIONS : 0) < 3.2;
   let budget = arrsLeft();
   let sup = ROLE_ORDER.filter(r => ROLES[r].sup).reduce((a, r) => a + S.staff[r] + vacUnits(r), 0);
   // the most hours of a post (from its choices) that the free rooms can hold
@@ -3647,42 +3653,50 @@ function staffAdvice() {
     budget -= arrsClaimOf(r) * u; add(r, u, `still short for the winter: ${DOES[r]}, paid from the PCN budget`);
   }
   // then the practice's own money, planned six months ahead, only if the bank can stand it
-  // right-sized: the fewest hours that close the gap, within the rooms
-  const sized = (k, need) => { const R = ROLES[roleOf(k)], fits = hoursOf(k).filter(v => !R.room || R.room * v <= rooms + 0.01).sort((x, y) => x - y); return fits.find(v => R.cap * v * capMul >= need) || fits[fits.length - 1] || 0; };
+  // right-sized: the fewest hours that close the gap, within the rooms. A GP or an ANP takes months to recruit, so they
+  // may count on the meeting room too: it's converted once the people in post fill the rooms, before they start.
+  const later = !convert && !S.flags.proj_meetingroom ? ROOM_SESSIONS : 0;
+  let needRoom = false;
+  const sized = (k, need, extra = 0) => { const R = ROLES[roleOf(k)], fits = hoursOf(k).filter(v => !R.room || R.room * v <= rooms + extra + 0.01).sort((x, y) => x - y); return fits.find(v => R.cap * v * capMul >= need) || fits[fits.length - 1] || 0; };
+  const roomNote = (k, u) => { if ((ROLES[roleOf(k)].room || 0) * u <= rooms + 0.01) return ''; needRoom = true; return '. They\'ll need a clinic room: convert the meeting room once the rooms are full'; };
   // no more GPs than the England average for a list this size (4.6 full-time per 10,000 patients), give or take half a
   // day: beyond that the salaries outrun the income, and the practice runs out of money in the long run
   const gpRoom = u => benchmark()[0][1] + (u + vacUnits('salaried') + vacUnits('arrsgp')) * 6 / GP_FTE_SESSIONS <= BENCH.gp * S.list / BENCH.patients + 0.6;
   if (gapPaid > Math.max(15, peakPaid * 0.03) && S.cash > S.overdraft + 40) {
     if (gpHeadroom() >= 4) {
-      const u = sized('salaried', gapPaid);
+      const u = sized('salaried', gapPaid, later);
       if (u && gpHeadroom() >= u * 6 && !open('salaried') && !open('arrsgp') && gpRoom(u))
-        add('salaried', u, `appointments will still be short in the months ahead: a salaried GP for ${Math.round(u * 6)} sessions, which is about what's needed${u < 1.4 && fit('salaried') <= u ? ' and what the free rooms hold' : ''}, paid by the practice`);
+        add('salaried', u, `appointments will still be short in the months ahead: a salaried GP for ${Math.round(u * 6)} sessions, which is about what's needed${u < 1.4 && fit('salaried') <= u ? ' and what the free rooms hold' : ''}, paid by the practice${roomNote('salaried', u)}`);
     }
     // no GPs to find here: an advanced nurse practitioner over the PCN budget still costs less than the locums they replace
     else if (!S.staff.anp && !open('anp') && S.st.you >= 45 && S.cash > S.overdraft + 60) {
-      const v = sized('anp', gapPaid), over = Math.max(0, arrsClaimOf('anp') * v - Math.max(0, budget));
-      if (v) add('anp', v, `no GPs to be found here, so an advanced nurse practitioner${over > 0.5 ? `, over the PCN budget: about £${Math.round(over)}k a year from the practice, less than locums for the same appointments` : ', paid from the PCN budget'}`);
+      const v = sized('anp', gapPaid, later), over = Math.max(0, arrsClaimOf('anp') * v - Math.max(0, budget));
+      if (v) add('anp', v, `no GPs to be found here, so an advanced nurse practitioner${over > 0.5 ? `, over the PCN budget: about £${Math.round(over)}k a year from the practice, less than locums for the same appointments` : ', paid from the PCN budget'}${roomNote('anp', v)}`);
     }
   }
   // the inbox: a GP assistant from the PCN budget codes letters and preps results
   if (c.inboxEnd > 400 && !S.staff.gpa && !open('gpa') && budget >= arrsClaimOf('gpa')) { budget -= arrsClaimOf('gpa'); out.push({ k: 'gpa', u: 1, why: `the inbox will reach ${c.inboxEnd} this month, and a GP assistant codes letters and preps results, paid from the PCN budget` }); }
   // recalls behind: a care coordinator from the PCN budget chases reviews and care plans
   if (S.month >= 3 && S.qof < S.month * 8 && !S.staff.cc && !open('cc') && budget >= arrsClaimOf('cc')) { budget -= arrsClaimOf('cc'); out.push({ k: 'cc', u: 1, why: `QOF is at ${Math.round(S.qof)}%, behind for ${MONTHS[S.month]}, and a care coordinator chases recalls and care plans, paid from the PCN budget` }); }
-  // when the building is the limit: say so, and cut demand instead, but not while a room is on its way
-  if (gapFree > 15 && rooms < 3.2) {
-    if (!convert && S.staff.sp + vacUnits('sp') < 2 && budget >= arrsClaimOf('sp')) { budget -= arrsClaimOf('sp'); out.push({ k: 'sp', u: 1, why: `the rooms are full, and a social prescriber needs none: they help with debt, housing and loneliness, which takes about 2% off demand, paid from the PCN budget` }); }
-    if (!convert) out.push({ note: S.flags.proj_meetingroom ? 'The clinic rooms are full, so another clinician won\'t fit. Evening and Saturday clinics need no room.' : 'The clinic rooms are full, so another clinician won\'t fit. Convert the meeting room into a clinic room (a project), or add evening and Saturday clinics, which need no room.' });
+  // when the building is the limit: say so, and cut demand instead, but not while a room is on its way. If it's only the
+  // posts suggested or advertised that would fill the rooms, say that, and leave the meeting room until they're in post.
+  if (gapFree > 15 && rooms < 3.2 && !convert) {
+    if (fullNow) {
+      if (S.staff.sp + vacUnits('sp') < 2 && budget >= arrsClaimOf('sp')) { budget -= arrsClaimOf('sp'); out.push({ k: 'sp', u: 1, why: `the rooms are full, and a social prescriber needs none: they help with debt, housing and loneliness, which takes about 2% off demand, paid from the PCN budget` }); }
+      out.push({ full: true, note: S.flags.proj_meetingroom ? 'The clinic rooms are full, so another clinician won\'t fit. Evening and Saturday clinics need no room.' : 'The clinic rooms are full, so another clinician won\'t fit. Convert the meeting room into a clinic room (a project), or add evening and Saturday clinics, which need no room.' });
+    } else if (!needRoom) out.push({ note: S.flags.proj_meetingroom ? 'These posts would fill the free clinic rooms. If appointments are still short once they\'re in post, evening and Saturday clinics need no room.' : 'These posts would fill the free clinic rooms. If appointments are still short once they\'re in post, convert the meeting room into a clinic room then, or add evening and Saturday clinics, which need no room.' });
   }
   return out;
 }
-// Bev's whole plan: the month (suggestPlan), then the staffing. If the staff she'd recruit need a room the building hasn't
-// got, and it can still be made, the month's project becomes the meeting room, and the staffing is worked out again.
+// Bev's whole plan: the month (suggestPlan), then the staffing. If the people already in post fill the clinic rooms and
+// appointments are still short, and the meeting room can still be converted, that becomes the month's project and the
+// staffing is worked out again. While there are free rooms, she fills them first.
 function bevAdvice() {
   const why = suggestPlan();
   let staff = staffAdvice();
-  if (staff.some(a => a.note) && !S.flags.proj_meetingroom && S.plan.project !== 'meetingroom' && S.cash > S.overdraft + 10) {
+  if (staff.some(a => a.full) && !S.flags.proj_meetingroom && S.plan.project !== 'meetingroom' && S.cash > S.overdraft + 10) {
     S.plan.project = 'meetingroom';
-    why[why.length - 1] = `Project: ${PROJECTS.find(x => x.id === 'meetingroom').name}, because the staff below need a clinic room`;
+    why[why.length - 1] = `Project: ${PROJECTS.find(x => x.id === 'meetingroom').name}, because the clinic rooms are full and appointments are still short`;
     staff = staffAdvice();
   }
   return { why, staff };
@@ -5532,17 +5546,26 @@ let MG = null;
 const miniDur = game => Math.round(MINI[game].dur * Math.max(0.66, 1 - 0.08 * ((S && S.yr) || 0)) / 1000) * 1000;
 const miniPen = () => 2000 + 500 * Math.min(4, (S && S.yr) || 0);
 function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+// A career meets a game's whole pool before anything comes back: items it hasn't answered are dealt first. S.miniSeen keeps
+// a short key for each item answered, per game; when fewer than a round's worth are left unseen, the next round starts.
+const miniItemKey = it => { let h = 5381; for (const ch of it.b) h = (h * 33 + ch.charCodeAt(0)) >>> 0; return h.toString(36); };
+function miniDeck(game) {
+  const pool = MINI[game].items, seen = new Set(((S.miniSeen || {})[game]) || []);
+  const fresh = pool.filter(it => !seen.has(miniItemKey(it))), old = pool.filter(it => seen.has(miniItemKey(it)));
+  if (fresh.length < 12 && S.miniSeen) S.miniSeen[game] = [];
+  return shuffle(fresh).concat(shuffle(old));
+}
 
 function startMini(game, choiceIdx) {
   S.phase = 'mini';
-  MG = { game, choiceIdx, stage: 'intro', items: shuffle(MINI[game].items), idx: 0, score: 0, correct: 0, wrong: 0, danger: 0, streak: 0, best: 0, t0: 0, penalty: 0, left: miniDur(game), timer: null, last: null };
+  MG = { game, choiceIdx, stage: 'intro', items: miniDeck(game), idx: 0, score: 0, correct: 0, wrong: 0, danger: 0, streak: 0, best: 0, t0: 0, penalty: 0, left: miniDur(game), timer: null, last: null };
   save(); render(); window.scrollTo(0, 0);
 }
 function ensureMG() {
   if (MG) return true;
   const e = currentEvent();
   if (!e || e.kind !== 'mini') { S.phase = 'event'; return false; }
-  MG = { game: e.game, choiceIdx: e.choices.findIndex(c => c.play), stage: 'intro', items: shuffle(MINI[e.game].items), idx: 0, score: 0, correct: 0, wrong: 0, danger: 0, streak: 0, best: 0, t0: 0, penalty: 0, left: miniDur(e.game), timer: null, last: null };
+  MG = { game: e.game, choiceIdx: e.choices.findIndex(c => c.play), stage: 'intro', items: miniDeck(e.game), idx: 0, score: 0, correct: 0, wrong: 0, danger: 0, streak: 0, best: 0, t0: 0, penalty: 0, left: miniDur(e.game), timer: null, last: null };
   return true;
 }
 function renderMini() {
@@ -5613,6 +5636,8 @@ function miniAnswer(k) {
   const G = MINI[MG.game];
   const it = MG.items[MG.idx % MG.items.length];
   const ok = it.a.includes(k);
+  const seen = (S.miniSeen = S.miniSeen || {})[MG.game] = S.miniSeen[MG.game] || [], key = miniItemKey(it);
+  if (!seen.includes(key)) seen.push(key);
   const label = kk => (G.bins.find(b => b.k === kk) || {}).l || kk;
   if (ok) { MG.correct++; MG.streak++; MG.best = Math.max(MG.best, MG.streak); }
   else {

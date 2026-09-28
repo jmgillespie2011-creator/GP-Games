@@ -45,6 +45,9 @@ function teachDone(notPartner) { if (tutor(notPartner).scheme) S.flags.teachSche
 // a small worked table for the outcome card (plain numbers and our own labels, so nothing to escape)
 const tchN = v => Math.round(v).toLocaleString('en-GB');
 const tchK = v => (v < 0 ? '−£' : '£') + Math.abs(v).toFixed(1) + 'k';
+// A year's income at this month's rate, with QOF at the full value of last year's score (the monthly payments are only
+// 80% of it; the rest comes the following June). Used to say what share of the money each stream brings.
+const yearIncomeK = () => { const i = calc().inc; return (Object.values(i).reduce((a, b) => a + b, 0) - i.qof) * 12 + qofValueK(prac().lastQof); };
 const tchTable = (title, rows, sum, note) => `<div class="teach"><h3>${title}</h3><dl class="kv small">${rows.map(([l, v, how]) => `<dt>${l}${how ? `<small>${how}</small>` : ''}</dt><dd>${v}</dd>`).join('')}${sum ? `<dt class="sum">${sum[0]}</dt><dd class="sum">${sum[1]}</dd>` : ''}</dl>${note ? `<p class="fc-note">${note}</p>` : ''}</div>`;
 const teachArrsRoles = () => ROLE_ORDER.filter(r => ROLES[r].arrs && S.staff[r] > 0);
 // local services the ICB buys from the practice, each a share of the enhanced-services income (our estimate), in the order they go
@@ -63,17 +66,18 @@ EVENTS.push(
  text:()=>{ const t = tutor(), w = weightedList(), r = w / S.list;
   const mix = r > 1.01 ? `${tchN(w)}, because they're older and need more than average` : r < 0.99 ? `only ${tchN(w)}, because they're younger than average` : `about ${tchN(w)}: an average mix`;
   return teachAsk(t, t.who === 'reg' ? 'Ellie has a tutorial on practice finance.' : 'Tom has been reading the practice accounts.', 'Where does the money actually come from?') +
-   ` Mostly the global sum: £130.07 a year for each weighted patient. Weighting counts need as well as heads, so your {list} patients count as ${mix}. Less 4.7% for opting out of out-of-hours care, it pays about £${tchN(calc().inc.gs * 1000)} a month, however many appointments you offer.`; },
+   ` Mostly the global sum: £130.07 a year for each weighted patient. Weighting counts need as well as heads, so your {list} patients count as ${mix}. Less 4.7% for opting out of out-of-hours care, it pays about £${tchN(calc().inc.gs * 1000)} a month, however many appointments you offer: about ${Math.round(calc().inc.gs * 12 / yearIncomeK() * 100)}% of everything the practice earns. QOF is next, at about ${Math.round(qofValueK(prac().lastQof) / yearIncomeK() * 100)}% of a year's income, then the PCN's money, vaccinations, enhanced services and private fees.`; },
  choices:[
   {t:'Go through the statement line by line',fx:()=>teachFx({you:-2},2),
    run(){ const c = calc(), i = c.inc, tot = Object.values(i).reduce((a, b) => a + b, 0); taught();
-    return { html: tchTable(`${prac().surgery}: income this month`, [
-     ['Global sum', tchK(i.gs), `${tchN(weightedList())} weighted patients × £${P.gs} × (1 − 4.7%) ÷ 12`],
-     ['QOF aspiration', tchK(i.qof), '80% of last year\'s QOF, paid monthly'],
-     ['Vaccinations', tchK(i.vacc), 'Paid for each one given'],
-     ['Enhanced services', tchK(i.es), 'Paid for what you deliver, so they fall when appointments run short'],
-     ['Network and PCN', tchK(i.npp + i.pcn), 'Your share of the PCN\'s money: core funding, evening and weekend access, the IIF'],
-     ['Private fees', tchK(i.priv), 'Reports, medicals and letters']
+    const sh = v => `${tchK(v)} · ${Math.round(v / tot * 100)}%`;
+    return { html: tchTable(`${prac().surgery}: income this month, and each line's share`, [
+     ['Global sum', sh(i.gs), `${tchN(weightedList())} weighted patients × £${P.gs} × (1 − 4.7%) ÷ 12`],
+     ['QOF aspiration', sh(i.qof), `80% of last year's QOF, paid monthly. With the balance in June, QOF is about ${Math.round(qofValueK(prac().lastQof) / yearIncomeK() * 100)}% of a year's income`],
+     ['Vaccinations', sh(i.vacc), 'Paid for each one given, so more in the flu season'],
+     ['Enhanced services', sh(i.es), 'Paid for what you deliver, so they fall when appointments run short'],
+     ['Network and PCN', sh(i.npp + i.pcn), 'Your share of the PCN\'s money: core funding, evening and weekend access, the IIF'],
+     ['Private fees', sh(i.priv), 'Reports, medicals and letters']
     ], ['Income this month', tchK(tot)], 'Staff, locums, rent and running costs all come out of this before the partners see any of it.') }; },
    o:()=>{ const t = tutor(); return `You go through it together. The global sum is the biggest line by far, and it doesn't rise when demand does. "So being busier doesn't pay," ${t.scheme ? 'says a registrar' : t.n + ' says'}. Only a bigger list does, slowly, and the extra patients bring their own demand.`; }},
   {t:'"Patients, not appointments." Back to clinic.',fx:()=>teachFx({you:1},-1),
@@ -85,7 +89,7 @@ EVENTS.push(
  info:'The Quality and Outcomes Framework: 582 points in 2026/27, each worth £227.95 for a practice of average size (10,295 patients), adjusted for list size and how common each condition is. Practices get 80% of last year\'s value monthly as an aspiration payment, and the balance for what they actually achieve by the end of the following June.',
  text:()=>{ const t = tutor();
   return teachAsk(t, `${t.n} has found the QOF dashboard.`, 'Why does everyone care so much about this?') +
-   ` QOF pays for care you can count, like blood pressure control and diabetes reviews: 582 points, each worth about £228 for an average practice, scaled for list size and how common the conditions are. Here, 100% is worth about £${tchN(qofValueK(100) * 1000)} a year, so each 1% is about £${tchN(qofValueK(1) * 1000)}. You're at {qof}% so far; it's counted on 31 March.`; },
+   ` QOF pays for care you can count, like blood pressure control and diabetes reviews: 582 points, each worth about £228 for an average practice, scaled for list size and how common the conditions are. Here, 100% is worth about £${tchN(qofValueK(100) * 1000)} a year, so each 1% is about £${tchN(qofValueK(1) * 1000)}. Last year's ${prac().lastQof}% was about ${Math.round(qofValueK(prac().lastQof) / yearIncomeK() * 100)}% of the practice's income: the global sum is most of the rest. You're at {qof}% so far; it's counted on 31 March.`; },
  choices:[
   {t:()=>tutor().scheme ? 'Walk them through a year of QOF' : `Work through the recall list with ${tutor().n}`,fx:()=>teachFx(tutor().scheme ? {you:-2} : {you:-2,qof:1},1),
    run(){ const p = prac(); taught();

@@ -106,7 +106,7 @@ function renderEnd() {
           <dt>One-off costs and income</dt><dd>${signK(yr.oneoff)}</dd>
           <dt>QOF: ${Math.round(S.qof)}% achieved, worth ${fmtK(E.qofV)}</dt><dd>&nbsp;</dd>
           <dt>…less aspiration already paid</dt><dd>−${fmtK(S.aspPaid)}</dd>
-          <dt>QOF balance, paid summer ${2027 + (S.yr || 0)}</dt><dd class="${E.qofBal < 0 ? 'bad-t' : 'good-t'}">${signK(E.qofBal)}</dd>
+          <dt>QOF balance, due by 30 June ${2027 + (S.yr || 0)}</dt><dd class="${E.qofBal < 0 ? 'bad-t' : 'good-t'}">${signK(E.qofBal)}</dd>
           <dt class="sum">Your share of the profit (÷${E.partnersN})</dt><dd class="sum">${fmtK(E.shareK)}</dd>
           <dt>Drawings you took</dt><dd>−${fmtK(S.drawTotal)}</dd>
           <dt>Pension paid for you</dt><dd>−${fmtK(S.penTotal)}</dd>
@@ -124,7 +124,7 @@ function renderEnd() {
     ${E.exit ? '' : `<section class="carry-on"><div><b>Carry on into year ${(S.yr || 0) + 2}?</b><p>Same practice, same staff, same overdraft. Demand keeps rising, the funding doesn't quite keep up, and the years wear on you. How long can you last?</p></div><button class="btn primary" data-act="nextyear">Carry on: year ${(S.yr || 0) + 2} →</button></section>`}
     <div class="rgrid">
       <section class="panel"><h3>The accounts</h3>${accounts}
-        ${explain('When the money actually arrives', `<p>Profit for the year is fixed on 31 March, but the cash comes later. The QOF balance is paid in the summer, and the accountant settles each partner's drawings against their real share once the accounts are signed, typically in the summer.</p>${srcLinks(['S3', 'S23'])}`)}
+        ${explain('When the money actually arrives', `<p>Profit for the year is fixed on 31 March, but the cash comes later. The QOF balance is due by the end of June, and the accountant settles each partner's drawings against their real share once the accounts are signed, typically in the summer.</p>${srcLinks(['S3', 'S23'])}`)}
       </section>
       <section class="panel"><h3>Your own money</h3>
         <dl class="kv">

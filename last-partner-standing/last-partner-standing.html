@@ -573,7 +573,7 @@ button,.choice,.bin,summary{touch-action:manipulation;-webkit-tap-highlight-colo
 </style>
 <div id="app"></div>
 <script>
-const BUILD = '0056761';
+const BUILD = '3869709';
 /* ===================== DATA: world, money, people ===================== */
 const MONTHS = ['April','May','June','July','August','September','October','November','December','January','February','March'];
 const MON3 = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
@@ -656,18 +656,19 @@ const ROLES = {
   nurse:{name:'Practice nurse',cost:empCostK(35884,0.85),cap:104,qof:1.2,room:8,hire:0.4,desc:'Chronic disease reviews, smears, imms. Your QOF engine.'},
   hca:{name:'Healthcare assistant',cost:empCostK(24500,0.7),cap:120,qof:0.8,room:9,hire:0.6,desc:'Bloods, blood pressures, ECGs, health checks.'},
   salaried:{name:'Salaried GP',cost:empCostK(P.salaried*6/9,1),cap:84,clear:50,room:6,hire:0.4,desc:'Six sessions a week. Doesn\'t have to think about the overdraft.'},
-  anp:{name:'Advanced nurse practitioner',arrs:1,claim:78.5,band:'Band 8a',cost:0.35,cap:80,clear:15,room:9,hire:0.35,desc:'Sees same-day problems start to finish, examines, diagnoses and prescribes. Needs a GP supervisor: a daily debrief, about two hours a week of yours. Experienced ones are scarce. Not a GP, but the nearest thing you can hire when no GP will come.'},
-  pharm:{name:'Clinical pharmacist',arrs:1,claim:78,band:'Band 7 to 8a',sup:1,cost:0.35,cap:60,clear:40,qof:0.8,room:4,hire:0.65,desc:'Med reviews, scripts, and queries about the queries.'},
-  physio:{name:'First contact physio',arrs:1,claim:78,band:'Band 7 to 8a',sup:1,cost:0.35,cap:80,room:9,hire:0.6,desc:'Backs, knees and shoulders, straight to the right person.'},
-  para:{name:'Paramedic',arrs:1,claim:78,band:'Band 7 to 8a',sup:1,cost:0.35,cap:55,room:4,hire:0.5,desc:'Home visits and same-day minor illness.'},
-  mhp:{name:'Mental health practitioner',arrs:1,claim:72,band:'Band 7',sup:1,cost:0.35,cap:40,room:8,hire:0.45,desc:'Longer appointments for the patients who need them most.'},
-  cc:{name:'Care coordinator',arrs:1,claim:40,band:'Band 4',cost:0.35,qof:2,hire:0.75,desc:'Recalls, care plans, chasing. QOF loves them.'},
-  sp:{name:'Social prescriber',arrs:1,claim:50,band:'Band 5',cost:0.35,demand:-2,hire:0.75,desc:'Loneliness, debt, housing: the things a prescription can\'t fix.'},
-  gpa:{name:'GP assistant',arrs:1,claim:40,band:'Band 4',cost:0.35,clear:80,hire:0.7,desc:'Codes letters, preps results, tames the inbox.'}
+  anp:{name:'Advanced nurse practitioner',arrs:1,claim:78.534,band:'Band 8a',cost:0.35,cap:80,clear:15,room:9,hire:0.35,desc:'Sees same-day problems start to finish, examines, diagnoses and prescribes. Needs a GP supervisor: a daily debrief, about two hours a week of yours. Experienced ones are scarce. Not a GP, but the nearest thing you can hire when no GP will come.'},
+  pharm:{name:'Clinical pharmacist',arrs:1,claim:71.725,band:'Band 7 to 8a',sup:1,cost:0.35,cap:60,clear:40,qof:0.8,room:4,hire:0.65,desc:'Med reviews, scripts, and queries about the queries.'},
+  physio:{name:'First contact physio',arrs:1,claim:71.725,band:'Band 7 to 8a',sup:1,cost:0.35,cap:80,room:9,hire:0.6,desc:'Backs, knees and shoulders, straight to the right person.'},
+  para:{name:'Paramedic',arrs:1,claim:69.515,band:'Band 7',sup:1,cost:0.35,cap:55,room:4,hire:0.5,desc:'Home visits and same-day minor illness.'},
+  mhp:{name:'Mental health practitioner',arrs:1,claim:69.515,band:'Band 7',sup:1,cost:0.35,cap:40,room:8,hire:0.45,desc:'Longer appointments for the patients who need them most.'},
+  cc:{name:'Care coordinator',arrs:1,claim:38.739,band:'Band 4',cost:0.35,qof:2,hire:0.75,desc:'Recalls, care plans, chasing. QOF loves them.'},
+  sp:{name:'Social prescriber',arrs:1,claim:46.447,band:'up to Band 5',cost:0.35,demand:-2,hire:0.75,desc:'Loneliness, debt, housing: the things a prescription can\'t fix.'},
+  gpa:{name:'GP assistant',arrs:1,claim:38.739,band:'Band 4',cost:0.35,clear:80,hire:0.7,desc:'Codes letters, preps results, tames the inbox.'}
 };
 const ROLE_ORDER = ['salaried','anp','nurse','hca','recep','pharm','physio','para','mhp','cc','sp','gpa'];
 // ARRS roles are claimed from the PCN's additional-roles budget (P.arrs per weighted patient; the practice's share is modelled).
-// `claim` is our estimate of each role's maximum reimbursement, £k a year: the top of its Agenda for Change band plus employer NI and pension.
+// `claim` is each role's 2026/27 national maximum reimbursement, £k a year: actual salary plus employer NI and pension, outside London
+// (Network Contract DES Table 2; mental health practitioners from Table 3b, funded fully by the PCN) [S4]. The game claims each post at its maximum.
 // A consulting room gives about 9 bookable half-day sessions a week (10, less clashes, cleaning and meetings).
 const ROOM_SESSIONS = 9;
 const GP_FTE_SESSIONS = 9; // a full-time GP is about nine sessions a week
@@ -886,7 +887,7 @@ const GLOSSARY = [
   ['Global sum','The core payment for essential services: £130.07 per weighted patient a year in 2026/27, paid monthly. Practices that opt out of out-of-hours care lose 4.7%.',['S2','S3']],
   ['Weighted list (Carr-Hill)','Your list adjusted for need: age, sex, care-home residence (1.43x), new registration (1.46x for a year), rurality and staff costs. The global sum is paid on this, not on headcount.',['S3']],
   ['QOF','The Quality and Outcomes Framework. 582 points in 2026/27, each worth £227.95 for an average-sized practice, scaled for list size and disease prevalence.',['S3']],
-  ['Aspiration payment','80% of last year\'s QOF value, paid monthly during the year. The balance for what you actually achieved is paid after the year end, in the summer. Under-achieve and you pay some back.',['S3']],
+  ['Aspiration payment','80% of last year\'s QOF value, paid monthly during the year. The balance for what you actually achieved is due by the end of the following June. Under-achieve and you pay some back.',['S3']],
   ['ARRS','The Additional Roles Reimbursement Scheme. Each PCN gets a budget of £27.668 per weighted patient a year (2026/27) and claims back the pay of pharmacists, physios, paramedics, advanced nurse practitioners (up to £78,534 a year at Band 8a), care coordinators and others, up to a maximum for each role. From 2026/27 GPs can be claimed too, up to £152,900 a year with on-costs. Staff beyond the budget are paid for by the practices. The practice still has to find the room and the supervision.',['S4','S84']],
   ['PCN','Primary Care Network: a group of neighbouring practices working together under the Network Contract DES. Practices get £1.761 per weighted patient for taking part.',['S4']],
   ['ICB','Integrated Care Board: the NHS body that commissions and pays practices in your area, and issues remedial and breach notices.',[]],
@@ -1555,8 +1556,8 @@ EVENTS.push(
  choices:[{t:'Show her how things really are',run(){ return runCQC(); }}]},
 
 {id:'qof_yearend',arc:1,who:'bev',title:'Six weeks to go',tag:'rule',src:['S3','S13'],
- info:'QOF achievement is measured on 31 March. Points scale between lower and upper thresholds for each indicator. The balance above your aspiration payments is paid after the year end, in the summer.',
- text:()=>`"QOF year end is 31st March. We're at ${Math.round(S.qof)}%." Each 1% is worth about £${Math.round(qofValueK(1)*1000).toLocaleString('en-GB')}, paid next summer. Bev has printed the list of patients still missing their reviews. It's the thickness of a paperback.`,
+ info:'QOF achievement is measured on 31 March. Points scale between lower and upper thresholds for each indicator. The balance above your aspiration payments is paid by the end of June.',
+ text:()=>`"QOF year end is 31st March. We're at ${Math.round(S.qof)}%." Each 1% is worth about £${Math.round(qofValueK(1)*1000).toLocaleString('en-GB')}, paid next June. Bev has printed the list of patients still missing their reviews. It's the thickness of a paperback.`,
  choices:[
   {t:'Saturday recall clinics for the rest of the year',fx:()=>({qof:S.qof < 70 ? 13 : 7,you:-5,team:-4,cash:-1.5}),o:`Four Saturdays of spirometry, foot checks and blood pressures. Maureen does her last one wearing a tiara for reasons nobody explains.`},
   {t:'Text blast, and exception-report where it\'s genuinely justified',fx:()=>({qof:S.qof < 70 ? 3 : 5,safety:-1}),o:`The team sends 1,100 texts. Twelve people reply "STOP". One replies with a photo of their cat.`},
@@ -1672,7 +1673,7 @@ EVENTS.push(
  ]},
 
 {id:'care_home',who:'icb',title:'The care home',tag:'real',src:['S3','S4'],
- info:'Care home residents count 1.43 times in the funding formula, and PCNs get a care home premium for each aligned bed. In return: weekly ward rounds, care plans and a lot of phone calls.',
+ info:'Care home residents count 1.43 times in the funding formula, and PCNs get a care home premium of £133.16 per bed. In return: weekly ward rounds, care plans and a lot of phone calls.',
  text:`The 64-bed care home on Mill Lane has lost its GP practice. The ICB asks if you'll take it on: weekly ward rounds, anticipatory care plans and around 40 calls a week.`,
  choices:[
   {t:'Take it on',fx:{list:64,demand:2,patients:1,icb:4},run(){ S.careBeds+=64; addMod({id:'carehome',label:'Care home ward rounds',months:99,hours:1.5,fx:{cash:0.7}}); },o:`Ward round on Tuesdays. The care staff are wonderful. The funding comes through the formula and the PCN; the phone calls come through you.`},
@@ -3206,7 +3207,7 @@ EVENTS.push(
  after(){ teachDone(); }},
 
 {id:'teach_qof',arc:1,get who(){ return tutor().who; },title:'Points mean money',cond:teachOn,tag:'real',src:['S3','S13'],
- info:'The Quality and Outcomes Framework: 582 points in 2026/27, each worth £227.95 for a practice of average size (10,295 patients), adjusted for list size and how common each condition is. Practices get 80% of last year\'s value monthly as an aspiration payment, and the balance for what they actually achieve after the year end, in the summer.',
+ info:'The Quality and Outcomes Framework: 582 points in 2026/27, each worth £227.95 for a practice of average size (10,295 patients), adjusted for list size and how common each condition is. Practices get 80% of last year\'s value monthly as an aspiration payment, and the balance for what they actually achieve by the end of the following June.',
  text:()=>{ const t = tutor();
   return teachAsk(t, `${t.n} has found the QOF dashboard.`, 'Why does everyone care so much about this?') +
    ` QOF pays for care you can count, like blood pressure control and diabetes reviews: 582 points, each worth about £228 for an average practice, scaled for list size and how common the conditions are. Here, 100% is worth about £${tchN(qofValueK(100) * 1000)} a year, so each 1% is about £${tchN(qofValueK(1) * 1000)}. You're at {qof}% so far; it's counted on 31 March.`; },
@@ -3218,8 +3219,8 @@ EVENTS.push(
      ['Scaled for your list', '× ' + (S.list / P.cpiAvg).toFixed(2), `${tchN(S.list)} patients against the average of ${tchN(P.cpiAvg)}`],
      ['Scaled for how common the conditions are', '× ' + p.prev.toFixed(2), 'Prevalence against the national average'],
      ['Paid monthly now', tchK(S.qofAsp), `80% of last year's ${p.lastQof}%, a twelfth a month`]
-    ], ['100% would be worth', `£${tchN(qofValueK(100) * 1000)} a year`], `The balance for what you actually achieve is paid in the summer of ${2027 + (S.yr || 0)}. Achieve less than you were paid for and some of it goes back.`) }; },
-   o:()=>{ const t = tutor(); return t.scheme ? `You show them how the year goes: recalls in the autumn, the scramble in March, the balance in the summer. "So it's money," says a registrar. "And strokes that don't happen," you say. Both are true.` : `You find four patients with diabetes who only need a foot check, and a man whose blood pressure hasn't been measured since 2019. "So it's money," ${t.n} says. "And a stroke that doesn't happen," you say. Both are true.`; }},
+    ], ['100% would be worth', `£${tchN(qofValueK(100) * 1000)} a year`], `The balance for what you actually achieve is paid by the end of June ${2027 + (S.yr || 0)}. Achieve less than you were paid for and some of it goes back.`) }; },
+   o:()=>{ const t = tutor(); return t.scheme ? `You show them how the year goes: recalls in the autumn, the scramble in March, the balance in June. "So it's money," says a registrar. "And strokes that don't happen," you say. Both are true.` : `You find four patients with diabetes who only need a foot check, and a man whose blood pressure hasn't been measured since 2019. "So it's money," ${t.n} says. "And a stroke that doesn't happen," you say. Both are true.`; }},
   {t:()=>tutor().scheme ? '"It keeps the lights on." Next question.' : '"It keeps the lights on. Ask Maureen."',fx:()=>teachFx({you:1},-1),
    o:()=>{ const t = tutor(); return t.scheme ? `The registrars laugh. One of them writes down "lights".` : `${t.n} asks Maureen, who explains it better than you would have, and mentions it at the practice meeting.`; }}
  ],
@@ -3249,7 +3250,7 @@ EVENTS.push(
  after(){ teachDone(); if (lcsNext() && chance(0.4)) schedule('lcs_cut', 3 + Math.floor(Math.random() * 3)); }},
 
 {id:'teach_arrs',arc:1,get who(){ return tutor().who; },title:'Who pays for the pharmacist?',cond:teachOn,tag:'real',src:['S4','S84'],
- info:'The Additional Roles Reimbursement Scheme pays each PCN £27.668 per weighted patient a year (2026/27) to claim back the pay of set roles, such as clinical pharmacists, physios, paramedics, care coordinators and, from 2026/27, GPs, up to a maximum for each role. Practices still provide the rooms, equipment and supervision, and pay for anything over the budget. The game\'s claim for each role is an estimate.',
+ info:'The Additional Roles Reimbursement Scheme pays each PCN £27.668 per weighted patient a year (2026/27) to claim back the pay of set roles, such as clinical pharmacists, physios, paramedics, care coordinators and, from 2026/27, GPs, up to a national maximum for each role that includes employer NI and pension: in 2026/27, £71,725 a year for a clinical pharmacist or a first contact physio, £69,515 for a paramedic, £38,739 for a care coordinator and £152,900 for a full-time GP. Practices still provide the rooms, equipment and supervision, and pay for anything over the budget. The game claims each post at its maximum.',
  text:()=>{ const t = tutor(), roles = teachArrsRoles(), b = arrsBudget(), used = arrsSpend(true);
   const q = t.scheme ? 'Who pays for all the pharmacists and physios?' : roles.length ? `Who pays for the ${ROLES[roles[0]].name.replace(/^[A-Z](?![A-Z])/, c => c.toLowerCase())}?` : 'Other practices have pharmacists and physios. Are they free?';
   return teachAsk(t, `${t.n} is looking at the rota.`, q) +
@@ -4551,7 +4552,7 @@ function renderPlan() {
           <h3 id="h-team">Team <small><span class="${arrsLeft() < 0 ? 'bad-t' : ''}">PCN roles budget £${Math.round(arrsSpend(true))}k of £${Math.round(arrsBudget())}k a year used</span> · room sessions ${c.rNeed} of ${c.rAvail} booked · receptionists ${S.staff.recep} of ${c.recepNeed} needed</small></h3>
           ${(() => { const w = hireNeeds(c).why; return `<p class="qh-t"><b>Recruit</b> <span class="muted">Each advert runs to the end of the month, when you find out who applied.</span>${w.length ? ` <span class="bad-t">${esc(w.join('. '))}.</span>` : ''}</p>`; })()}
           <div class="roles" aria-label="Staff">${roles}</div>
-          ${explain('Staff costs, ARRS and recruitment', `<p>Every salary carries 15% employer NI above £5,000. GP practices can't claim the Employment Allowance that offsets NI for most small employers. Staff in the NHS Pension Scheme also cost 14.38% employer pension.</p><p>ARRS roles (pharmacists, physios, paramedics, advanced nurse practitioners and others) are paid from the PCN's additional-roles budget: £27.668 per weighted patient a year. Your practice's share is about <b>£${Math.round(arrsBudget())}k a year</b>, and <b>£${Math.round(arrsSpend(true))}k</b> is committed (staff in post plus open adverts). Each role is claimed up to a maximum, shown here as our estimate from its pay band plus employer costs. Staff beyond the budget are paid for by the practice. Clinicians still need somewhere to see patients, and supervising more than two adds to your hours. From 2026/27 PCNs can also claim GPs, up to £152,900 a year with on-costs.</p><p><b>Rooms are booked by the session.</b> Your ${S.rooms + activeMods().reduce((a, m) => a + (m.rooms || 0), 0)} consulting and treatment rooms give about ${ROOM_SESSIONS} bookable sessions a week each: ten core half-days, Monday to Friday mornings and afternoons, less one lost to double-bookings, cleaning and practice meetings. Evening and Saturday clinics are outside core hours, so they don't count. A meeting room can be turned into a clinic room as a project. A GP books a room for each clinical session. A nurse books about 8 a week, a pharmacist or paramedic about 4 (the rest is phone work or home visits). Receptionists work on headsets at the front desk, and care coordinators, social prescribers and GP assistants don't need a clinic room.</p><p>Recruiting opens an advert. Results come at month end and can fail. Low morale and a poor local reputation make it harder. Letting someone go hurts morale.</p>${srcLinks(['S19', 'S20', 'S22', 'S4', 'S84'])}`)}
+          ${explain('Staff costs, ARRS and recruitment', `<p>Every salary carries 15% employer NI above £5,000. GP practices can't claim the Employment Allowance that offsets NI for most small employers. Staff in the NHS Pension Scheme also cost 14.38% employer pension.</p><p>ARRS roles (pharmacists, physios, paramedics, advanced nurse practitioners and others) are paid from the PCN's additional-roles budget: £27.668 per weighted patient a year. Your practice's share is about <b>£${Math.round(arrsBudget())}k a year</b>, and <b>£${Math.round(arrsSpend(true))}k</b> is committed (staff in post plus open adverts). Each role is claimed up to a national maximum that includes employer NI and pension (2026/27: £71,725 for a clinical pharmacist or first contact physio, £78,534 for an advanced practitioner, £38,739 for a care coordinator). The game claims each post at its maximum. Staff beyond the budget are paid for by the practice. Clinicians still need somewhere to see patients, and supervising more than two adds to your hours. From 2026/27 PCNs can also claim GPs, up to £152,900 a year with on-costs.</p><p><b>Rooms are booked by the session.</b> Your ${S.rooms + activeMods().reduce((a, m) => a + (m.rooms || 0), 0)} consulting and treatment rooms give about ${ROOM_SESSIONS} bookable sessions a week each: ten core half-days, Monday to Friday mornings and afternoons, less one lost to double-bookings, cleaning and practice meetings. Evening and Saturday clinics are outside core hours, so they don't count. A meeting room can be turned into a clinic room as a project. A GP books a room for each clinical session. A nurse books about 8 a week, a pharmacist or paramedic about 4 (the rest is phone work or home visits). Receptionists work on headsets at the front desk, and care coordinators, social prescribers and GP assistants don't need a clinic room.</p><p>Recruiting opens an advert. Results come at month end and can fail. Low morale and a poor local reputation make it harder. Letting someone go hurts morale.</p>${srcLinks(['S19', 'S20', 'S22', 'S4', 'S84'])}`)}
           ${explain('How you compare with England', `<dl class="kv small">${benchmark().map(([l, you, nat, how]) => `<dt>${esc(l)}${how ? `<small>${esc(how)}</small>` : ''}</dt><dd><b class="${you < nat * 0.85 ? 'warn-t' : ''}">${you.toFixed(1)}</b> <span class="muted">vs ${nat.toFixed(1)}</span></dd>`).join('')}</dl><p>England averages for ${S.list.toLocaleString('en-GB')} patients, from the August 2026 workforce figures: about 4.6 fully qualified GPs, 2.6 nurses, 2.9 other clinical staff and 12.3 admin and reception staff per 10,000 patients. That's about ${Math.round(BENCH.patients / BENCH.gp).toLocaleString('en-GB')} patients per full-time GP. Averages aren't targets: an older or poorer list needs more.</p>${srcLinks(['S58', 'S59'])}`)}
           ${p.gpCap ? `<div class="fc-note"><p class="${gpHeadroom() < 6 ? 'bad-t' : ''}"><b>GPs are hard to find here.</b> Practices like yours can't recruit past about one GP per ${p.gpCap.toLocaleString('en-GB')} patients, against ${Math.round(BENCH.patients / BENCH.gp).toLocaleString('en-GB')} nationally. ${gpHeadroom() < 6 ? 'Nobody will apply for a salaried GP post unless your GP numbers fall below that.' : 'There\'s room for one more salaried GP.'} Locums are scarce too: at most ${locumMax()} sessions a week.</p>${explain('Why', `<p>GP numbers vary a lot by area. The worst-covered ICB, North West London, had one full-time GP for every 2,746 patients in late 2025, against about 2,200 nationally. Parts of Kent and Medway are worse: about 38 GPs per 100,000 people against 60 nationally, with some practices far beyond that. Deprived areas usually have the most patients per GP and the hardest time recruiting.</p>${srcLinks(['S66', 'S67', 'S59'])}`)}</div>` : ''}
         </section>
@@ -4567,7 +4568,7 @@ function renderPlan() {
         <div class="fc-row"><div class="top"><span>Cash this month</span><b class="${c.net >= 0 ? 'good-t' : 'bad-t'}">${signK(c.net)}</b></div>
           ${explain('Where the money comes from and goes', moneyTable + srcLinks(['S3', 'S4', 'S9', 'S19', 'S22']))}</div>
         <div class="fc-row"><div class="top"><span>QOF</span><b>${Math.round(S.qof)}% → ${Math.round(Math.min(100, S.qof + c.qofGain * clamp((100 - S.qof) / 35, 0.2, 1)))}%</b></div>
-          ${explain('How QOF pays', `<p>582 points at £227.95 each for an average-sized practice, scaled for your list and prevalence: 100% is worth about ${fmtK(qof100)} to this practice. You're paid 80% of last year's value monthly (${fmtK(S.qofAsp)} a month). The balance for what you achieve by 31 March is paid after the year end, in the summer. Fall short, and some comes back.</p><p>Nurses, HCAs, pharmacists, care coordinators and your management time push QOF up. Gains get harder near the top.</p>${srcLinks(['S3', 'S13'])}`)}</div>
+          ${explain('How QOF pays', `<p>582 points at £227.95 each for an average-sized practice, scaled for your list and prevalence: 100% is worth about ${fmtK(qof100)} to this practice. You're paid 80% of last year's value monthly (${fmtK(S.qofAsp)} a month). The balance for what you achieve by 31 March is due by the end of next June. Fall short, and some comes back.</p><p>Nurses, HCAs, pharmacists, care coordinators and your management time push QOF up. Gains get harder near the top.</p>${srcLinks(['S3', 'S13'])}`)}</div>
         <div class="fc-row"><div class="top"><span>Where things are heading</span></div>
           <div class="headings">${headingHTML(c)}</div>
           ${explain('How the meters move', '<p>Each month, every meter moves part of the way toward where your practice\'s situation is taking it: capacity against demand, the inbox, staffing, pay, rooms, your hours and your reputation. Open a meter above to see why.</p><p>Decisions give one-off jolts that fade, unless they change the situation. Hiring, pay, policies, rooms and hours change where things settle. Some decisions come back months later.</p>')}</div>
@@ -4778,7 +4779,7 @@ function renderEnd() {
           <dt>One-off costs and income</dt><dd>${signK(yr.oneoff)}</dd>
           <dt>QOF: ${Math.round(S.qof)}% achieved, worth ${fmtK(E.qofV)}</dt><dd>&nbsp;</dd>
           <dt>…less aspiration already paid</dt><dd>−${fmtK(S.aspPaid)}</dd>
-          <dt>QOF balance, paid summer ${2027 + (S.yr || 0)}</dt><dd class="${E.qofBal < 0 ? 'bad-t' : 'good-t'}">${signK(E.qofBal)}</dd>
+          <dt>QOF balance, due by 30 June ${2027 + (S.yr || 0)}</dt><dd class="${E.qofBal < 0 ? 'bad-t' : 'good-t'}">${signK(E.qofBal)}</dd>
           <dt class="sum">Your share of the profit (÷${E.partnersN})</dt><dd class="sum">${fmtK(E.shareK)}</dd>
           <dt>Drawings you took</dt><dd>−${fmtK(S.drawTotal)}</dd>
           <dt>Pension paid for you</dt><dd>−${fmtK(S.penTotal)}</dd>
@@ -4796,7 +4797,7 @@ function renderEnd() {
     ${E.exit ? '' : `<section class="carry-on"><div><b>Carry on into year ${(S.yr || 0) + 2}?</b><p>Same practice, same staff, same overdraft. Demand keeps rising, the funding doesn't quite keep up, and the years wear on you. How long can you last?</p></div><button class="btn primary" data-act="nextyear">Carry on: year ${(S.yr || 0) + 2} →</button></section>`}
     <div class="rgrid">
       <section class="panel"><h3>The accounts</h3>${accounts}
-        ${explain('When the money actually arrives', `<p>Profit for the year is fixed on 31 March, but the cash comes later. The QOF balance is paid in the summer, and the accountant settles each partner's drawings against their real share once the accounts are signed, typically in the summer.</p>${srcLinks(['S3', 'S23'])}`)}
+        ${explain('When the money actually arrives', `<p>Profit for the year is fixed on 31 March, but the cash comes later. The QOF balance is due by the end of June, and the accountant settles each partner's drawings against their real share once the accounts are signed, typically in the summer.</p>${srcLinks(['S3', 'S23'])}`)}
       </section>
       <section class="panel"><h3>Your own money</h3>
         <dl class="kv">

@@ -590,7 +590,7 @@ button,.choice,.bin,summary{touch-action:manipulation;-webkit-tap-highlight-colo
 </style>
 <div id="app"></div>
 <script>
-const BUILD = 'e34edf9';
+const BUILD = 'a32af4c';
 /* ===================== DATA: world, money, people ===================== */
 const MONTHS = ['April','May','June','July','August','September','October','November','December','January','February','March'];
 const MON3 = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
@@ -651,14 +651,14 @@ const PRACTICES = {
     key:'town',label:'Market town',diff:'Standard',surgery:'Riverside Surgery',place:'Bramleigh',paper:'The Bramleigh Bugle',
     blurb:'A proper mix: farms, a new estate, a care home and one very active local Facebook group.',
     list:8200,weight:1.0,prev:1.0,lastQof:94,cash:30,overdraft:-75,st:{patients:48,team:52,you:64,safety:52},
-    demandRate:0.102,inboxRate:0.048,qofEase:1.0,hire:0.9,turnover:0.07,youDrag:6,youDragWhy:'The care home, the new estate and the Facebook group',rooms:7,premNet:2.5,overhead:0,priv:2.9,
+    demandRate:0.104,inboxRate:0.048,qofEase:1.0,hire:0.9,turnover:0.07,youDrag:6,youDragWhy:'The care home, the new estate and the Facebook group',rooms:7,premNet:2.5,overhead:0,priv:2.9,
     staff:{recep:5,nurse:2,hca:1,salaried:1,pharm:1,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0,anp:0}
   },
   city:{
     key:'city',label:'Inner city',diff:'Brutal',surgery:'Canal Street Medical Centre',place:'Hollowbrook',paper:'The Hollowbrook Herald',
     blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold. One GP per 3,000 patients, and nobody is applying.',
     list:10400,weight:0.96,prev:0.9,lastQof:88,cash:25,overdraft:-95,st:{patients:48,team:50,you:66,safety:50},
-    demandRate:0.104,inboxRate:0.046,qofEase:0.88,hire:0.7,turnover:0.14,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:3000,locumMax:4,accessLine:15,
+    demandRate:0.106,inboxRate:0.046,qofEase:0.88,hire:0.7,turnover:0.14,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:3000,locumMax:4,accessLine:15,
     staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0,anp:0}
   }
 };
@@ -3425,7 +3425,18 @@ function postsOf(r) {
   return a;
 }
 const headcount = r => postsOf(r).length;
-function addStaff(r, u, pcn) { const a = postsOf(r); u = u || 1; a.push(pcn ? { u, pcn: 1 } : { u }); S.staff[r] = r3(S.staff[r] + u); }
+function addStaff(r, u, pcn) { const a = postsOf(r); u = u || 1; a.push(pcn ? (r === 'nurse' ? { u, pcn: 1, at: monthNo() + 1 } : { u, pcn: 1 }) : { u }); S.staff[r] = r3(S.staff[r] + u); }
+// months since the game began, across years, for things that last a set time from a date
+const monthNo = () => (S.yr || 0) * 12 + S.month;
+// A nurse new to general practice, recruited through the PCN, has six months of mentorship and preceptorship first
+// (DES 2026/27, B21): they work at about 60% while they learn, and your practice nurses give time to mentor them.
+const learning = p => p.pcn && p.at != null && monthNo() < p.at + 6;
+function nurseEff() {
+  const ps = postsOf('nurse'), l = ps.filter(learning);
+  if (!l.length) return S.staff.nurse;
+  const own = ps.filter(p => !l.includes(p)).reduce((a, p) => a + p.u, 0);
+  return Math.max(0, S.staff.nurse - l.reduce((a, p) => a + p.u * 0.4, 0) - Math.min(own, l.length * 0.1));
+}
 // someone leaves, with their hours: 'std' is a named colleague on standard hours, 'last' the newest; otherwise anyone
 function loseStaff(r, how) {
   const a = postsOf(r); if (!a.length) return null;
@@ -3461,7 +3472,7 @@ const arrsClaimOf = r => (ROLES[r].claim || 0) * (1 + YEAR_STAFF * ((S && S.yr) 
 // From 2026/27 a PCN can also claim GPs and practice nurses from the same budget, at their real pay and on-costs up to a
 // maximum: a full-time GP £152,900; a nurse £46,447 new to general practice or £57,114 experienced (DES Table 2) [S4].
 // Only new recruits: anyone who worked in the PCN in the last 12 months can't be claimed, so current staff stay on the payroll.
-const PCN_MAX = { salaried: 152.9 * 6 / 9, nurse: 57.114 }; // £k a year for a standard post (six GP sessions; a full-time nurse)
+const PCN_MAX = { salaried: 152.9 * 6 / 9, nurse: 46.447 }; // £k a year for a standard post: six GP sessions; a full-time nurse new to general practice
 const pcnClaim = (r, u) => Math.min(PCN_MAX[r] * u, costOf(r, u) * 12) * (1 + YEAR_STAFF * ((S && S.yr) || 0));
 const ARRS_GP_CLAIM = Math.min(PCN_MAX.salaried, ROLES.salaried.cost * 12); // six sessions, 2026/27 (£k a year)
 const pcnPosts = r => postsOf(r).filter(p => p.pcn);
@@ -3825,7 +3836,7 @@ function calc() {
     if (q.status === 'active' && !away.has(id)) { cap += q.clin * 14; clear += 55 + q.clin * 5; }
   }
   for (const r of ROLE_ORDER) {
-    const n = S.staff[r], R = ROLES[r]; if (!n) continue;
+    const n = r === 'nurse' ? nurseEff() : S.staff[r], R = ROLES[r]; if (!n) continue;
     if (R.cap) cap += R.cap * n;
     if (R.clear) clear += R.clear * n;
   }
@@ -3898,7 +3909,7 @@ function calc() {
   addH((S.staff.anp || 0) * 2, `Supervising ${headcount('anp') === 1 ? 'your advanced nurse practitioner' : `${headcount('anp')} advanced nurse practitioners`}`);
   addH(activeOthers() === 0 ? 8 : activeOthers() === 1 ? 3 : 0, activeOthers() === 0 ? 'Doing every partner job yourself' : 'Only two partners to share the running of it');
   mods.forEach(x => { if (x.hours) addH(x.hours, x.label); });
-  const qofGain = (1.5 + S.staff.nurse * 1.1 + S.staff.hca * 0.7 + S.staff.pharm * 0.7 + S.staff.cc * 1.8 + pl.mgmt * 1.1) * p.qofEase;
+  const qofGain = (1.5 + nurseEff() * 1.1 + S.staff.hca * 0.7 + S.staff.pharm * 0.7 + S.staff.cc * 1.8 + pl.mgmt * 1.1) * p.qofEase;
   const c = { serviceF, cap, demand, ratio, inflow, clear, inboxEnd, inc, cost, incTot, costTot, modCash, profit, out, net, penEach, estShare, sessions, hours, hWhy, recepNeed, recepShort, rNeed, rAvail, roomsOver, supN, qofGain, partnersN, capMul };
   c.T = targets(c);
   return c;
@@ -4087,9 +4098,9 @@ function monthEnd() {
       // in an under-doctored area a salaried GP advert can run, but nobody applies
       if (r === 'salaried' && gpHeadroom() < 0) { hires.push(pick(NO_GP_REPLIES)); return; }
       // Through the PCN, a GP's pool is a little wider than a practice post's: since 2026/27 any GP who hasn't worked
-      // in the PCN for a year can be claimed. A nurse's is smaller: local practice nurses from the last 12 months can't be.
-      const pr = Math.min(0.95, R.hire * (k === 'arrsgp' ? 1.25 : k === 'arrsnurse' ? 0.75 : 1) * p.hire * (1 + (proj.hireBoost || 0)) * (0.8 + S.rep / 250) * (S.st.team < 35 ? 0.7 : 1) * hoursF(k, u));
-      if (chance(pr)) { live.splice(live.indexOf(u), 1); S.vac[k] = live.length; addStaff(r, u, pcn); hires.push(`${R.name}${hrs} hired${pcn ? ', paid from the PCN\'s additional-roles budget' : ''}.`); }
+      // in the PCN for a year can be claimed. A nurse's is about the same: nurses new to general practice, mostly from hospitals.
+      const pr = Math.min(0.95, R.hire * (k === 'arrsgp' ? 1.25 : 1) * p.hire * (1 + (proj.hireBoost || 0)) * (0.8 + S.rep / 250) * (S.st.team < 35 ? 0.7 : 1) * hoursF(k, u));
+      if (chance(pr)) { live.splice(live.indexOf(u), 1); S.vac[k] = live.length; addStaff(r, u, pcn); hires.push(`${R.name}${hrs} hired${pcn ? ', paid from the PCN\'s additional-roles budget' : ''}.${k === 'arrsnurse' ? ' New to general practice, so six months of mentorship and preceptorship come first.' : ''}`); }
       else hires.push(`${R.name}${hrs}${pcn ? ' through the PCN' : ''}: no suitable applicants yet.`);
     });
     if (!live.length) { delete S.vac[k]; delete S.adu[k]; }
@@ -4559,7 +4570,7 @@ const cap1 = t => t.charAt(0).toUpperCase() + t.slice(1);
 // "In post: 4 full time, 1 on 22.5 hours, 4.6 FTE"
 function postsSummary(r, posts) {
   const g = new Map();
-  posts.forEach(p => { const k = (Math.abs(p.u - 1) < 0.01 && !isGP(r) ? 'full time' : `on ${hrsTxt(r, p.u)}`) + (p.pcn ? ', paid by the PCN' : ''); g.set(k, (g.get(k) || 0) + 1); });
+  posts.forEach(p => { const k = (Math.abs(p.u - 1) < 0.01 && !isGP(r) ? 'full time' : `on ${hrsTxt(r, p.u)}`) + (p.pcn ? ', paid by the PCN' : '') + (learning(p) ? ', in preceptorship' : ''); g.set(k, (g.get(k) || 0) + 1); });
   return `In post: ${[...g].map(([k, n]) => `${n} ${k}`).join('; ')}${isGP(r) ? '' : ` (${fteTxt(S.staff[r])} FTE)`}.`;
 }
 
@@ -4606,7 +4617,7 @@ function renderPlan() {
     const pcnN = pk ? pcnPosts(r).length : 0;
     const pcnTxt = !pk ? '' : r === 'salaried'
       ? ` Or recruit through the PCN's additional-roles budget: the PCN claims their real cost, about £${Math.round(pcnClaim(r, u))}k a year, instead of the practice paying it.${pcnN ? ` ${pcnN} of yours ${pcnN === 1 ? 'is' : 'are'} paid this way.` : ''}`
-      : ` Or recruit a new nurse through the PCN's additional-roles budget: the PCN claims their real cost, about £${Math.round(pcnClaim(r, u))}k a year. Nurses who worked in the PCN in the last 12 months can't be claimed, so fewer apply, and your current nurses stay on the practice payroll.${pcnN ? ` ${pcnN} of yours ${pcnN === 1 ? 'is' : 'are'} paid this way.` : ''}`;
+      : ` Or recruit a nurse new to general practice through the PCN's additional-roles budget: the PCN claims their real cost, about £${Math.round(pcnClaim(r, u))}k a year. They start with six months of mentorship and preceptorship, working at about 60% while your nurses mentor them. Your current nurses can't be moved across: nobody who worked in the PCN in the last 12 months can be claimed.${pcnN ? ` ${pcnN} of yours ${pcnN === 1 ? 'is' : 'are'} paid this way.` : ''}`;
     const inPost = n && (isGP(r) || posts.some(p => p.pcn || Math.abs(p.u - 1) > 0.01)) ? `<small class="inpost">${esc(postsSummary(r, posts))}</small>` : '';
     const last = n ? posts[n - 1] : null;
     const hrs = `<div class="hrs" role="group" aria-label="${isGP(r) ? 'Sessions a week' : 'Hours a week'} for a new ${esc(R.name.toLowerCase())}"><span>${isGP(r) ? 'Sessions' : 'Hours'}</span>${hoursOf(r).map(v => `<button data-act="hrs" data-arg="${r}:${v}" aria-pressed="${Math.abs(v - u) < 0.01}">${hrsBtn(r, v)}</button>`).join('')}</div>`;
@@ -4679,7 +4690,7 @@ function renderPlan() {
           <h3 id="h-team">Team <small><span class="${arrsLeft() < 0 ? 'bad-t' : ''}">PCN roles budget £${Math.round(arrsSpend(true))}k of £${Math.round(arrsBudget())}k a year used</span> · room sessions ${Math.round(c.rNeed)} of ${c.rAvail} booked · receptionists ${fteTxt(S.staff.recep)} of ${c.recepNeed} needed</small></h3>
           ${(() => { const w = hireNeeds(c).why; return `<p class="qh-t"><b>Recruit</b> <span class="muted">Each advert runs to the end of the month, when you find out who applied.</span>${w.length ? ` <span class="bad-t">${esc(w.join('. '))}.</span>` : ''}</p>`; })()}
           <div class="roles" aria-label="Staff">${roles}</div>
-          ${explain('Staff costs, ARRS and recruitment', `<p>Every salary carries 15% employer NI above £5,000. GP practices can't claim the Employment Allowance that offsets NI for most small employers. Staff in the NHS Pension Scheme also cost 14.38% employer pension.</p><p>ARRS roles (pharmacists, physios, paramedics, advanced nurse practitioners and others) are paid from the PCN's additional-roles budget: £27.668 per weighted patient a year. Your practice's share is about <b>£${Math.round(arrsBudget())}k a year</b>, and <b>£${Math.round(arrsSpend(true))}k</b> is committed (staff in post plus open adverts). Each role is claimed up to a national maximum that includes employer NI and pension (2026/27: £71,725 for a clinical pharmacist or first contact physio, £78,534 for an advanced practitioner, £38,739 for a care coordinator). The game claims each post at its maximum. Staff beyond the budget are paid for by the practice. Clinicians still need somewhere to see patients, and supervising more than two adds to your hours. From 2026/27 PCNs can also claim GPs (up to £152,900 a year full time) and practice nurses (up to £46,447 new to general practice, £57,114 experienced) at their real cost, but only new recruits: anyone who worked in the PCN in the last 12 months can't be claimed.</p><p><b>Posts can be part time.</b> Choose the hours before you recruit: pay, appointments, inbox work and room sessions follow them. Each employee has their own £5,000 NI threshold, so two part-timers cost a little less than one full-timer on the same hours. Part-time posts are a little easier to fill, because most GPs and practice nurses work part time.</p><p><b>Rooms are booked by the session.</b> Your ${S.rooms + activeMods().reduce((a, m) => a + (m.rooms || 0), 0)} consulting and treatment rooms give about ${ROOM_SESSIONS} bookable sessions a week each: ten core half-days, Monday to Friday mornings and afternoons, less one lost to double-bookings, cleaning and practice meetings. Evening and Saturday clinics are outside core hours, so they don't count. A meeting room can be turned into a clinic room as a project. A GP books a room for each clinical session. A nurse books about 8 a week, a pharmacist or paramedic about 4 (the rest is phone work or home visits). Receptionists work on headsets at the front desk, and care coordinators, social prescribers and GP assistants don't need a clinic room.</p><p>Recruiting opens an advert. Results come at month end and can fail. Low morale and a poor local reputation make it harder. Letting someone go hurts morale.</p>${srcLinks(['S19', 'S20', 'S22', 'S4', 'S84'])}`)}
+          ${explain('Staff costs, ARRS and recruitment', `<p>Every salary carries 15% employer NI above £5,000. GP practices can't claim the Employment Allowance that offsets NI for most small employers. Staff in the NHS Pension Scheme also cost 14.38% employer pension.</p><p>ARRS roles (pharmacists, physios, paramedics, advanced nurse practitioners and others) are paid from the PCN's additional-roles budget: £27.668 per weighted patient a year. Your practice's share is about <b>£${Math.round(arrsBudget())}k a year</b>, and <b>£${Math.round(arrsSpend(true))}k</b> is committed (staff in post plus open adverts). Each role is claimed up to a national maximum that includes employer NI and pension (2026/27: £71,725 for a clinical pharmacist or first contact physio, £78,534 for an advanced practitioner, £38,739 for a care coordinator). The game claims each post at its maximum. Staff beyond the budget are paid for by the practice. Clinicians still need somewhere to see patients, and supervising more than two adds to your hours. From 2026/27 PCNs can also claim GPs (up to £152,900 a year full time) and practice nurses (up to £46,447 new to general practice, £57,114 experienced) at their real cost, but only new recruits: anyone who worked in the PCN in the last 12 months can't be claimed. A nurse you recruit through the PCN here is new to general practice, so they start with six months of mentorship and preceptorship.</p><p><b>Posts can be part time.</b> Choose the hours before you recruit: pay, appointments, inbox work and room sessions follow them. Each employee has their own £5,000 NI threshold, so two part-timers cost a little less than one full-timer on the same hours. Part-time posts are a little easier to fill, because most GPs and practice nurses work part time.</p><p><b>Rooms are booked by the session.</b> Your ${S.rooms + activeMods().reduce((a, m) => a + (m.rooms || 0), 0)} consulting and treatment rooms give about ${ROOM_SESSIONS} bookable sessions a week each: ten core half-days, Monday to Friday mornings and afternoons, less one lost to double-bookings, cleaning and practice meetings. Evening and Saturday clinics are outside core hours, so they don't count. A meeting room can be turned into a clinic room as a project. A GP books a room for each clinical session. A nurse books about 8 a week, a pharmacist or paramedic about 4 (the rest is phone work or home visits). Receptionists work on headsets at the front desk, and care coordinators, social prescribers and GP assistants don't need a clinic room.</p><p>Recruiting opens an advert. Results come at month end and can fail. Low morale and a poor local reputation make it harder. Letting someone go hurts morale.</p>${srcLinks(['S19', 'S20', 'S22', 'S4', 'S84'])}`)}
           ${explain('How you compare with England', `<dl class="kv small">${benchmark().map(([l, you, nat, how]) => `<dt>${esc(l)}${how ? `<small>${esc(how)}</small>` : ''}</dt><dd><b class="${you < nat * 0.85 ? 'warn-t' : ''}">${you.toFixed(1)}</b> <span class="muted">vs ${nat.toFixed(1)}</span></dd>`).join('')}</dl><p>England averages for ${S.list.toLocaleString('en-GB')} patients, from the August 2026 workforce figures: about 4.6 fully qualified GPs, 2.6 nurses, 2.9 other clinical staff and 12.3 admin and reception staff per 10,000 patients. That's about ${Math.round(BENCH.patients / BENCH.gp).toLocaleString('en-GB')} patients per full-time GP. Averages aren't targets: an older or poorer list needs more.</p>${srcLinks(['S58', 'S59'])}`)}
           ${p.gpCap ? `<div class="fc-note"><p class="${gpHeadroom() < 6 ? 'bad-t' : ''}"><b>GPs are hard to find here.</b> Practices like yours can't recruit past about one GP per ${p.gpCap.toLocaleString('en-GB')} patients, against ${Math.round(BENCH.patients / BENCH.gp).toLocaleString('en-GB')} nationally. ${gpHeadroom() < 6 ? 'Nobody will apply for a salaried GP post unless your GP numbers fall below that.' : 'There\'s room for one more salaried GP.'} Locums are scarce too: at most ${locumMax()} sessions a week.</p>${explain('Why', `<p>GP numbers vary a lot by area. The worst-covered ICB, North West London, had one full-time GP for every 2,746 patients in late 2025, against about 2,200 nationally. Parts of Kent and Medway are worse: about 38 GPs per 100,000 people against 60 nationally, with some practices far beyond that. Deprived areas usually have the most patients per GP and the hardest time recruiting.</p>${srcLinks(['S66', 'S67', 'S59'])}`)}</div>` : ''}
         </section>

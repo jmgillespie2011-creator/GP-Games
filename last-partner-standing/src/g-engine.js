@@ -77,7 +77,18 @@ function postsOf(r) {
   return a;
 }
 const headcount = r => postsOf(r).length;
-function addStaff(r, u, pcn) { const a = postsOf(r); u = u || 1; a.push(pcn ? { u, pcn: 1 } : { u }); S.staff[r] = r3(S.staff[r] + u); }
+function addStaff(r, u, pcn) { const a = postsOf(r); u = u || 1; a.push(pcn ? (r === 'nurse' ? { u, pcn: 1, at: monthNo() + 1 } : { u, pcn: 1 }) : { u }); S.staff[r] = r3(S.staff[r] + u); }
+// months since the game began, across years, for things that last a set time from a date
+const monthNo = () => (S.yr || 0) * 12 + S.month;
+// A nurse new to general practice, recruited through the PCN, has six months of mentorship and preceptorship first
+// (DES 2026/27, B21): they work at about 60% while they learn, and your practice nurses give time to mentor them.
+const learning = p => p.pcn && p.at != null && monthNo() < p.at + 6;
+function nurseEff() {
+  const ps = postsOf('nurse'), l = ps.filter(learning);
+  if (!l.length) return S.staff.nurse;
+  const own = ps.filter(p => !l.includes(p)).reduce((a, p) => a + p.u, 0);
+  return Math.max(0, S.staff.nurse - l.reduce((a, p) => a + p.u * 0.4, 0) - Math.min(own, l.length * 0.1));
+}
 // someone leaves, with their hours: 'std' is a named colleague on standard hours, 'last' the newest; otherwise anyone
 function loseStaff(r, how) {
   const a = postsOf(r); if (!a.length) return null;
@@ -113,7 +124,7 @@ const arrsClaimOf = r => (ROLES[r].claim || 0) * (1 + YEAR_STAFF * ((S && S.yr) 
 // From 2026/27 a PCN can also claim GPs and practice nurses from the same budget, at their real pay and on-costs up to a
 // maximum: a full-time GP £152,900; a nurse £46,447 new to general practice or £57,114 experienced (DES Table 2) [S4].
 // Only new recruits: anyone who worked in the PCN in the last 12 months can't be claimed, so current staff stay on the payroll.
-const PCN_MAX = { salaried: 152.9 * 6 / 9, nurse: 57.114 }; // £k a year for a standard post (six GP sessions; a full-time nurse)
+const PCN_MAX = { salaried: 152.9 * 6 / 9, nurse: 46.447 }; // £k a year for a standard post: six GP sessions; a full-time nurse new to general practice
 const pcnClaim = (r, u) => Math.min(PCN_MAX[r] * u, costOf(r, u) * 12) * (1 + YEAR_STAFF * ((S && S.yr) || 0));
 const ARRS_GP_CLAIM = Math.min(PCN_MAX.salaried, ROLES.salaried.cost * 12); // six sessions, 2026/27 (£k a year)
 const pcnPosts = r => postsOf(r).filter(p => p.pcn);
@@ -477,7 +488,7 @@ function calc() {
     if (q.status === 'active' && !away.has(id)) { cap += q.clin * 14; clear += 55 + q.clin * 5; }
   }
   for (const r of ROLE_ORDER) {
-    const n = S.staff[r], R = ROLES[r]; if (!n) continue;
+    const n = r === 'nurse' ? nurseEff() : S.staff[r], R = ROLES[r]; if (!n) continue;
     if (R.cap) cap += R.cap * n;
     if (R.clear) clear += R.clear * n;
   }
@@ -550,7 +561,7 @@ function calc() {
   addH((S.staff.anp || 0) * 2, `Supervising ${headcount('anp') === 1 ? 'your advanced nurse practitioner' : `${headcount('anp')} advanced nurse practitioners`}`);
   addH(activeOthers() === 0 ? 8 : activeOthers() === 1 ? 3 : 0, activeOthers() === 0 ? 'Doing every partner job yourself' : 'Only two partners to share the running of it');
   mods.forEach(x => { if (x.hours) addH(x.hours, x.label); });
-  const qofGain = (1.5 + S.staff.nurse * 1.1 + S.staff.hca * 0.7 + S.staff.pharm * 0.7 + S.staff.cc * 1.8 + pl.mgmt * 1.1) * p.qofEase;
+  const qofGain = (1.5 + nurseEff() * 1.1 + S.staff.hca * 0.7 + S.staff.pharm * 0.7 + S.staff.cc * 1.8 + pl.mgmt * 1.1) * p.qofEase;
   const c = { serviceF, cap, demand, ratio, inflow, clear, inboxEnd, inc, cost, incTot, costTot, modCash, profit, out, net, penEach, estShare, sessions, hours, hWhy, recepNeed, recepShort, rNeed, rAvail, roomsOver, supN, qofGain, partnersN, capMul };
   c.T = targets(c);
   return c;
@@ -739,9 +750,9 @@ function monthEnd() {
       // in an under-doctored area a salaried GP advert can run, but nobody applies
       if (r === 'salaried' && gpHeadroom() < 0) { hires.push(pick(NO_GP_REPLIES)); return; }
       // Through the PCN, a GP's pool is a little wider than a practice post's: since 2026/27 any GP who hasn't worked
-      // in the PCN for a year can be claimed. A nurse's is smaller: local practice nurses from the last 12 months can't be.
-      const pr = Math.min(0.95, R.hire * (k === 'arrsgp' ? 1.25 : k === 'arrsnurse' ? 0.75 : 1) * p.hire * (1 + (proj.hireBoost || 0)) * (0.8 + S.rep / 250) * (S.st.team < 35 ? 0.7 : 1) * hoursF(k, u));
-      if (chance(pr)) { live.splice(live.indexOf(u), 1); S.vac[k] = live.length; addStaff(r, u, pcn); hires.push(`${R.name}${hrs} hired${pcn ? ', paid from the PCN\'s additional-roles budget' : ''}.`); }
+      // in the PCN for a year can be claimed. A nurse's is about the same: nurses new to general practice, mostly from hospitals.
+      const pr = Math.min(0.95, R.hire * (k === 'arrsgp' ? 1.25 : 1) * p.hire * (1 + (proj.hireBoost || 0)) * (0.8 + S.rep / 250) * (S.st.team < 35 ? 0.7 : 1) * hoursF(k, u));
+      if (chance(pr)) { live.splice(live.indexOf(u), 1); S.vac[k] = live.length; addStaff(r, u, pcn); hires.push(`${R.name}${hrs} hired${pcn ? ', paid from the PCN\'s additional-roles budget' : ''}.${k === 'arrsnurse' ? ' New to general practice, so six months of mentorship and preceptorship come first.' : ''}`); }
       else hires.push(`${R.name}${hrs}${pcn ? ' through the PCN' : ''}: no suitable applicants yet.`);
     });
     if (!live.length) { delete S.vac[k]; delete S.adu[k]; }

@@ -58,14 +58,14 @@ const PRACTICES = {
     key:'town',label:'Market town',diff:'Standard',surgery:'Riverside Surgery',place:'Bramleigh',paper:'The Bramleigh Bugle',
     blurb:'A proper mix: farms, a new estate, a care home and one very active local Facebook group.',
     list:8200,weight:1.0,prev:1.0,lastQof:94,cash:30,overdraft:-75,st:{patients:48,team:52,you:64,safety:52},
-    demandRate:0.102,inboxRate:0.048,qofEase:1.0,hire:0.9,turnover:0.07,youDrag:6,youDragWhy:'The care home, the new estate and the Facebook group',rooms:7,premNet:2.5,overhead:0,priv:2.9,
+    demandRate:0.104,inboxRate:0.048,qofEase:1.0,hire:0.9,turnover:0.07,youDrag:6,youDragWhy:'The care home, the new estate and the Facebook group',rooms:7,premNet:2.5,overhead:0,priv:2.9,
     staff:{recep:5,nurse:2,hca:1,salaried:1,pharm:1,physio:0,para:0,mhp:0,cc:0,sp:0,gpa:0,anp:0}
   },
   city:{
     key:'city',label:'Inner city',diff:'Brutal',surgery:'Canal Street Medical Centre',place:'Hollowbrook',paper:'The Hollowbrook Herald',
     blurb:'High need, high turnover, twenty-six languages, one interpreter line with a 40-minute hold. One GP per 3,000 patients, and nobody is applying.',
     list:10400,weight:0.96,prev:0.9,lastQof:88,cash:25,overdraft:-95,st:{patients:48,team:50,you:66,safety:50},
-    demandRate:0.104,inboxRate:0.046,qofEase:0.88,hire:0.7,turnover:0.14,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:3000,locumMax:4,accessLine:15,
+    demandRate:0.106,inboxRate:0.046,qofEase:0.88,hire:0.7,turnover:0.14,rooms:8,premNet:3.5,overhead:1.5,priv:1.8,gpCap:3000,locumMax:4,accessLine:15,
     staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0,anp:0}
   }
 };

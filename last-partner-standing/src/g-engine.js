@@ -399,6 +399,8 @@ function newGame(practiceKey, name, opts) {
   teachSchedule();
   startMonth();
   save();
+  // counted on the website (track() in h3-board.js); the simulator loads no track(), so it never sends
+  if (typeof track === 'function') track('start');
 }
 
 /* ---------- scheduling, modifiers, delayed consequences ---------- */

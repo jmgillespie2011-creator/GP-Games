@@ -258,7 +258,7 @@ document.addEventListener('click', ev => {
       if (arg === 'cash') openOverlay(`<h2>The office: the bank</h2><p class="lede-s">Bev's office. The practice account is at <b>${fmtK(S.cash)}</b>, with an overdraft limit of ${fmtK(S.overdraft)}. This month it will move by <b>${signK(c.net)}</b>.</p><p class="muted">Income is mostly the global sum, QOF and enhanced services. Staff, locums, running costs and your drawings take it back out. The money panel in the month plan has the details.</p><div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>`);
       else { const k = arg, now = Math.round(S.st[k]); openOverlay(`<h2>${esc({ patients: 'The waiting room', team: 'The staff room', you: 'Your room', safety: 'The treatment room' }[k])}: ${STAT_LABEL[k]}</h2><p class="lede-s">The ${STAT_LABEL[k]} meter is at <b>${now}</b>. If nothing changes, it settles at <b>${T[k].v}</b>.</p>${whyList(T[k].why)}<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>`); }
       break; }
-    case 'nextyear': go(continueYear); break;
+    case 'nextyear': go(continueYear); track('continue'); break;
     case 'quick': { UI.settings.quick = !UI.settings.quick; saveSettings(); if (S && UI.screen !== 'title') { closeOverlay(); render(); } else keepScroll(renderTitle); toast(UI.settings.quick ? 'Quiet months now skip straight to the next plan.' : 'You\'ll see every month report.'); break; }
     case 'teach': {
       UI.settings.teach = !UI.settings.teach; saveSettings();
@@ -280,7 +280,7 @@ document.addEventListener('click', ev => {
     case 'lookc': UI.look.c = +arg; UI.lookOpen = true; keepScroll(renderTitle); break;
     case 'dice': { UI.nameDraft = diceName(); keepScroll(renderTitle); break; }
     case 'start': { const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; UI.intro = true; go(() => newGame(UI.pickPractice, nm)); break; }
-    case 'continue': { const s = loadSave(); if (s) { S = s; teachSync(); UI.screen = 'game'; go(() => { }); } break; }
+    case 'continue': { const s = loadSave(); if (s) { S = s; teachSync(); UI.screen = 'game'; go(() => { }); track('resume'); } break; }
     case 'menu': openOverlay(menuHTML()); break;
     case 'update': closeOverlay(); checkUpdate(true); break;
     case 'reload': { try { if (S) save(); } catch (e) { } location.reload(); break; }

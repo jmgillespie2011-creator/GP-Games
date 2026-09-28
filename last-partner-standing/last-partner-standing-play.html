@@ -629,7 +629,7 @@ button,.choice,.bin,summary{touch-action:manipulation;-webkit-tap-highlight-colo
 <body>
 <div id="app"></div>
 <script>
-const BUILD = '29b3e27';
+const BUILD = '3dcfb3f';
 /* ===================== DATA: world, money, people ===================== */
 const MONTHS = ['April','May','June','July','August','September','October','November','December','January','February','March'];
 const MON3 = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
@@ -4852,7 +4852,7 @@ function renderTitle() {
           <li>Survive to 31st March 2027 and the accountant tells you what it was all worth, after tax. Then carry on, for as long as you can last.</li>
         </ul>
         ${explain('About the numbers', `<p>The money runs on real 2026/27 figures for England: the £130.07 global sum, QOF at £227.95 a point, 15% employer NI, 14.38% employer pension, locum rates and partner tax. Cards marked <b>Real figures</b> or <b>Real rule</b> show their sources.</p><p>It's a simplified model of a GMS practice, not financial, tax or medical advice. The practices, people and companies are fictional. Not affiliated with the NHS, the BMA or any government body.</p>`)}
-        ${explain('Privacy', `<p>Your game is saved only in this browser. Nothing about you is sent anywhere unless you post a score to the leaderboard. That stores the name you choose, your score, your practice and your year's results, publicly, with no email or other details. Use a nickname if you like.</p><p>The page loads its fonts from Google Fonts, and the website's host keeps standard access logs. There are no adverts, analytics or tracking cookies.</p>`)}
+        ${explain('Privacy', `<p>Your game is saved only in this browser. Nothing about how you play is sent anywhere unless you post a score to the leaderboard. That stores the name you choose, your score, your practice and your year's results, publicly, with no email or other details. Use a nickname if you like.</p><p>On the website, Vercel Web Analytics counts visits: which page, the site that sent you, your country, and your type of device, browser and operating system. It uses no cookies and stores nothing on your device, and each visitor is known only by a code that is discarded after 24 hours. The page also loads its fonts from Google Fonts, and the website's host keeps standard access logs. There are no adverts or tracking cookies.</p>`)}
       </div>
     </section>
     <section class="setup" aria-label="New game">
@@ -5834,7 +5834,9 @@ function miniKey(ev) {
 // On the website, an open game checks build.txt (written by build.sh) against its own BUILD when it comes back into view,
 // at most every five minutes, and offers a reload when they differ. The game saves after every decision, so nothing is lost.
 const UPD = { last: 0, shown: false };
-const updOn = () => { try { return typeof BUILD !== 'undefined' && location.protocol === 'https:' && window.self === window.top && /vercel\.app$/.test(location.hostname); } catch (e) { return false; } };
+// the real website: https on vercel.app, not framed (so never the Claude Artifact or a local file)
+const onSite = () => { try { return location.protocol === 'https:' && window.self === window.top && /vercel\.app$/.test(location.hostname); } catch (e) { return false; } };
+const updOn = () => typeof BUILD !== 'undefined' && onSite();
 function checkUpdate(asked) {
   if (!updOn() || (!asked && (UPD.shown || Date.now() - UPD.last < 300000))) { if (asked && !updOn()) toast('Updates are checked on the website, not here.'); return; }
   UPD.last = Date.now();
@@ -5853,11 +5855,26 @@ function showUpdate(v) {
   document.body.appendChild(d);
 }
 
+/* ===================== VISITS ===================== */
+// Vercel Web Analytics counts page views on the website: the page, the referring site, the country, and the device,
+// browser and operating system. No cookies, nothing stored on the device, and nothing about the game is sent.
+// The Privacy explainer on the title screen says so. The script and its /view endpoint are Vercel's, on this site.
+function countVisit() {
+  if (!onSite()) return;
+  try {
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    const s = document.createElement('script');
+    s.src = '/_vercel/insights/script.js'; s.defer = true;
+    document.head.appendChild(s);
+  } catch (e) { }
+}
+
 /* ===================== BOOT ===================== */
 function boot(data) {
   try { loadStats(); } catch (e) { }
   // installable app: register the service worker on the real website only (not in a Claude Artifact or a local file)
-  try { if ('serviceWorker' in navigator && location.protocol === 'https:' && window.self === window.top && /vercel\.app$/.test(location.hostname)) navigator.serviceWorker.register('/sw.js').catch(() => { }); } catch (e) { }
+  try { if ('serviceWorker' in navigator && onSite()) navigator.serviceWorker.register('/sw.js').catch(() => { }); } catch (e) { }
+  countVisit();
   try { if (data && data.S && data.S.v === 1) { S = data.S; UI.screen = data.screen || 'game'; } } catch (e) { }
   render();
   // look for a new release a little after opening, whenever the game comes back into view, and every half hour

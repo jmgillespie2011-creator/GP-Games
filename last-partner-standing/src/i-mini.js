@@ -159,7 +159,9 @@ function miniKey(ev) {
 // On the website, an open game checks build.txt (written by build.sh) against its own BUILD when it comes back into view,
 // at most every five minutes, and offers a reload when they differ. The game saves after every decision, so nothing is lost.
 const UPD = { last: 0, shown: false };
-const updOn = () => { try { return typeof BUILD !== 'undefined' && location.protocol === 'https:' && window.self === window.top && /vercel\.app$/.test(location.hostname); } catch (e) { return false; } };
+// the real website: https on vercel.app, not framed (so never the Claude Artifact or a local file)
+const onSite = () => { try { return location.protocol === 'https:' && window.self === window.top && /vercel\.app$/.test(location.hostname); } catch (e) { return false; } };
+const updOn = () => typeof BUILD !== 'undefined' && onSite();
 function checkUpdate(asked) {
   if (!updOn() || (!asked && (UPD.shown || Date.now() - UPD.last < 300000))) { if (asked && !updOn()) toast('Updates are checked on the website, not here.'); return; }
   UPD.last = Date.now();
@@ -178,11 +180,26 @@ function showUpdate(v) {
   document.body.appendChild(d);
 }
 
+/* ===================== VISITS ===================== */
+// Vercel Web Analytics counts page views on the website: the page, the referring site, the country, and the device,
+// browser and operating system. No cookies, nothing stored on the device, and nothing about the game is sent.
+// The Privacy explainer on the title screen says so. The script and its /view endpoint are Vercel's, on this site.
+function countVisit() {
+  if (!onSite()) return;
+  try {
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    const s = document.createElement('script');
+    s.src = '/_vercel/insights/script.js'; s.defer = true;
+    document.head.appendChild(s);
+  } catch (e) { }
+}
+
 /* ===================== BOOT ===================== */
 function boot(data) {
   try { loadStats(); } catch (e) { }
   // installable app: register the service worker on the real website only (not in a Claude Artifact or a local file)
-  try { if ('serviceWorker' in navigator && location.protocol === 'https:' && window.self === window.top && /vercel\.app$/.test(location.hostname)) navigator.serviceWorker.register('/sw.js').catch(() => { }); } catch (e) { }
+  try { if ('serviceWorker' in navigator && onSite()) navigator.serviceWorker.register('/sw.js').catch(() => { }); } catch (e) { }
+  countVisit();
   try { if (data && data.S && data.S.v === 1) { S = data.S; UI.screen = data.screen || 'game'; } } catch (e) { }
   render();
   // look for a new release a little after opening, whenever the game comes back into view, and every half hour

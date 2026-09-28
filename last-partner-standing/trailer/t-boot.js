@@ -37,6 +37,15 @@
   let framed = false; try { framed = window.self !== window.top; } catch (e) { framed = true; }
   const mp4 = $('tr-mp4');
   if (mp4 && !framed && /vercel\.app$/.test(location.hostname)) mp4.hidden = false;
+  // on the website, Vercel Web Analytics counts the page view, as it does for the game (no cookies; see countVisit())
+  if (!capture && !framed && location.protocol === 'https:' && /vercel\.app$/.test(location.hostname)) {
+    try {
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+      const s = document.createElement('script');
+      s.src = '/_vercel/insights/script.js'; s.defer = true;
+      document.head.appendChild(s);
+    } catch (e) { }
+  }
 
   let playing = false, t0 = 0, w0 = 0, raf = 0;
   const TOT = TR.mmss(TR.total);

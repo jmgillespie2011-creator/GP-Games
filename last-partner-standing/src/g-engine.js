@@ -195,9 +195,9 @@ function suggestPlan() {
     ['inbox', S.inbox > 450 ? 10 + (S.inbox - 450) / 10 : 0, `the inbox is at ${Math.round(S.inbox)}`],
     ['ppg', S.st.patients < 40 ? 10 + (40 - S.st.patients) * 2 : 0, `Patients is down to ${Math.round(S.st.patients)}`],
     ['meetingroom', roomsNeeded() + 4 > roomsAvail() && !done('meetingroom') && S.cash > S.overdraft + 10 ? 22 : 0, 'you are nearly out of clinic rooms'],
-    ['recruit', Object.keys(S.vac).length ? 14 : 0, 'you have adverts out, and this improves the odds'],
+    ['recruit', ['salaried', 'arrsgp', 'nurse', 'arrsnurse', 'anp'].some(k => S.vac[k]) ? 14 : 0, 'you have an advert out for a post that is hard to fill, and this improves the odds'],
     ['claims', S.cash < 0 ? 12 * Math.pow(0.55, S.counts.proj_claims || 0) : 0, 'the bank is overdrawn and there is money in the claims'],
-    ['qof', 8 + (S.month >= 6 && S.qof < S.month * 8 ? 8 : 0), S.month >= 6 && S.qof < S.month * 8 ? `QOF is behind at ${Math.round(S.qof)}%` : 'QOF is money you can still earn'],
+    ['qof', 8 + (S.month >= 3 && S.qof < S.month * 8 ? 8 : 0), S.month >= 3 && S.qof < S.month * 8 ? `QOF is behind at ${Math.round(S.qof)}%, and recalls on track are part of effective care` : 'QOF is money you can still earn'],
     ['digital', !done('digital') && S.cash > S.overdraft + 10 ? 6 : 0, 'clearer online forms cut demand for good'],
     ['cqc', !recent('cqc') && S.st.safety >= 45 && S.st.safety < 60 ? 4 : 0, 'a check now keeps you ready for CQC'],
     ['ppg', S.st.patients >= 40 && S.st.patients < 55 ? 4 : 0, 'patient feedback lifts your reputation'],
@@ -209,6 +209,105 @@ function suggestPlan() {
   pl.project = proj;
   why.push(`Project: ${(PROJECTS.find(x => x.id === proj) || {}).name}, because ${because}${again ? ' (again: it still matters most)' : ''}`);
   return why;
+}
+// what an advert costs the practice up front (£k): a GP advert is dearer; PCN-budget roles are advertised by the PCN
+const advertCost = k => k === 'salaried' || k === 'arrsgp' ? 1.5 : k === 'nurse' || k === 'arrsnurse' ? 0.8 : ROLES[k] && ROLES[k].arrs ? 0 : 0.4;
+// Bev's staffing advice, on the principles of a safe and effective practice, within what the practice can fit and afford:
+// 1. enough appointments from the practice's own staff (not locums or overtime) for the busiest month ahead, with a 3%
+//    margin. Recruiting takes months, so the PCN's budget, which is lost if nobody claims it, is planned for the winter
+//    peak; the practice's own money for the next six months;
+// 2. a receptionist for every 1,600 patients, so the phones get answered;
+// 3. the right role for the need, best value first: a nurse new to general practice (long-term conditions and QOF),
+//    then same-day clinicians, then a salaried GP; a GP assistant for the inbox and a care coordinator for recalls;
+// 4. only what the rooms hold (a part-time post fits the gap, and a meeting room being converted counts) and what the GPs
+//    can supervise; when the building is the limit, say so, and cut demand instead (a social prescriber needs no room);
+// 5. the practice's own money only when the bank can stand it: a GP where there are GPs to find, otherwise an advanced
+//    nurse practitioner, even over the PCN budget, when that costs less than the locums it replaces.
+// It advises, and recruiting stays the player's call. Each item is an advert { k, u (hours), why }, or a { note }.
+function staffAdvice() {
+  const out = [], c = calc(), pl = S.plan, m = Math.min(S.month, 11), capMul = c.capMul || 1;
+  const roleOf = k => k === 'arrsgp' ? 'salaried' : k === 'arrsnurse' ? 'nurse' : k;
+  const open = k => (S.vac[k] || 0) > 0;
+  const base = c.demand / SEASON[m];
+  const peakFree = base * Math.max(...SEASON), peakPaid = base * Math.max(...Array.from({ length: 9 }, (_, i) => SEASON[(m + i) % 12]));
+  // what the practice's own staff give, plus what open adverts would bring; locums and overtime are stopgaps
+  const cover = (pl.locum || 0) * 14 + (pl.extra || 0) * OT_APPTS;
+  const have = c.cap - cover * capMul + Object.keys(S.vac).reduce((a, k) => a + vacUnits(k) * (ROLES[roleOf(k)].cap || 0), 0) * capMul;
+  let gapFree = peakFree * 1.03 - have, gapPaid = peakPaid * 1.03 - have;
+  const convert = pl.project === 'meetingroom' && !S.flags.proj_meetingroom;
+  let rooms = roomsAvail() - (roomsNeeded() - (pl.locum || 0)) - Object.keys(S.vac).reduce((a, k) => a + vacUnits(k) * (ROLES[roleOf(k)].room || 0), 0) + (convert ? ROOM_SESSIONS : 0);
+  let budget = arrsLeft();
+  let sup = ROLE_ORDER.filter(r => ROLES[r].sup).reduce((a, r) => a + S.staff[r] + vacUnits(r), 0);
+  // the most hours of a post (from its choices) that the free rooms can hold
+  const fit = k => { const R = ROLES[roleOf(k)]; return hoursOf(k).find(v => !R.room || R.room * v <= rooms + 0.01) || 0; };
+  const add = (k, u, why) => { const R = ROLES[roleOf(k)]; out.push({ k, u, why }); const got = (R.cap || 0) * u * capMul; gapFree -= got; gapPaid -= got; rooms -= (R.room || 0) * u; if (R.sup) sup += u; };
+  const pct = Math.round(have / Math.max(1, peakFree) * 100);
+  // reception
+  const recGap = r3(c.recepNeed - S.staff.recep - vacUnits('recep'));
+  if (recGap > 0.05) { const u = recGap >= 0.95 ? 1 : [...HOURS_STD].reverse().find(v => v >= recGap - 0.02) || 1; add('recep', u, `reception is ${fteTxt(recGap)} full-time post${recGap > 1.05 ? 's' : ''} short, and one receptionist for every 1,600 patients answers the phones`); }
+  // keep the core team: a practice nurse or healthcare assistant who left is replaced on the same hours
+  for (const r of ['nurse', 'hca']) {
+    const short = r3((p0 => p0 ? p0 : 0)(prac().staff[r]) - (S.staff[r] - pcnPosts(r).reduce((a, q) => a + q.u, 0)) - vacUnits(r));
+    if (short > 0.3) { const u = short >= 0.95 ? 1 : [...HOURS_STD].reverse().find(v => v >= short - 0.02) || 1; add(r, u, `your ${ROLES[r].name.toLowerCase()} team is ${fteTxt(short)} full-time post${short > 1.05 ? 's' : ''} down on what the practice had: replacing leavers keeps the skills and the continuity`); }
+  }
+  // the PCN's budget first, planned for the winter
+  if (gapFree > 15 && !pcnPosts('nurse').length && !open('arrsnurse')) {
+    const u = fit('arrsnurse');
+    if (u && budget >= pcnClaim('nurse', u)) { budget -= pcnClaim('nurse', u); add('arrsnurse', u, `your own staff will cover about ${pct}% of demand in the winter peak: a nurse new to general practice takes on long-term conditions and QOF work, paid from the PCN budget`); }
+  }
+  const DOES = { anp: `an advanced nurse practitioner sees same-day problems start to finish${prac().gpCap ? ', and isn\'t limited by the local shortage of GPs' : ''} (they need a GP supervisor: about two hours a week of yours)`, physio: 'a first contact physio sees backs, knees and shoulders first', para: 'a paramedic does home visits and same-day minor illness, and needs only 4 room sessions' };
+  // rooms are scarce, so the most appointments per room session first (a paramedic 14, an advanced nurse practitioner or
+  // a physio about 9, because their appointments are longer), unless there are no GPs to find, when the ANP comes first
+  const perRoom = r => ROLES[r].cap / ROLES[r].room + (r === 'anp' && prac().gpCap ? 10 : 0);
+  const sameDay = () => ['anp', 'physio', 'para'].filter(r => !S.staff[r] && !open(r) && (r === 'anp' ? S.st.you >= 45 : sup < 3))
+    .sort((a, b) => perRoom(b) - perRoom(a));
+  for (const r of sameDay()) {
+    if (gapFree <= 15) break;
+    // a whole room for 80 appointments only while rooms are plentiful: keep space for GPs, who see 14 per room session
+    if (ROLES[r].cap / ROLES[r].room < 12 && !prac().gpCap && rooms - ROLES[r].room < 9) continue;
+    const u = fit(r); if (!u || budget < arrsClaimOf(r) * u) continue;
+    budget -= arrsClaimOf(r) * u; add(r, u, `still short for the winter: ${DOES[r]}, paid from the PCN budget`);
+  }
+  // then the practice's own money, planned six months ahead, only if the bank can stand it
+  // right-sized: the fewest hours that close the gap, within the rooms
+  const sized = (k, need) => { const R = ROLES[roleOf(k)], fits = hoursOf(k).filter(v => !R.room || R.room * v <= rooms + 0.01).sort((x, y) => x - y); return fits.find(v => R.cap * v * capMul >= need) || fits[fits.length - 1] || 0; };
+  // no more GPs than the England average for a list this size (4.6 full-time per 10,000 patients), give or take half a
+  // day: beyond that the salaries outrun the income, and the practice runs out of money in the long run
+  const gpRoom = u => benchmark()[0][1] + (u + vacUnits('salaried') + vacUnits('arrsgp')) * 6 / GP_FTE_SESSIONS <= BENCH.gp * S.list / BENCH.patients + 0.6;
+  if (gapPaid > Math.max(15, peakPaid * 0.03) && S.cash > S.overdraft + 40) {
+    if (gpHeadroom() >= 4) {
+      const u = sized('salaried', gapPaid);
+      if (u && gpHeadroom() >= u * 6 && !open('salaried') && !open('arrsgp') && gpRoom(u))
+        add('salaried', u, `appointments will still be short in the months ahead: a salaried GP for ${Math.round(u * 6)} sessions, which is about what's needed${u < 1.4 && fit('salaried') <= u ? ' and what the free rooms hold' : ''}, paid by the practice`);
+    }
+    // no GPs to find here: an advanced nurse practitioner over the PCN budget still costs less than the locums they replace
+    else if (!S.staff.anp && !open('anp') && S.st.you >= 45 && S.cash > S.overdraft + 60) {
+      const v = sized('anp', gapPaid), over = Math.max(0, arrsClaimOf('anp') * v - Math.max(0, budget));
+      if (v) add('anp', v, `no GPs to be found here, so an advanced nurse practitioner${over > 0.5 ? `, over the PCN budget: about £${Math.round(over)}k a year from the practice, less than locums for the same appointments` : ', paid from the PCN budget'}`);
+    }
+  }
+  // the inbox: a GP assistant from the PCN budget codes letters and preps results
+  if (c.inboxEnd > 400 && !S.staff.gpa && !open('gpa') && budget >= arrsClaimOf('gpa')) { budget -= arrsClaimOf('gpa'); out.push({ k: 'gpa', u: 1, why: `the inbox will reach ${c.inboxEnd} this month, and a GP assistant codes letters and preps results, paid from the PCN budget` }); }
+  // recalls behind: a care coordinator from the PCN budget chases reviews and care plans
+  if (S.month >= 3 && S.qof < S.month * 8 && !S.staff.cc && !open('cc') && budget >= arrsClaimOf('cc')) { budget -= arrsClaimOf('cc'); out.push({ k: 'cc', u: 1, why: `QOF is at ${Math.round(S.qof)}%, behind for ${MONTHS[S.month]}, and a care coordinator chases recalls and care plans, paid from the PCN budget` }); }
+  // when the building is the limit: say so, and cut demand instead, but not while a room is on its way
+  if (gapFree > 15 && rooms < 3.2) {
+    if (!convert && S.staff.sp + vacUnits('sp') < 2 && budget >= arrsClaimOf('sp')) { budget -= arrsClaimOf('sp'); out.push({ k: 'sp', u: 1, why: `the rooms are full, and a social prescriber needs none: they help with debt, housing and loneliness, which takes about 2% off demand, paid from the PCN budget` }); }
+    if (!convert) out.push({ note: S.flags.proj_meetingroom ? 'The clinic rooms are full, so another clinician won\'t fit. Evening and Saturday clinics need no room.' : 'The clinic rooms are full, so another clinician won\'t fit. Convert the meeting room into a clinic room (a project), or add evening and Saturday clinics, which need no room.' });
+  }
+  return out;
+}
+// Bev's whole plan: the month (suggestPlan), then the staffing. If the staff she'd recruit need a room the building hasn't
+// got, and it can still be made, the month's project becomes the meeting room, and the staffing is worked out again.
+function bevAdvice() {
+  const why = suggestPlan();
+  let staff = staffAdvice();
+  if (staff.some(a => a.note) && !S.flags.proj_meetingroom && S.plan.project !== 'meetingroom' && S.cash > S.overdraft + 10) {
+    S.plan.project = 'meetingroom';
+    why[why.length - 1] = `Project: ${PROJECTS.find(x => x.id === 'meetingroom').name}, because the staff below need a clinic room`;
+    staff = staffAdvice();
+  }
+  return { why, staff };
 }
 // headcount and FTE against the England averages for a list this size
 function benchmark() {
@@ -586,7 +685,9 @@ function targets(c) {
     [-5 * c.recepShort, 'Reception short: nobody answers the phone'],
     [ib > 700 ? -8 : ib > 400 ? -3 : 0, 'Results and letters waiting too long'],
     [WINTER.includes(m) ? -3 : 0, 'Winter: everyone is ill at once'],
-    [p.key === 'city' ? -3 : 0, 'High need and a transient list']
+    [p.key === 'city' ? -3 : 0, 'High need and a transient list'],
+    // unmet need builds up year on year where the need is highest (patDragYr, the city)
+    [-(p.patDragYr || 0) * (S.yr || 0), `Unmet need building up: year ${(S.yr || 0) + 1}`]
   ]);
   build('team', 58, [
     [-clamp(90 * (0.97 - r), 0, 30), 'Short of appointments: everyone is firefighting'],
@@ -609,7 +710,9 @@ function targets(c) {
     [S.plan.leave ? 8 : 0, 'A week off'],
     [activeOthers() === 0 ? -4 : 0, 'Carrying it alone'],
     [p.key === 'city' ? -2 : 0, 'Interpreter line on hold, again'],
-    [-(p.youDrag || 0), p.youDragWhy || '']
+    [-(p.youDrag || 0), p.youDragWhy || ''],
+    // in the hardest places the wear builds up: the drag grows with every year you stay (the city)
+    [-(p.youDragYr || 0) * (S.yr || 0), `${p.youDragYrWhy || ''}: year ${(S.yr || 0) + 1}`]
   ]);
   build('safety', 56, [
     [Math.min(S.plan.mgmt, 3) * 4, 'Management time for governance'],
@@ -642,13 +745,13 @@ function incidents(c) {
     add({ staff: { salaried: -1 } }, 'Because morale is low: a salaried GP left to locum. "At £100 an hour I can choose my days."');
     if (!S.flags.tomGone) S.flags.tomGone = 1;
   }
-  // high-turnover areas lose staff even when morale is fine
-  const tv = prac().turnover || 0;
+  // high-turnover areas lose staff even when morale is fine, and more each year the pressure goes on (turnoverYr, the city)
+  const tv = (prac().turnover || 0) + (prac().turnoverYr || 0) * (S.yr || 0);
   if (tv && chance(tv)) {
     const pool = ['recep', 'nurse', 'hca'].filter(r => S.staff[r] > (r === 'recep' ? 2 : 0));
     if (pool.length) {
       const r = pick(pool);
-      add({ staff: { [r]: -1 }, team: -2 }, `Because staff turnover is high in ${prac().place}: a ${ROLES[r].name.toLowerCase()} left for a job nearer home that pays a little more.`);
+      add({ staff: { [r]: -1 }, team: -2 }, `Because staff turnover is high in ${prac().place}${prac().turnoverYr && S.yr ? ', and rising' : ''}: a ${ROLES[r].name.toLowerCase()} left for a job nearer home that pays a little more.`);
     }
   }
   if (c.ratio < 0.87 && chance(0.5))

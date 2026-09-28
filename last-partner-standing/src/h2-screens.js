@@ -210,6 +210,16 @@ function quietMonth(R) {
   if (STAT_KEYS.some(k => S.st[k] < 30) || S.cash < S.overdraft + 20) return false;
   return true;
 }
+// places an advert for k (a role, or arrsgp / arrsnurse through the PCN) on hours u; returns the message to show
+function placeAdvert(k, u) {
+  const role = k === 'arrsgp' ? 'salaried' : k === 'arrsnurse' ? 'nurse' : k, R = ROLES[role], pcn = role !== k;
+  if (!R) return '';
+  const claim = R.arrs ? arrsClaimOf(role) * u : pcn ? pcnClaim(role, u) : 0;
+  const overK = claim ? Math.max(0, Math.min(claim, claim - arrsLeft())) : 0;
+  const cost = advertCost(k);
+  advertise(k, u); S.cash = r1(S.cash - cost);
+  return `${R.name}${isGP(role) || Math.abs(u - 1) > 0.01 ? ` (${hrsTxt(role, u)})` : ''} advertised${pcn ? ' through the PCN\'s additional-roles budget' : ''}${cost ? ` (${fmtK(cost)})` : ''}.${role === 'salaried' && gpHeadroom() < 0 ? ` Don't hold your breath: ${prac().place} already has one GP per ${prac().gpCap.toLocaleString('en-GB')} patients, and the local GPs are all taken.` : ' Results at month end.'}${overK > 0.5 ? ` Over the PCN budget: about £${Math.round(overK)}k a year from the practice.` : ''}`;
+}
 // stays long enough to read: about 4 seconds, longer for longer messages; tap to dismiss
 function toast(msg) { document.querySelectorAll('.toast').forEach(x => x.remove()); const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg; t.addEventListener('click', () => t.remove()); document.body.appendChild(t); setTimeout(() => t.remove(), Math.min(9000, 3500 + msg.length * 30)); }
 
@@ -293,13 +303,12 @@ document.addEventListener('click', ev => {
     case 'hire': {
       if (UI.lastHire && UI.lastHire.r === arg && Date.now() - UI.lastHire.t < 700) break;
       UI.lastHire = { r: arg, t: Date.now() };
-      const role = arg === 'arrsgp' ? 'salaried' : arg === 'arrsnurse' ? 'nurse' : arg, R = ROLES[role], pcn = role !== arg, u = hrsPick(arg);
-      if (!R) break;
-      const claim = R.arrs ? arrsClaimOf(role) * u : pcn ? pcnClaim(role, u) : 0;
-      const overK = claim ? Math.max(0, Math.min(claim, claim - arrsLeft())) : 0;
-      const cost = role === 'salaried' ? 1.5 : role === 'nurse' ? 0.8 : R.arrs ? 0 : 0.4;
-      advertise(arg, u); S.cash = r1(S.cash - cost); save(); keepScroll(renderPlan);
-      toast(`${R.name}${isGP(role) || Math.abs(u - 1) > 0.01 ? ` (${hrsTxt(role, u)})` : ''} advertised${pcn ? ' through the PCN\'s additional-roles budget' : ''}${cost ? ` (${fmtK(cost)})` : ''}.${role === 'salaried' && gpHeadroom() < 0 ? ` Don't hold your breath: ${prac().place} already has one GP per ${prac().gpCap.toLocaleString('en-GB')} patients, and the local GPs are all taken.` : ' Results at month end.'}${overK > 0.5 ? ` Over the PCN budget: about £${Math.round(overK)}k a year from the practice.` : ''}`); break;
+      const t = placeAdvert(arg, hrsPick(arg)); if (t) { save(); keepScroll(renderPlan); toast(t); } break;
+    }
+    // one of Bev's staffing suggestions, on the hours she suggested
+    case 'advise': {
+      const g = UI.suggest, a = g && g.staff && g.staff[+arg]; if (!a || a.done || !a.k) break;
+      const t = placeAdvert(a.k, a.u); if (t) { a.done = 1; save(); keepScroll(renderPlan); toast(t); } break;
     }
     case 'hrs': { const [r, v] = String(arg).split(':'); if (ROLES[r] && +v > 0) { (UI.hrs = UI.hrs || {})[r] = +v; keepScroll(renderPlan); } break; }
     case 'unvac': if (S.vac[arg]) { unadvertise(arg); save(); keepScroll(renderPlan); } break;
@@ -311,7 +320,7 @@ document.addEventListener('click', ev => {
     }
     case 'weekly': { const w = weeklyChallenge(); const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; UI.intro = true; go(() => newGame(w.practice, nm, { seed: w.seed, week: w.week })); break; }
     case 'begin': go(beginMonth); break;
-    case 'suggest': { if (S.practiceKey === 'city') break; UI.suggest = { yr: S.yr || 0, m: S.month, why: suggestPlan() }; save(); keepScroll(renderPlan); break; }
+    case 'suggest': { if (S.practiceKey === 'city') break; UI.suggest = { yr: S.yr || 0, m: S.month, ...bevAdvice() }; save(); keepScroll(renderPlan); break; }
     case 'suggest-x': UI.suggest = null; keepScroll(renderPlan); break;
     case 'choose': chooseAt(+arg); break;
     case 'cont': go(continueOutcome); break;

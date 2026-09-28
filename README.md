@@ -19,6 +19,7 @@ Or download [`last-partner-standing/last-partner-standing-play.html`](last-partn
   - locum rates, and a partner's own pension, income tax and Class 4 NI.
   - the PCN's additional-roles budget (ARRS) at each role's 2026/27 maximum, now including GPs and practice nurses recruited through the PCN;
   - profit shares close to what real partners earned in 2024/25 (about £158,700 in practices of 5,000 to 10,000 patients).
+- **Bev's plan and staffing advice.** In the suburb and the town, Bev suggests the month's plan and who to recruit, each with a reason and an Advertise button, on the principles of a safe and effective practice: enough appointments for the winter, the PCN's budget before the practice's own money, the right role for the need, rooms used well, leavers replaced, and no more GPs than the list can pay for.
 - **Staff on the hours you choose.** Recruit full time or part time (37.5, 30, 22.5 or 15 hours, or 9, 8, 6 or 4 GP sessions). Pay, appointments, inbox work and room bookings follow the hours, and each part-timer has their own NI threshold.
 - **Consequences that feel natural.** Meters drift toward wherever the practice's situation is taking them, and the month plan shows why. Decisions can change where things settle, or come back months later.
 - **Explainers everywhere.** Cards built on real figures or rules have a "What's real here?" dropdown with graded sources. The month plan and the accounts explain how everything is calculated, and there's a glossary.

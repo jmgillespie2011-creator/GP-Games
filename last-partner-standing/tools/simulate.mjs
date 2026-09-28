@@ -1,5 +1,6 @@
 // Headless balance check for Last Partner Standing.
-// Usage: node tools/simulate.mjs [games per practice and policy, default 200] [suburb|town|city|all] [random|smart|both] [endless]
+// Usage: node tools/simulate.mjs [games per practice and policy, default 200] [suburb|town|city|all] [random|smart|bev|both|all, or a comma list] [endless]
+// Policies: random picks anything; smart is a sensible heuristic player; bev follows Bev's plan and staffing advice every month.
 // With `endless`, each game carries on into later years (up to 10) until it ends, and reports how many months partners last.
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
@@ -9,14 +10,14 @@ import { fileURLToPath } from 'node:url';
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const FILES = ['c-data.js', 'c2-minidata.js', 'd-events1.js', 'e-events2.js', 'f-events3.js', 'f2-events4.js', 'f3-events5.js', 'f4-events6.js', 'f5-events7.js', 'f6-events8.js', 'f7-events9.js', 'f8-events10.js', 'g-engine.js', 'g2-endings.js'];
 const code = FILES.map(f => readFileSync(path.join(dir, '..', 'src', f), 'utf8')).join('\n') +
-  '\n;globalThis.__lps = { ctxFx, newGame, gpHeadroom, locumMax, beginMonth, currentEvent, resolveChoice, continueOutcome, nextMonth, continueYear, calc, arrsLeft, arrsClaimOf, activeOthers, arrsCount, roomsNeeded, roomsAvail, pcnClaim, pcnPosts, advertise, ROLES, STAT_KEYS, val, S: () => S };';
+  '\n;globalThis.__lps = { ctxFx, newGame, gpHeadroom, locumMax, beginMonth, currentEvent, resolveChoice, continueOutcome, nextMonth, continueYear, calc, arrsLeft, arrsClaimOf, activeOthers, arrsCount, roomsNeeded, roomsAvail, pcnClaim, pcnPosts, advertise, bevAdvice, advertCost, ROLES, STAT_KEYS, val, S: () => S };';
 const ctx = vm.createContext({ console, Math, JSON, Date });
 vm.runInContext(code, ctx, { filename: 'lps.js' });
 const L = ctx.__lps;
 
 const N = +(process.argv[2] || 200);
 const practices = !process.argv[3] || process.argv[3] === 'all' ? ['suburb', 'town', 'city'] : [process.argv[3]];
-const policies = !process.argv[4] || process.argv[4] === 'both' ? ['random', 'smart'] : [process.argv[4]];
+const policies = !process.argv[4] || process.argv[4] === 'both' ? ['random', 'smart'] : process.argv[4] === 'all' ? ['random', 'smart', 'bev'] : process.argv[4].split(',');
 const ENDLESS = process.argv[5] === 'endless', MAX_YEARS = 10;
 const EXIT_CHOICES = { breach_notice: [2], apex_offer: [0], merger_vote: [0], p_merger_again: [0], p_apex_again: [0], salaried_offer: [0], emigrate: [0], last_partner: [0], lifeline: [1, 2] };
 
@@ -71,17 +72,24 @@ function smartPlan(S) {
     : (S.month >= 6 && S.qof < 85) ? 'qof' : S.cash < 0 ? 'claims' : 'qof';
 }
 
+// A player who follows Bev: her plan every month (sessions, cover, drawings, project) and every advert she suggests that
+// the bank can stand. It checks that the game's own guidance, built on the principles of a safe and effective practice,
+// actually runs one.
+function bevPlan(S) {
+  for (const a of L.bevAdvice().staff) if (a.k && S.cash - L.advertCost(a.k) > S.overdraft + 5) { L.advertise(a.k, a.u); S.cash = Math.round((S.cash - L.advertCost(a.k)) * 10) / 10; }
+}
+
 function play(practice, policy) {
   L.newGame(practice, 'Sim');
   let steps = 0;
   for (let S = L.S(); !['end', 'over'].includes(S.phase) || (ENDLESS && S.phase === 'end' && !S.end.exit && (S.yr || 0) < MAX_YEARS - 1); S = L.S()) {
     if (++steps > 2000 * MAX_YEARS) break;
     if (S.phase === 'end') { L.continueYear(); continue; }
-    if (S.phase === 'plan') { if (policy === 'smart') smartPlan(S); L.beginMonth(); }
+    if (S.phase === 'plan') { if (policy === 'smart') smartPlan(S); else if (policy === 'bev') bevPlan(S); L.beginMonth(); }
     else if (S.phase === 'event') {
       const e = L.currentEvent();
       const opts = options(e);
-      const i = policy === 'smart' ? greedy(e, S) : opts[Math.floor(Math.random() * opts.length)];
+      const i = policy !== 'random' ? greedy(e, S) : opts[Math.floor(Math.random() * opts.length)];
       if (e.choices[i].play) L.resolveChoice(i, { fx: { inbox: -80, safety: 1, patients: 1 }, o: 'sim' });
       else L.resolveChoice(i);
     } else if (S.phase === 'outcome') L.continueOutcome();

@@ -325,7 +325,9 @@ p{margin:0}
 .fc-note{font-size:12.5px;color:var(--ink-2)}
 .good-t{color:var(--good)}.warn-t{color:var(--warn)}.bad-t{color:var(--bad)}
 .plan-go{display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-top:16px}
-.go-pair{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.go-main{font-size:18px;padding:.75em 1.6em}
+.carry{display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-top:6px;text-align:right}
+@media (max-width:640px){.plan-go{align-items:stretch}.go-main{width:100%}.carry{align-items:center;text-align:center}}
 
 /* ---------- report ---------- */
 .report{max-width:860px;margin:0 auto;display:grid;gap:16px}
@@ -429,6 +431,12 @@ details.explain.real>summary{color:var(--ink)}
 .chip.later{color:var(--warn);border-color:var(--warn);border-style:dashed}
 .echo{margin-top:12px;font-size:14px;color:var(--ink-2);border-left:3px solid var(--warn);padding-left:10px}
 .panel.consq{border:1.5px solid var(--warn);background:var(--sheet)}
+.consq h4{margin:12px 0 8px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.cqs{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.cqs li{padding-left:12px;border-left:3px solid var(--warn)}
+.cqs p{margin:0;font-size:14.5px}
+.cqs .cq-src{font-size:13.5px;color:var(--ink-2);margin-bottom:3px}.cqs .cq-src b{color:var(--ink)}
+.cqs .deltas{margin-top:7px;gap:6px}.cqs .delta{font-size:12px;padding:2px 7px}
 .counter{margin-top:16px;border-top:1px solid var(--rule);padding-top:10px;display:grid;gap:6px;font-size:14.5px;color:var(--ink-2)}
 .why{margin:0;padding:0;list-style:none;display:grid;gap:3px;font-size:13px}
 .why li{display:grid;grid-template-columns:3.2em 1fr;gap:6px}
@@ -573,7 +581,7 @@ button,.choice,.bin,summary{touch-action:manipulation;-webkit-tap-highlight-colo
 </style>
 <div id="app"></div>
 <script>
-const BUILD = '3869709';
+const BUILD = 'cc7397c';
 /* ===================== DATA: world, money, people ===================== */
 const MONTHS = ['April','May','June','July','August','September','October','November','December','January','February','March'];
 const MON3 = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
@@ -865,6 +873,9 @@ const SOURCES = {
   S99:['NHS Networks: Review of GP locally commissioned services','https://networks.nhs.uk/blog/review-of-gp-locally-commissioned-services/','B'],
   S100:['NHS England: Strategic commissioning framework (November 2025)','https://www.england.nhs.uk/long-read/strategic-commissioning-framework/','A'],
   S101:['BMA: Enhanced services GP practices can seek funding for','https://www.bma.org.uk/advice-and-support/gp-practices/gp-service-provision/enhanced-services-gp-practices-can-seek-funding-for','B'],
+  S102:['GMC: Good practice in prescribing and managing medicines and devices, shared care','https://www.gmc-uk.org/professional-standards/the-professional-standards/good-practice-in-prescribing-and-managing-medicines-and-devices/shared-care','A'],
+  S103:['BMA: General practice responsibility in responding to private healthcare','https://www.bma.org.uk/advice-and-support/gp-practices/managing-workload/general-practice-responsibility-in-responding-to-private-healthcare','B'],
+  S104:['BMA: Principles for shared care prescribing (with the 2025 LMC conference policy and a template letter to decline)','https://www.bma.org.uk/advice-and-support/gp-practices/prescribing/prescribing-in-general-practice/principles-for-shared-care-prescribing','B'],
   S94:['NHS England Digital: Appointments in General Practice','https://digital.nhs.uk/data-and-information/publications/statistical/appointments-in-general-practice','A'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
@@ -2115,16 +2126,17 @@ EVENTS.push(
   {t:'Just do them all',fx:{inbox:80,you:-4,safety:2,patients:2},o:`Raj and you work through them on Christmas Eve. Every one gets done. You eat a mince pie from the reception tin, standing up.`}
  ]}
 ,
-{id:'hcq_screening',who:'raj',title:'Nobody booked the eye test',tag:'real',src:['S85','S86'],
- info:'Under the national shared care protocol for hydroxychloroquine, the specialist reviews the patient every year and, after five years of treatment (sooner with risk factors such as reduced kidney function or tamoxifen), refers them for annual retinal screening. The GP\'s part is to remind the specialist as the five-year mark approaches. Early retinal toxicity causes no symptoms, and severe damage can keep progressing after the drug is stopped. Whoever signs the prescription is responsible for it, so when the specialist disappears, the gap is the practice\'s.',
- text:`A medication review turns up a woman of 61 who has taken hydroxychloroquine for eight years, under shared care with a private rheumatologist. The agreement is clear: the specialist reviews her every year, and refers her for eye screening every year after five. The rheumatologist moved to Dubai three years ago. Nobody told the practice. The repeat prescription kept going out every 56 days, signed by whoever was on.`,
+{id:'hcq_screening',who:'raj',title:'Nobody booked the eye test',tag:'real',src:['S85','S86','S102','S103','S104'],
+ info:'Shared care is voluntary: a practice can decline to take over prescribing that a specialist started, for any reason. The BMA\'s guidance is that GPs aren\'t expected to enter shared care with private providers, because of governance, clinical responsibility and health inequalities, and in 2025 the UK conference of LMCs voted that "any shared care prescribing arrangement with a private provider is unsafe, not enduring, and widens health inequalities".\n\nThe risks are the ones on this card. A private specialist has no contract with the ICB, so nothing obliges them to follow the NHS protocol, keep reviewing the patient or tell the practice when they stop, and the patient may not be able to keep paying for the reviews. When it ends there\'s no NHS clinic to hand the patient back to, only a new referral and a wait. All the while, the doctor who signs each prescription is responsible for it (GMC).\n\nUnder the national shared care protocol for hydroxychloroquine, the specialist reviews the patient every year and, after five years of treatment (sooner with risk factors such as reduced kidney function or tamoxifen), refers them for annual retinal screening. The GP\'s part is to remind the specialist as the five-year mark approaches. Early retinal toxicity causes no symptoms, and severe damage can keep progressing after the drug is stopped.',
+ text:`A medication review turns up a woman of 61 who has taken hydroxychloroquine for eight years. A private rheumatologist started it, and the practice agreed to take over the prescribing under shared care. The agreement was clear: the specialist would review her every year, and refer her for eye screening every year after five. The rheumatologist moved to Dubai three years ago. No NHS contract obliged anyone to tell the practice, so nobody did. The repeat kept going out every 56 days, signed by whoever was on. "Every signature made it our prescription," says Raj. "And the monitoring was one private clinic."`,
  choices:[
   {t:'Refer her for retinal screening now, and to NHS rheumatology',fx:{you:-2,safety:2,inbox:10},
    run(){ if(chance(0.7)) plant({in:3,fx:{safety:2},note:'Her retinal scan was normal. NHS rheumatology has taken over her care, with a new shared care agreement.'}); else plant({in:3,fx:{safety:-3,you:-3,rep:-1},note:'Her retinal scan showed early hydroxychloroquine damage. The drug has been stopped and her sight is unaffected so far, but it will be watched for years. You have logged it as a significant event.'}); },
    o:`She had no idea she was meant to be having eye checks. Nobody told her either. The referral goes today, with a letter to NHS rheumatology explaining why a private patient is now theirs.`},
-  {t:'Search for everyone on shared care with a private specialist',fx:{you:-3,team:-1,safety:4,inbox:40,aim:{safety:1}},
+  {t:'Find everyone on private shared care, and take on no more',fx:{you:-3,team:-1,safety:4,inbox:40,patients:-1,aim:{safety:1}},
+   later:[{in:4,p:0.5,fx:{patients:-2,rep:-1},note:'Because the practice no longer takes on shared care from private specialists: a private psychiatrist asked you to take over a patient\'s ADHD medication, and you declined. The patient now pays for private prescriptions while waiting for NHS care, and has complained. The policy is safer, and it is also unfair on anyone who can\'t afford to wait.'}],
    run(){ plant({in:3,p:0.8,fx:{safety:2},note:'The shared care search is finished. Every patient with a vanished private specialist now has an NHS referral, and the eye screening is booked.'}); },
-   o:`The search finds 14 more patients prescribed under private shared care. Three have specialists who no longer answer. Each gets a referral, a letter explaining why, and a recall on the system that will outlast any of you.`},
+   o:`The search finds 14 more patients prescribed under private shared care. Three have specialists who no longer answer. Each gets a referral, a letter explaining why, and a recall on the system that will outlast any of you. New requests from private specialists now get the BMA's template letter: the practice will keep caring for the patient, but the prescribing and the monitoring stay with the specialist.`},
   {t:'Stop the hydroxychloroquine until she has seen someone',fx:{safety:1,patients:-2},later:[{in:2,p:0.5,fx:{patients:-2,you:-2},note:'Her joints flared badly off hydroxychloroquine. She is waiting for NHS rheumatology, on a course of steroids from the out-of-hours doctor.'}],
    o:`The protocol says stopping is the specialist's decision. There isn't one. She leaves worried about her eyes and her joints, in that order.`},
   {t:'Keep prescribing. She seems fine.',fx:{},later:[{in:4,p:0.45,fx:{safety:-8,you:-6,rep:-3,patients:-3},note:'She noticed words missing from the middle of lines when reading. Her scan shows established retinal damage, which may keep progressing now the drug has stopped. She has complained, and your defence organisation has opened a file.'}],
@@ -3539,9 +3551,11 @@ function addMod(m) {
   S.mods.push(mod);
 }
 // plant a consequence that may land in a later month: {in, p, fx, note}
+// It remembers the card, the month and the choice that planted it, so the report can say which decision it came from.
 function plant(seed) {
   const e = S.phase === 'event' ? currentEvent() : null;
-  S.later.push({ m: S.month + (seed.in || 1), p: seed.p == null ? 1 : seed.p, fx: seed.fx || {}, note: seed.note || '', from: seed.from || (e ? fill(val(e.title)) + ', ' + MONTHS[S.month] : '') });
+  S.later.push({ m: S.month + (seed.in || 1), p: seed.p == null ? 1 : seed.p, fx: seed.fx || {}, note: seed.note || '', from: seed.from || (e ? fill(val(e.title)) + ', ' + MONTHS[S.month] : ''),
+    card: e ? fill(val(e.title)) : '', mon: e ? MONTHS[S.month] : '', yr: S.yr || 0, gen: S.gen || 1, pick: seed.pick || (e && S._pick) || '' });
   S._planted = true;
 }
 function partnerLeaves(id) {
@@ -3688,6 +3702,7 @@ function resolveChoice(i, extra) {
   const c = e.choices[i]; if (!c) return;
   const before = snap();
   S._alt = false; S._planted = false;
+  try { S._pick = fill(val(c.t)); } catch (err) { S._pick = ''; }
   const schedBefore = S.sched.length + S.queue.length;
   let fx = c.fx, o = c.o;
   if (c.alt && chance(val(c.alt.p))) { S._alt = true; fx = c.alt.fx; o = c.alt.o; }
@@ -3704,7 +3719,7 @@ function resolveChoice(i, extra) {
   const deltas = diffSnap(before, snap());
   const echoes = S._planted || S.sched.length + S.queue.length > schedBefore;
   S.cur = { id: e.id, o: fill((res && res.o) || (extra && extra.o) || val(o) || ''), html: (res && res.html) || (extra && extra.html) || '', deltas, alt: S._alt, echoes, lasting: !!(val(fx) || {}).aim };
-  delete S._alt; delete S._planted;
+  delete S._alt; delete S._planted; delete S._pick;
   S.phase = 'outcome';
   save();
 }
@@ -3962,7 +3977,12 @@ function monthEnd() {
   // delayed consequences of earlier decisions
   const due = S.later.filter(x => x.m <= S.month);
   S.later = S.later.filter(x => x.m > S.month);
-  due.forEach(x => { if (chance(x.p)) { applyFx(x.fx); if (x.note) consq.push((x.from ? `From “${x.from}”: ` : '') + x.note); } });
+  due.forEach(x => {
+    if (!chance(x.p)) return;
+    const b = snap(); applyFx(x.fx);
+    // older saves only have `from`; newer seeds also carry the card, month, year and the choice
+    if (x.note) consq.push({ card: x.card || '', mon: x.mon || '', ago: x.card ? (S.yr || 0) - (x.yr || 0) : 0, pred: !!x.card && (x.gen || 1) !== (S.gen || 1), from: x.from || '', pick: x.pick || '', note: x.note, ds: diffSnap(b, snap()) });
+  });
   // things that happen because of the state you're in
   incidents(c).forEach(n => consq.push(n));
   // unhappy patients register elsewhere, and the global sum follows them
@@ -4632,7 +4652,7 @@ function renderEvent() {
     const h = JSON.stringify(hintFor(c));
     return `<button class="choice" data-act="choose" data-arg="${i}" data-hint='${esc(h)}' ${ok ? '' : 'disabled'}><span class="t"><span class="kbd">${i + 1}</span> ${esc(fill(val(c.t)))}</span>${ok ? chipsFor(c) : `<span class="why">${esc(c.why || 'Not available')}</span>`}</button>`;
   }).join('');
-  const info = e.info ? explain(e.tag === 'speculative' ? 'What\'s invented here?' : 'What\'s real here?', `<p>${esc(fill(e.info))}</p>${srcLinks(e.src)}`, 'real') : '';
+  const info = e.info ? explain(e.tag === 'speculative' ? 'What\'s invented here?' : 'What\'s real here?', `${fill(e.info).split('\n\n').map(p => `<p>${esc(p)}</p>`).join('')}${srcLinks(e.src)}`, 'real') : '';
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap">
     ${UI.settings.timer && e.kind !== 'mini' ? `<div class="cardtimer" role="timer" aria-label="${CARD_SECONDS} seconds to decide"><b style="animation-duration:${CARD_SECONDS}s"></b></div>` : ''}
     <article class="card" aria-live="polite">${badge(e.who)}<span class="stampno">${MON3[S.month]} · ${Math.min(n, tot)}/${tot}</span></div>
@@ -4680,6 +4700,17 @@ function statLines(extra) {
 }
 
 /* ---------- month report ---------- */
+// "What came of it": each delayed consequence names the card, the month and the choice that planted it, and what it changed.
+// Older saves only have strings, and consequences of the practice's state are strings too.
+function consqHTML(list) {
+  const picks = list.filter(n => n && typeof n === 'object'), state = list.filter(n => typeof n === 'string');
+  const q = t => /["“”]/.test(t) ? t : `“${t}”`;
+  const src = n => n.card ? `<b>${esc(n.card)}</b>, ${esc(n.mon)}${n.ago === 1 ? ' last year' : n.ago > 1 ? `, ${n.ago} years ago` : ''}` : n.from ? `<b>${esc(n.from)}</b>` : '';
+  const item = n => { const w = src(n); return `<li><p class="cq-src">${w}${n.pick ? `${w ? ': ' : ''}${n.pred ? 'your predecessor chose' : 'you chose'} ${esc(q(n.pick))}` : ''}</p><p>${esc(n.note)}</p>${n.ds && n.ds.length ? deltaChips(n.ds) : ''}</li>`; };
+  return `<section class="panel consq"><h3>What came of it</h3>
+    ${picks.length ? `<h4>From your earlier choices</h4><ul class="cqs">${picks.map(item).join('')}</ul>` : ''}
+    ${state.length ? `<h4>From the state of the practice</h4><ul class="notes">${state.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}</section>`;
+}
 function renderReport() {
   const R = S.report, c = R.c;
   const dmap = {}; R.deltas.forEach(d => { dmap[d.k] = d.d; });
@@ -4692,7 +4723,7 @@ function renderReport() {
       <h2>${esc(R.headline)}</h2><p>${c.cap} appointments offered a week against ${c.demand} requested (${pct(c.ratio)}).</p></div>
     ${R.proj ? `<section class="panel projout"><h3>This month's project <small>${esc(R.proj.name)}</small></h3><p>${esc(R.proj.text)}</p>${R.proj.deltas.length ? deltaChips(R.proj.deltas) : ''}</section>` : ''}
     ${(() => { const all = []; STAT_KEYS.forEach(k => c.T[k].why.forEach(([d, l]) => all.push([d, l, k]))); const top = all.filter(x => Math.abs(x[0]) >= 3).sort((a, b) => Math.abs(b[0]) - Math.abs(a[0])).slice(0, 3); return top.length ? `<section class="panel"><h3>What's driving the practice <small>the biggest pulls on your meters right now</small></h3><ul class="why">${top.map(([d, l, k]) => `<li><span class="${d > 0 ? 'good-t' : 'bad-t'}">${d > 0 ? '+' : '−'}${Math.abs(d)}</span> ${STAT_LABEL[k]}: ${esc(l)}</li>`).join('')}</ul></section>` : ''; })()}
-    ${R.consq.length ? `<section class="panel consq"><h3>What came of it <small>consequences of earlier decisions and of the state you're in</small></h3><ul class="notes">${R.consq.map(n => `<li>${esc(n)}</li>`).join('')}</ul></section>` : ''}
+    ${R.consq.length ? consqHTML(R.consq) : ''}
     <div class="rgrid">
       <section class="panel"><h3>The month in numbers</h3>
         <dl class="kv">
@@ -4731,7 +4762,7 @@ function renderReport() {
         ${notes.length ? `<h3 style="margin-top:6px">Notes</h3><ul class="notes">${notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
       </section>
     </div>
-    <div class="plan-go">${checkOver() || last ? `<button class="btn primary" data-act="next">${checkOver() ? 'Uh oh…' : 'See the year-end accounts →'}</button>` : `<div class="go-pair"><button class="btn" data-act="next">Plan ${MONTHS[S.month + 1]}</button><button class="btn primary" data-act="nextgo" title="Keep this month's sessions, cover and drawings">Same plan, start ${MONTHS[S.month + 1]} →</button></div><p class="fc-note">Same plan: ${S.plan.clin} clinical, ${S.plan.admin} admin and ${S.plan.mgmt} management sessions${S.plan.locum ? `, ${S.plan.locum} locum` : ''}${S.plan.extra ? `, ${S.plan.extra} overtime` : ''}. Leave and one-off projects don't carry over.</p>`}</div>
+    <div class="plan-go">${checkOver() || last ? `<button class="btn primary" data-act="next">${checkOver() ? 'Uh oh…' : 'See the year-end accounts →'}</button>` : `<button class="btn primary go-main" data-act="next">Plan ${MONTHS[S.month + 1]} →</button><div class="carry"><button class="btn ghost small" data-act="nextgo" title="Keep this month's sessions, cover and drawings">Or keep this plan and start ${MONTHS[S.month + 1]}</button><p class="fc-note">${S.plan.clin} clinical, ${S.plan.admin} admin and ${S.plan.mgmt} management sessions${S.plan.locum ? `, ${S.plan.locum} locum` : ''}${S.plan.extra ? `, ${S.plan.extra} overtime` : ''}. Leave and one-off projects don't carry over.</p></div>`}</div>
   </div></main>`;
 }
 

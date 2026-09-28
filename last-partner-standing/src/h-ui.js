@@ -356,7 +356,7 @@ function renderEvent() {
     const h = JSON.stringify(hintFor(c));
     return `<button class="choice" data-act="choose" data-arg="${i}" data-hint='${esc(h)}' ${ok ? '' : 'disabled'}><span class="t"><span class="kbd">${i + 1}</span> ${esc(fill(val(c.t)))}</span>${ok ? chipsFor(c) : `<span class="why">${esc(c.why || 'Not available')}</span>`}</button>`;
   }).join('');
-  const info = e.info ? explain(e.tag === 'speculative' ? 'What\'s invented here?' : 'What\'s real here?', `<p>${esc(fill(e.info))}</p>${srcLinks(e.src)}`, 'real') : '';
+  const info = e.info ? explain(e.tag === 'speculative' ? 'What\'s invented here?' : 'What\'s real here?', `${fill(e.info).split('\n\n').map(p => `<p>${esc(p)}</p>`).join('')}${srcLinks(e.src)}`, 'real') : '';
   $app.innerHTML = hudHTML() + `<main class="stage"><div class="wrap">
     ${UI.settings.timer && e.kind !== 'mini' ? `<div class="cardtimer" role="timer" aria-label="${CARD_SECONDS} seconds to decide"><b style="animation-duration:${CARD_SECONDS}s"></b></div>` : ''}
     <article class="card" aria-live="polite">${badge(e.who)}<span class="stampno">${MON3[S.month]} · ${Math.min(n, tot)}/${tot}</span></div>

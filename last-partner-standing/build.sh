@@ -20,9 +20,9 @@ printf '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta
 DESC='One year as a new GP partner on the real 2026/27 contract. Keep your patients, your team, the practice, the bank and yourself alive until March. Free, in your browser.'
 printf '<meta name="theme-color" content="#E3EDE1" media="(prefers-color-scheme: light)">\n<meta name="theme-color" content="#0D1712" media="(prefers-color-scheme: dark)">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-title" content="Last Partner">\n<meta name="format-detection" content="telephone=no">\n' >> "$PLAY"
 # Link previews (Twitter/X, Facebook, WhatsApp, Slack). The card is og.png, made by tools/og-card.mjs.
-# The image URL points straight at gp-games; the page URL is the address we share.
+# The page and its preview image both live at the address we share.
 SITE=https://last-partner-standing.vercel.app
-IMG=https://gp-games.vercel.app/last-partner-standing/og.png
+IMG=$SITE/last-partner-standing/og.png
 ALT='The Last Partner Standing title next to a January month report: patients 31, team 54, you 19, safety 58, bank minus £71k.'
 printf '<meta name="description" content="%s">\n<link rel="canonical" href="%s/">\n' "$DESC" "$SITE" >> "$PLAY"
 printf '<meta property="og:type" content="website">\n<meta property="og:site_name" content="Last Partner Standing">\n<meta property="og:url" content="%s/">\n<meta property="og:title" content="Last Partner Standing">\n<meta property="og:description" content="%s">\n' "$SITE" "$DESC" >> "$PLAY"

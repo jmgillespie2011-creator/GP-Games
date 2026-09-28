@@ -629,7 +629,7 @@ button,.choice,.bin,summary{touch-action:manipulation;-webkit-tap-highlight-colo
 <body>
 <div id="app"></div>
 <script>
-const BUILD = '3dcfb3f';
+const BUILD = 'ace5a15';
 /* ===================== DATA: world, money, people ===================== */
 const MONTHS = ['April','May','June','July','August','September','October','November','December','January','February','March'];
 const MON3 = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
@@ -3920,6 +3920,8 @@ function newGame(practiceKey, name, opts) {
   teachSchedule();
   startMonth();
   save();
+  // counted on the website (track() in h3-board.js); the simulator loads no track(), so it never sends
+  if (typeof track === 'function') track('start');
 }
 
 /* ---------- scheduling, modifiers, delayed consequences ---------- */
@@ -4553,6 +4555,7 @@ function gameOver(k) {
   recordBest(null);
   plaque(`${OVER[k].title}, ${MONTHS[S.month]}${S.yr ? ` of year ${S.yr + 1}` : ''}`, OVER[k].title, 0);
   clearSave();
+  if (typeof track === 'function') track('over');
 }
 
 /* ---------- the partner's own money ---------- */
@@ -4596,6 +4599,7 @@ function finishYear(exit) {
   recordBest(S.end);
   plaque(exit ? EXITS[exit].t : `Year ${(S.yr || 0) + 1} complete`, arche.t, score);
   if (exit) clearSave(); else save();
+  if (typeof track === 'function') track(exit ? 'exit' : 'year');
 }
 
 /* ---------- endless mode: carry on into another year ---------- */
@@ -4670,6 +4674,7 @@ function takeOver() {
   if (S.month >= 11) continueYear(); else { S.month++; startMonth(); }
   S.queue.unshift('takeover'); S.qi = 0;
   save();
+  if (typeof track === 'function') track('takeover', k);
 }
 
 /* ---------- the Partners' Board: every run you've played, kept in this browser ---------- */
@@ -4852,7 +4857,7 @@ function renderTitle() {
           <li>Survive to 31st March 2027 and the accountant tells you what it was all worth, after tax. Then carry on, for as long as you can last.</li>
         </ul>
         ${explain('About the numbers', `<p>The money runs on real 2026/27 figures for England: the £130.07 global sum, QOF at £227.95 a point, 15% employer NI, 14.38% employer pension, locum rates and partner tax. Cards marked <b>Real figures</b> or <b>Real rule</b> show their sources.</p><p>It's a simplified model of a GMS practice, not financial, tax or medical advice. The practices, people and companies are fictional. Not affiliated with the NHS, the BMA or any government body.</p>`)}
-        ${explain('Privacy', `<p>Your game is saved only in this browser. Nothing about how you play is sent anywhere unless you post a score to the leaderboard. That stores the name you choose, your score, your practice and your year's results, publicly, with no email or other details. Use a nickname if you like.</p><p>On the website, Vercel Web Analytics counts visits: which page, the site that sent you, your country, and your type of device, browser and operating system. It uses no cookies and stores nothing on your device, and each visitor is known only by a code that is discarded after 24 hours. The page also loads its fonts from Google Fonts, and the website's host keeps standard access logs. There are no adverts or tracking cookies.</p>`)}
+        ${explain('Privacy', `<p>Your game is saved only in this browser. If you post a score to the leaderboard, it stores the name you choose, your score, your practice and your year's results, publicly, with no email or other details. Use a nickname if you like.</p><p>On the website, the game also counts games, without names: when one starts, is picked up again, finishes a year, carries on, ends or is taken over, with the practice, the year, how long it has lasted, how it went (the year's title and score, or what ended it) and the game's version. Each game is known only by a random number made when it starts, so nothing links the counts to you or to the leaderboard, and only the game's maker can read them.</p><p>Vercel Web Analytics counts visits: which page, the site that sent you, your country, and your type of device, browser and operating system. It uses no cookies and stores nothing on your device, and each visitor is known only by a code that is discarded after 24 hours. The page also loads its fonts from Google Fonts, and the hosts of the website and the database keep standard access logs. There are no adverts or tracking cookies.</p>`)}
       </div>
     </section>
     <section class="setup" aria-label="New game">
@@ -5432,7 +5437,7 @@ document.addEventListener('click', ev => {
       if (arg === 'cash') openOverlay(`<h2>The office: the bank</h2><p class="lede-s">Bev's office. The practice account is at <b>${fmtK(S.cash)}</b>, with an overdraft limit of ${fmtK(S.overdraft)}. This month it will move by <b>${signK(c.net)}</b>.</p><p class="muted">Income is mostly the global sum, QOF and enhanced services. Staff, locums, running costs and your drawings take it back out. The money panel in the month plan has the details.</p><div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>`);
       else { const k = arg, now = Math.round(S.st[k]); openOverlay(`<h2>${esc({ patients: 'The waiting room', team: 'The staff room', you: 'Your room', safety: 'The treatment room' }[k])}: ${STAT_LABEL[k]}</h2><p class="lede-s">The ${STAT_LABEL[k]} meter is at <b>${now}</b>. If nothing changes, it settles at <b>${T[k].v}</b>.</p>${whyList(T[k].why)}<div class="row-actions"><button class="btn primary" data-act="close">Close</button></div>`); }
       break; }
-    case 'nextyear': go(continueYear); break;
+    case 'nextyear': go(continueYear); track('continue'); break;
     case 'quick': { UI.settings.quick = !UI.settings.quick; saveSettings(); if (S && UI.screen !== 'title') { closeOverlay(); render(); } else keepScroll(renderTitle); toast(UI.settings.quick ? 'Quiet months now skip straight to the next plan.' : 'You\'ll see every month report.'); break; }
     case 'teach': {
       UI.settings.teach = !UI.settings.teach; saveSettings();
@@ -5454,7 +5459,7 @@ document.addEventListener('click', ev => {
     case 'lookc': UI.look.c = +arg; UI.lookOpen = true; keepScroll(renderTitle); break;
     case 'dice': { UI.nameDraft = diceName(); keepScroll(renderTitle); break; }
     case 'start': { const nm = (UI.nameDraft || '').trim().replace(/^dr\.?\s+/i, '') || 'Jones'; UI.screen = 'game'; UI.intro = true; go(() => newGame(UI.pickPractice, nm)); break; }
-    case 'continue': { const s = loadSave(); if (s) { S = s; teachSync(); UI.screen = 'game'; go(() => { }); } break; }
+    case 'continue': { const s = loadSave(); if (s) { S = s; teachSync(); UI.screen = 'game'; go(() => { }); track('resume'); } break; }
     case 'menu': openOverlay(menuHTML()); break;
     case 'update': closeOverlay(); checkUpdate(true); break;
     case 'reload': { try { if (S) save(); } catch (e) { } location.reload(); break; }
@@ -5672,6 +5677,25 @@ function boardAction(a, arg) {
   if (a === 'board-tab') { BD.tab = arg; BD.rows = null; refreshBoard(); loadBoard(); return true; }
   if (a === 'board-post') { postScore(); return true; }
   return false;
+}
+
+/* ---------- counting games: anonymous events in lps_events (see supabase/lps_events.sql) ---------- */
+// On the website only, the game notes when a game starts, is resumed, finishes a year, carries on, ends or is taken
+// over: the practice, the year and month, months served and how it went (the year's title and score, the exit, or
+// what ended it), with this build. No name: a run is known only by its random runId. The table takes inserts only,
+// so nobody can read the events back through the API. The Privacy explainer says what is sent.
+// Failures are ignored: counting must never get in the way of playing.
+function track(kind, detail) {
+  if (!S || !S.runId || !boardOn() || !onSite()) return;
+  const E = S.end, O = S.over, done = (kind === 'year' || kind === 'exit') && E;
+  const row = {
+    run: S.runId, kind, practice: S.practiceKey, week: S.week || null, yr: (S.yr || 0) + 1, month: clamp(S.month | 0, 0, 11),
+    months: done ? E.months : kind === 'over' && O ? O.months : monthsServed(),
+    detail: String(detail != null ? detail : done ? (E.exit || E.arche.t) : kind === 'over' && O ? O.k : '').slice(0, 48) || null,
+    score: done ? E.score : null,
+    build: typeof BUILD !== 'undefined' ? BUILD : null
+  };
+  try { boardFetch('lps_events', { method: 'POST', headers: boardHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(row) }).catch(() => { }); } catch (e) { }
 }
 /* ===================== MINI-GAMES ===================== */
 const MINI = {

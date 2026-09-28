@@ -134,3 +134,22 @@ function boardAction(a, arg) {
   if (a === 'board-post') { postScore(); return true; }
   return false;
 }
+
+/* ---------- counting games: anonymous events in lps_events (see supabase/lps_events.sql) ---------- */
+// On the website only, the game notes when a game starts, is resumed, finishes a year, carries on, ends or is taken
+// over: the practice, the year and month, months served and how it went (the year's title and score, the exit, or
+// what ended it), with this build. No name: a run is known only by its random runId. The table takes inserts only,
+// so nobody can read the events back through the API. The Privacy explainer says what is sent.
+// Failures are ignored: counting must never get in the way of playing.
+function track(kind, detail) {
+  if (!S || !S.runId || !boardOn() || !onSite()) return;
+  const E = S.end, O = S.over, done = (kind === 'year' || kind === 'exit') && E;
+  const row = {
+    run: S.runId, kind, practice: S.practiceKey, week: S.week || null, yr: (S.yr || 0) + 1, month: clamp(S.month | 0, 0, 11),
+    months: done ? E.months : kind === 'over' && O ? O.months : monthsServed(),
+    detail: String(detail != null ? detail : done ? (E.exit || E.arche.t) : kind === 'over' && O ? O.k : '').slice(0, 48) || null,
+    score: done ? E.score : null,
+    build: typeof BUILD !== 'undefined' ? BUILD : null
+  };
+  try { boardFetch('lps_events', { method: 'POST', headers: boardHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(row) }).catch(() => { }); } catch (e) { }
+}

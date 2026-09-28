@@ -70,6 +70,7 @@ function gameOver(k) {
   recordBest(null);
   plaque(`${OVER[k].title}, ${MONTHS[S.month]}${S.yr ? ` of year ${S.yr + 1}` : ''}`, OVER[k].title, 0);
   clearSave();
+  if (typeof track === 'function') track('over');
 }
 
 /* ---------- the partner's own money ---------- */
@@ -113,6 +114,7 @@ function finishYear(exit) {
   recordBest(S.end);
   plaque(exit ? EXITS[exit].t : `Year ${(S.yr || 0) + 1} complete`, arche.t, score);
   if (exit) clearSave(); else save();
+  if (typeof track === 'function') track(exit ? 'exit' : 'year');
 }
 
 /* ---------- endless mode: carry on into another year ---------- */
@@ -187,6 +189,7 @@ function takeOver() {
   if (S.month >= 11) continueYear(); else { S.month++; startMonth(); }
   S.queue.unshift('takeover'); S.qi = 0;
   save();
+  if (typeof track === 'function') track('takeover', k);
 }
 
 /* ---------- the Partners' Board: every run you've played, kept in this browser ---------- */

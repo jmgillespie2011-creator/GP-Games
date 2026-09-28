@@ -219,9 +219,11 @@ function addMod(m) {
   S.mods.push(mod);
 }
 // plant a consequence that may land in a later month: {in, p, fx, note}
+// It remembers the card, the month and the choice that planted it, so the report can say which decision it came from.
 function plant(seed) {
   const e = S.phase === 'event' ? currentEvent() : null;
-  S.later.push({ m: S.month + (seed.in || 1), p: seed.p == null ? 1 : seed.p, fx: seed.fx || {}, note: seed.note || '', from: seed.from || (e ? fill(val(e.title)) + ', ' + MONTHS[S.month] : '') });
+  S.later.push({ m: S.month + (seed.in || 1), p: seed.p == null ? 1 : seed.p, fx: seed.fx || {}, note: seed.note || '', from: seed.from || (e ? fill(val(e.title)) + ', ' + MONTHS[S.month] : ''),
+    card: e ? fill(val(e.title)) : '', mon: e ? MONTHS[S.month] : '', yr: S.yr || 0, gen: S.gen || 1, pick: seed.pick || (e && S._pick) || '' });
   S._planted = true;
 }
 function partnerLeaves(id) {
@@ -368,6 +370,7 @@ function resolveChoice(i, extra) {
   const c = e.choices[i]; if (!c) return;
   const before = snap();
   S._alt = false; S._planted = false;
+  try { S._pick = fill(val(c.t)); } catch (err) { S._pick = ''; }
   const schedBefore = S.sched.length + S.queue.length;
   let fx = c.fx, o = c.o;
   if (c.alt && chance(val(c.alt.p))) { S._alt = true; fx = c.alt.fx; o = c.alt.o; }
@@ -384,7 +387,7 @@ function resolveChoice(i, extra) {
   const deltas = diffSnap(before, snap());
   const echoes = S._planted || S.sched.length + S.queue.length > schedBefore;
   S.cur = { id: e.id, o: fill((res && res.o) || (extra && extra.o) || val(o) || ''), html: (res && res.html) || (extra && extra.html) || '', deltas, alt: S._alt, echoes, lasting: !!(val(fx) || {}).aim };
-  delete S._alt; delete S._planted;
+  delete S._alt; delete S._planted; delete S._pick;
   S.phase = 'outcome';
   save();
 }
@@ -642,7 +645,12 @@ function monthEnd() {
   // delayed consequences of earlier decisions
   const due = S.later.filter(x => x.m <= S.month);
   S.later = S.later.filter(x => x.m > S.month);
-  due.forEach(x => { if (chance(x.p)) { applyFx(x.fx); if (x.note) consq.push((x.from ? `From “${x.from}”: ` : '') + x.note); } });
+  due.forEach(x => {
+    if (!chance(x.p)) return;
+    const b = snap(); applyFx(x.fx);
+    // older saves only have `from`; newer seeds also carry the card, month, year and the choice
+    if (x.note) consq.push({ card: x.card || '', mon: x.mon || '', ago: x.card ? (S.yr || 0) - (x.yr || 0) : 0, pred: !!x.card && (x.gen || 1) !== (S.gen || 1), from: x.from || '', pick: x.pick || '', note: x.note, ds: diffSnap(b, snap()) });
+  });
   // things that happen because of the state you're in
   incidents(c).forEach(n => consq.push(n));
   // unhappy patients register elsewhere, and the global sum follows them

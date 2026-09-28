@@ -7,6 +7,17 @@ function statLines(extra) {
 }
 
 /* ---------- month report ---------- */
+// "What came of it": each delayed consequence names the card, the month and the choice that planted it, and what it changed.
+// Older saves only have strings, and consequences of the practice's state are strings too.
+function consqHTML(list) {
+  const picks = list.filter(n => n && typeof n === 'object'), state = list.filter(n => typeof n === 'string');
+  const q = t => /["“”]/.test(t) ? t : `“${t}”`;
+  const src = n => n.card ? `<b>${esc(n.card)}</b>, ${esc(n.mon)}${n.ago === 1 ? ' last year' : n.ago > 1 ? `, ${n.ago} years ago` : ''}` : n.from ? `<b>${esc(n.from)}</b>` : '';
+  const item = n => { const w = src(n); return `<li><p class="cq-src">${w}${n.pick ? `${w ? ': ' : ''}${n.pred ? 'your predecessor chose' : 'you chose'} ${esc(q(n.pick))}` : ''}</p><p>${esc(n.note)}</p>${n.ds && n.ds.length ? deltaChips(n.ds) : ''}</li>`; };
+  return `<section class="panel consq"><h3>What came of it</h3>
+    ${picks.length ? `<h4>From your earlier choices</h4><ul class="cqs">${picks.map(item).join('')}</ul>` : ''}
+    ${state.length ? `<h4>From the state of the practice</h4><ul class="notes">${state.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}</section>`;
+}
 function renderReport() {
   const R = S.report, c = R.c;
   const dmap = {}; R.deltas.forEach(d => { dmap[d.k] = d.d; });
@@ -19,7 +30,7 @@ function renderReport() {
       <h2>${esc(R.headline)}</h2><p>${c.cap} appointments offered a week against ${c.demand} requested (${pct(c.ratio)}).</p></div>
     ${R.proj ? `<section class="panel projout"><h3>This month's project <small>${esc(R.proj.name)}</small></h3><p>${esc(R.proj.text)}</p>${R.proj.deltas.length ? deltaChips(R.proj.deltas) : ''}</section>` : ''}
     ${(() => { const all = []; STAT_KEYS.forEach(k => c.T[k].why.forEach(([d, l]) => all.push([d, l, k]))); const top = all.filter(x => Math.abs(x[0]) >= 3).sort((a, b) => Math.abs(b[0]) - Math.abs(a[0])).slice(0, 3); return top.length ? `<section class="panel"><h3>What's driving the practice <small>the biggest pulls on your meters right now</small></h3><ul class="why">${top.map(([d, l, k]) => `<li><span class="${d > 0 ? 'good-t' : 'bad-t'}">${d > 0 ? '+' : '−'}${Math.abs(d)}</span> ${STAT_LABEL[k]}: ${esc(l)}</li>`).join('')}</ul></section>` : ''; })()}
-    ${R.consq.length ? `<section class="panel consq"><h3>What came of it <small>consequences of earlier decisions and of the state you're in</small></h3><ul class="notes">${R.consq.map(n => `<li>${esc(n)}</li>`).join('')}</ul></section>` : ''}
+    ${R.consq.length ? consqHTML(R.consq) : ''}
     <div class="rgrid">
       <section class="panel"><h3>The month in numbers</h3>
         <dl class="kv">
@@ -58,7 +69,7 @@ function renderReport() {
         ${notes.length ? `<h3 style="margin-top:6px">Notes</h3><ul class="notes">${notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
       </section>
     </div>
-    <div class="plan-go">${checkOver() || last ? `<button class="btn primary" data-act="next">${checkOver() ? 'Uh oh…' : 'See the year-end accounts →'}</button>` : `<div class="go-pair"><button class="btn" data-act="next">Plan ${MONTHS[S.month + 1]}</button><button class="btn primary" data-act="nextgo" title="Keep this month's sessions, cover and drawings">Same plan, start ${MONTHS[S.month + 1]} →</button></div><p class="fc-note">Same plan: ${S.plan.clin} clinical, ${S.plan.admin} admin and ${S.plan.mgmt} management sessions${S.plan.locum ? `, ${S.plan.locum} locum` : ''}${S.plan.extra ? `, ${S.plan.extra} overtime` : ''}. Leave and one-off projects don't carry over.</p>`}</div>
+    <div class="plan-go">${checkOver() || last ? `<button class="btn primary" data-act="next">${checkOver() ? 'Uh oh…' : 'See the year-end accounts →'}</button>` : `<button class="btn primary go-main" data-act="next">Plan ${MONTHS[S.month + 1]} →</button><div class="carry"><button class="btn ghost small" data-act="nextgo" title="Keep this month's sessions, cover and drawings">Or keep this plan and start ${MONTHS[S.month + 1]}</button><p class="fc-note">${S.plan.clin} clinical, ${S.plan.admin} admin and ${S.plan.mgmt} management sessions${S.plan.locum ? `, ${S.plan.locum} locum` : ''}${S.plan.extra ? `, ${S.plan.extra} overtime` : ''}. Leave and one-off projects don't carry over.</p></div>`}</div>
   </div></main>`;
 }
 

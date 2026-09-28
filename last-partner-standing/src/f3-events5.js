@@ -68,7 +68,7 @@ EVENTS.push(
   {t:'Only nurses chaperone until it\'s sorted',fx:{safety:1,patients:-2,team:-1},o:`Patients who need a chaperone now wait until a nurse is free. The nurses notice.`}
  ]},
 
-{id:'cqc_factual',arc:1,who:'bev',title:'The draft report',cond:()=>S.cqc&&S.cqc.overall==='ri',tag:'real',src:['S53'],
+{id:'cqc_factual',arc:1,rep:1,who:'bev',title:'The draft report',cond:()=>S.cqc&&S.cqc.overall==='ri',tag:'real',src:['S53'],
  info:'Before a CQC report is published, the practice gets a draft and can challenge factual errors, with evidence. In one real case, CQC changed a student health service\'s rating from "requires improvement" to good after admitting that due process hadn\'t been followed. Among other things, inspectors had asked about care of older people at a practice whose patients were all students.',
  text:`The draft report has arrived. You have ten working days to challenge anything factually wrong. Paragraph 4 criticises access to "the first-floor lift". There's no first floor. There's no lift. Paragraph 9 quotes a policy that belongs to a different practice.`,
  choices:[

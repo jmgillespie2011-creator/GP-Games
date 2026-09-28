@@ -121,7 +121,7 @@ EVENTS.push(
   {t:'Tell him where to put his synergies',fx:{team:4,you:3,rep:2},o:`Word reaches the whole building by lunchtime. Morale is briefly excellent.`}
  ]},
 
-{id:'cqc_call',who:'bev',title:'The phone call',months:[4,5,6,7,8],w:()=>S.st.safety<45||S.rep<45?5:3,tag:'real',src:['S33'],
+{id:'cqc_call',who:'bev',title:'The phone call',months:[4,5,6,7,8],cond:()=>cqcDue(),w:()=>S.st.safety<45||S.rep<45?5:3,tag:'real',src:['S33'],
  info:'CQC rates practices on five key questions. About 5% of practices are rated Requires Improvement or Inadequate. Inspections are increasingly triggered by risk: complaints, data and intelligence from the ICB.',
  text:`Bev walks in and closes the door. She never closes the door. "CQC just rang. Inspection in two weeks." Somewhere, a fire safety policy last reviewed in 2021 begins to sweat.`,
  choices:[
@@ -131,8 +131,8 @@ EVENTS.push(
  ],
  after(){ schedule('cqc_visit',1); }},
 
-{id:'cqc_visit',arc:1,who:'cqc',title:'Inspection day',tag:'rule',src:['S33'],
- info:'The rating for each key question comes from evidence: your records and policies (safety), outcomes such as QOF (effective), patient feedback (caring), access (responsive) and leadership and culture (well-led).',
+{id:'cqc_visit',arc:1,rep:1,who:'cqc',title:'Inspection day',tag:'rule',src:['S33','S105'],
+ info:'The rating for each key question comes from evidence: your records and policies (safety), outcomes such as QOF (effective), patient feedback (caring), access (responsive) and leadership and culture (well-led).\n\nCQC then combines the five. Outstanding normally needs at least two key questions rated Outstanding and the other three Good. Two or more rated Requires improvement make the practice Requires improvement, and two or more Inadequate make it Inadequate. The game adds one rule of its own: Safe rated Inadequate is enough on its own to make the whole practice Inadequate.',
  text:`Patricia Sharpe arrives at 8:29 with a clipboard, a lanyard and an expression you can't read. She'd like to see the fridge logs, the significant event log, the complaints file, and "just how things really are".`,
  choices:[{t:'Show her how things really are',run(){ return runCQC(); }}]},
 

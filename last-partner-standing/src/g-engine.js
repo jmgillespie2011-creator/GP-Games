@@ -31,7 +31,20 @@ const GOALS = {
 };
 const GOAL_BONUS = 40;
 // endless mode: what each extra year adds
-const YEAR_DEMAND = 0.1, YEAR_FUNDING = 0.02, YEAR_STAFF = 0.05, YEAR_RUNNING = 0.03, YEAR_YOU = 7;
+const YEAR_DEMAND = 0.1, YEAR_FUNDING = 0.02, YEAR_STAFF = 0.05, YEAR_RUNNING = 0.03, YEAR_YOU = 4;
+// Long careers wear on more than you: each extra year lowers where Team settles (the same pressures, every winter) and where
+// Safety settles (policies and systems age, and inspectors expect more each year), so careers end in more ways than burnout
+// and money. With YEAR_YOU at 4 (it was 7), good careers still end mostly by burnout or money, but between a seventh and
+// a third of them by the team walking out, CQC or the ICB (tools/simulate.mjs endless).
+const YEAR_WEAR = { team: 6, safety: 5 };
+// the calendar that comes round every April in endless mode. The pay award and the headline are year-one cards:
+// later pay rises are in YEAR_STAFF.
+const CALENDAR = [['year_new', 0], ['mini_docman', 1], ['mini_triage', 2], ['survey', 3], ['flu_saturday', 5], ['winter_phones', 8], ['qof_yearend', 10], ['contract_new', 11]];
+// story arcs happen once, but these come back every year: the calendar, a partner off sick, the summer crunch, the three-year review and CQC
+const YEARLY = CALENDAR.map(x => x[0]).concat(['twist_ill', 'twist_summer', 'review_3y', 'cqc_visit', 'cqc_urgent', 'cqc_reinspect', 'cqc_factual']);
+// Failure that goes on ends a practice, as the ICB's access process does for Patients. Team below TEAM_LINE at three
+// month-ends in a row: the team walks out. Safety below SAFETY_LINE at two: concerns reach CQC, which inspects unannounced.
+const TEAM_LINE = 30, SAFETY_LINE = 30;
 const calY = m => CAL_YEAR[Math.min(m, 11)] + ((S && S.yr) || 0);
 const monthsServed = () => ((S && S.yr) || 0) * 12 + Math.min(S.month, 11) + 1 - ((S && S.startAt) || 0);
 const SAVE_KEY = 'lps-save-v2', BEST_KEY = 'lps-best-v1';
@@ -187,11 +200,12 @@ function suggestPlan() {
   const done = id => (PROJECTS.find(x => x.id === id) || {}).once && S.flags['proj_' + id];
   // weigh every need, and don't nag: a project done last month (or twice in the last three) counts for much less
   const hist = S.projHist || [], recent = id => hist.slice(-3).filter(x => x === id).length;
-  const cqcSoon = !S.seen.cqc_visit && !(S.yr || 0) ? S.month >= 5 && S.month <= 8 : false;
+  // CQC season: September to December, in a year when an inspection is due (or already on its way) and hasn't happened
+  const cqcSoon = S.month >= 5 && S.month <= 8 && !S.flags.cqcDone && (cqcDue() || cqcPending());
   const opts = [
     ['telephony', S.flags.telephony && !done('telephony') ? 100 : 0, 'the new phones are ready to go live'],
-    ['wellbeing', S.st.team < 45 ? 10 + (45 - S.st.team) * 2 : 0, `Team is down to ${Math.round(S.st.team)}`],
-    ['cqc', (S.st.safety < 45 ? 10 + (45 - S.st.safety) * 2 : 0) + (cqcSoon && S.st.safety < 60 ? 12 : 0), cqcSoon ? 'CQC usually calls before the winter' : `Safety is down to ${Math.round(S.st.safety)}`],
+    ['wellbeing', S.st.team < 45 ? 10 + (45 - S.st.team) * 2 : 0, `Team is down to ${Math.round(S.st.team)}${S.st.team < TEAM_LINE ? `, and three month-ends below ${TEAM_LINE} means they walk out` : ''}`],
+    ['cqc', (S.st.safety < 45 ? 10 + (45 - S.st.safety) * 2 : 0) + (cqcSoon && S.st.safety < 60 ? 12 : 0), S.st.safety < SAFETY_LINE ? `Safety is down to ${Math.round(S.st.safety)}, and two month-ends below ${SAFETY_LINE} bring CQC unannounced` : cqcSoon ? 'CQC usually calls before the winter' : `Safety is down to ${Math.round(S.st.safety)}`],
     ['inbox', S.inbox > 450 ? 10 + (S.inbox - 450) / 10 : 0, `the inbox is at ${Math.round(S.inbox)}`],
     ['ppg', S.st.patients < 40 ? 10 + (40 - S.st.patients) * 2 : 0, `Patients is down to ${Math.round(S.st.patients)}`],
     ['meetingroom', roomsNeeded() + 4 > roomsAvail() && !done('meetingroom') && S.cash > S.overdraft + 10 ? 22 : 0, 'you are nearly out of clinic rooms'],
@@ -365,7 +379,7 @@ function newGame(practiceKey, name, opts) {
   S.qofAsp = P.qofAsp * qofValueK(p.lastQof) / 12;
   [['contract_2026', 0], ['welcome', 0], ['hartley_retire', 0], ['okoye_email', 1], ['mini_docman', 1], ['pay_award', 2], ['mini_triage', 2],
    ['tom_partner', 3], ['survey', 3], ['headline', 4], ['flu_saturday', 5], ['okoye_leaving', 7], ['okoye_staying', 7],
-   ['winter_phones', 8], ['qof_yearend', 10], ['contract_new', 11]].forEach(([id, m]) => S.sched.push({ id, m }));
+   ['winter_phones', 8], ['qof_yearend', 10], ['contract_new', 11]].forEach(([id, m]) => S.sched.push({ id, m })); // year one's calendar
   S.goal = pick(Object.keys(GOALS));
   // one late-year shock, so a good plan still gets tested
   S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
@@ -383,7 +397,8 @@ function schedule(id, n) {
   if (n <= 0 && (S.phase === 'event' || S.phase === 'outcome' || S.phase === 'mini')) { if (!S.queue.slice(S.qi + 1).includes(id)) S.queue.splice(S.qi + 1, 0, id); return; }
   if (n <= 0 && (S.phase === 'report' || S.phase === 'monthend')) { S.front.push(id); return; }
   const m = S.month + Math.max(n, S.phase === 'plan' ? 0 : 1);
-  if (m <= 11) S.sched.push({ id, m });
+  // past March it waits for next year (continueYear moves it back 12), so a re-inspection after a January rating still comes
+  if (m <= 23) S.sched.push({ id, m });
 }
 function addMod(m) {
   const mod = JSON.parse(JSON.stringify(m));
@@ -432,16 +447,26 @@ function crisisQueue() {
   if (S.st.you <= 18 && !S.seen.crisis_you) q.push('crisis_you');
   if (S.st.team <= 18 && !S.seen.crisis_team) q.push('crisis_team');
   if (S.st.patients <= 18 && !S.seen.crisis_patients) q.push('crisis_patients');
-  if (S.st.safety <= 18 && !S.seen.crisis_safety && !S.seen.cqc_visit) q.push('crisis_safety');
+  if (S.st.safety <= 18 && !S.seen.crisis_safety && !cqcPending() && sinceCQC() >= 3) q.push('crisis_safety');
   return q;
+}
+// CQC: months since the last inspection, whether one is already on its way, and whether one is due.
+// CQC inspects by risk: every practice here in its first year, then when the last rating was below Good,
+// three years have passed, or the intelligence looks bad (Safety or reputation below 40).
+const sinceCQC = () => S.cqcAt == null ? 99 : (S.yr || 0) * 12 + S.month - S.cqcAt;
+const CQC_CARDS = ['cqc_visit', 'cqc_urgent', 'cqc_reinspect', 'crisis_safety'];
+const cqcPending = () => CQC_CARDS.some(id => S.sched.some(x => x.id === id) || S.front.includes(id) || S.queue.slice(S.phase === 'plan' ? S.qi : S.qi + 1).includes(id));
+function cqcDue() {
+  if (cqcPending() || sinceCQC() < 6) return false;
+  return !S.cqc || S.cqc.overall === 'ri' || S.cqc.overall === 'i' || sinceCQC() >= 36 || S.st.safety < 40 || S.rep < 40;
 }
 function startMonth() {
   const m = S.month;
   const q = S.front.concat(S.sched.filter(x => x.m === m).map(x => x.id));
   S.front = [];
   S.sched = S.sched.filter(x => x.m > m);
-  if (m === 8 && !S.seen.cqc_call && !q.includes('cqc_call')) q.push('cqc_call');
-  const crisis = crisisQueue().filter(id => !q.includes(id));
+  if (m === 8 && !S.seen.cqc_call && !q.some(id => id === 'cqc_call' || CQC_CARDS.includes(id)) && cqcDue()) q.push('cqc_call');
+  const crisis = crisisQueue().filter(id => !q.includes(id) && !(id === 'crisis_safety' && q.some(x => CQC_CARDS.includes(x))));
   const target = (m === 8 || m === 9) ? 4 : 3;
   let need = Math.max(0, target - q.length);
   const drawn = [];
@@ -697,7 +722,8 @@ function targets(c) {
     [ib > 700 ? -4 : 0, 'The inbox is everyone\'s problem'],
     [S.st.team < 30 ? -3 : 0, 'Sickness absence'],
     [p.key === 'city' ? -3 : 0, 'Abuse at the front desk'],
-    [SUMMER_MONTHS.includes(m) ? -3 : 0, 'Summer holidays: the rota has holes']
+    [SUMMER_MONTHS.includes(m) ? -3 : 0, 'Summer holidays: the rota has holes'],
+    [-(S.yr || 0) * YEAR_WEAR.team, `Year ${(S.yr || 0) + 1} together: the same pressures, every winter`]
   ]);
   build('you', 80, [
     [-(S.yr || 0) * YEAR_YOU, `Year ${(S.yr || 0) + 1} as a partner`],
@@ -719,7 +745,8 @@ function targets(c) {
     [ib > 700 ? -18 : ib > 400 ? -7 : 0, `${ib} unfiled results and letters`],
     [r < 0.8 ? -10 : r < 0.9 ? -4 : 0, 'Rushed appointments'],
     [S.st.team < 30 ? -6 : 0, 'An exhausted team cuts corners'],
-    [S.staff.pharm > 0 ? 3 : 0, 'Pharmacist-led medication monitoring']
+    [S.staff.pharm > 0 ? 3 : 0, 'Pharmacist-led medication monitoring'],
+    [-(S.yr || 0) * YEAR_WEAR.safety, 'Policies and systems age, and inspectors expect more each year']
   ]);
   return T;
 }
@@ -844,6 +871,21 @@ function monthEnd() {
     S.forceOver = 'patients';
     consq.push('Because patients still couldn\'t get through, three months running after the ICB\'s notice: the ICB has given notice to terminate the contract.');
   } else if (f.remedialAt != null && f.lowAccess === 2) consq.push('Warning: two months in a row of poor access since the ICB\'s notice. A third means the contract can be terminated.');
+  // a team that stays demoralised leaves together: Bev warns at the second month-end below the line, and at the third they go
+  f.lowTeam = S.st.team < TEAM_LINE ? (f.lowTeam || 0) + 1 : 0;
+  if (f.lowTeam >= 3) {
+    S.forceOver = 'team';
+    consq.push(`Because morale stayed below ${TEAM_LINE} for three months running: Bev, two receptionists and a nurse handed in their notice on the same morning.`);
+  } else if (f.lowTeam === 2) {
+    schedule('team_walkout', 0);
+    consq.push(`Warning: morale has been below ${TEAM_LINE} for two months. If it's still there at the end of next month, the team will walk out together.`);
+  }
+  // care that stays unsafe reaches CQC: concerns after two month-ends below the line, then an unannounced inspection
+  f.lowSafety = S.st.safety < SAFETY_LINE ? (f.lowSafety || 0) + 1 : 0;
+  if (f.lowSafety >= 2 && !cqcPending() && sinceCQC() >= 3) {
+    schedule('crisis_safety', 0);
+    consq.push(`Because Safety has been below ${SAFETY_LINE} for two months: a whistleblower and two complaints have reached CQC.`);
+  }
   // recruitment: harder when morale or reputation is poor, a little easier for part-time posts
   const hires = [];
   for (const k of Object.keys(S.vac)) {

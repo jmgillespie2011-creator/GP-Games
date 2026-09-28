@@ -233,6 +233,14 @@ EVENTS.push(
   {t:'"We\'re all in this together"',fx:{team:-6},o:`Nobody believes it, least of all you.`}
  ]},
 
+{id:'team_walkout',arc:1,rep:1,who:'bev',title:'Notice',tag:'story',
+ text:()=>`Bev closes the door. "Three of the team have interviews on the same day next week, and they've asked me to go with them. I haven't said no." Morale has been below ${TEAM_LINE} for two months. If it's still there at the end of next month, they go together.`,
+ choices:[
+  {t:'Close for an afternoon, listen, and fix the rota they hate (£2,000 of cover)',fx:{team:9,patients:-3,cash:-2,you:-3},o:`Nobody holds back. The rota changes on Monday and the interviews are "postponed". Bev says it buys you a month or two, not a year: the things that wore them down are still there.`},
+  {t:'Retention payments to stay until the autumn (£8,000)',fx:{team:7,cash:-8},alt:{p:0.3,fx:{team:3,cash:-8,staff:{recep:-1}},o:`Most of them take the money and stay. One takes the money and the job, because nobody put a clawback in writing.`},o:`It doesn't fix what's wrong, and everyone knows it. But it's noticed, and it buys time to fix the rest.`},
+  {t:'"We can\'t afford anything this month."',fx:{team:-3,you:-2},o:`Bev nods. "Then I'll tell them the truth." She leaves the door open on her way out.`}
+ ]},
+
 {id:'crisis_patients',arc:1,who:'icb',title:'A remedial notice',tag:'rule',src:['S1'],
  info:'If the ICB believes a practice is breaching its contract, for example on access in core hours, it can issue a remedial notice with a deadline, then a breach notice. Repeated breaches can end the contract.',
  text:`The ICB sends a remedial notice: patients "unable to access services in core hours". You have 28 days to put it right. After that, the ICB will keep watching access month by month.`,
@@ -252,14 +260,14 @@ EVENTS.push(
   {t:'Start talks with neighbouring practices about handing over the list',run(){ S.exit='handback'; return {o:`You start the conversation nobody wants to have. By the spring, your patients are spread across three other practices.`}; }}
  ]},
 
-{id:'crisis_safety',arc:1,who:'cqc',title:'Tomorrow',tag:'story',
+{id:'crisis_safety',arc:1,rep:1,who:'cqc',title:'Tomorrow',tag:'story',
  text:`CQC has received several concerns about the practice. An inspector is coming tomorrow.`,
  choices:[
   {t:'Cancel non-urgent clinics and prepare',fx:{safety:8,you:-6,patients:-3},run(){ schedule('cqc_urgent',0); },o:`A long night of logs, policies and checklists.`},
   {t:'Let them see it as it is',fx:{},run(){ schedule('cqc_urgent',0); },o:`You go home at a normal time, which in itself feels like a statement.`}
  ]},
 
-{id:'cqc_urgent',arc:1,who:'cqc',title:'Unannounced',tag:'rule',src:['S33'],
+{id:'cqc_urgent',arc:1,rep:1,who:'cqc',title:'Unannounced',tag:'rule',src:['S33'],
  text:`Patricia Sharpe arrives at 8:29 with a clipboard. This time it isn't planned, and she knows exactly which files she wants to see.`,
  choices:[{t:'Show her what she asks for',run(){ return runCQC(); }}]}
 );

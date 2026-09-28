@@ -1,5 +1,5 @@
 /* ===================== ENGINE: CQC, endings, accounts, storage ===================== */
-function rateOf(v) { return v >= 82 ? 'o' : v >= 50 ? 'g' : v >= 32 ? 'ri' : 'i'; }
+function rateOf(v) { return v >= 85 ? 'o' : v >= 50 ? 'g' : v >= 32 ? 'ri' : 'i'; }
 const RATE_NAME = { o: 'Outstanding', g: 'Good', ri: 'Requires improvement', i: 'Inadequate' };
 function runCQC(reinspect) {
   const st = S.st, expected = (S.month / 12) * 85;
@@ -9,7 +9,8 @@ function runCQC(reinspect) {
     Safe: clamp(st.safety + prep + jitter()),
     Effective: clamp(50 + (S.qof - expected) * 1.2 + (st.safety - 50) * 0.3 + jitter()),
     Caring: clamp(st.patients * 0.7 + st.team * 0.3 + jitter()),
-    Responsive: clamp(st.patients * 0.6 + (S.lastRatio - 0.8) * 150 + 10 + jitter()),
+    // access counts up to 105% of demand: appointments nobody needs don't make a practice more responsive
+    Responsive: clamp(st.patients * 0.6 + (Math.min(S.lastRatio, 1.05) - 0.8) * 150 + 10 + jitter()),
     'Well-led': clamp(st.team * 0.55 + st.safety * 0.35 + S.plan.mgmt * 5 + prep / 2 + jitter())
   };
   const rates = {}; for (const k in dom) rates[k] = rateOf(dom[k]);
@@ -18,7 +19,8 @@ function runCQC(reinspect) {
   let overall = 'g';
   if (n('i') >= 2 || rates.Safe === 'i') overall = 'i';
   else if (n('i') === 1 || n('ri') >= 2) overall = 'ri';
-  else if (n('o') >= 3) overall = 'o';
+  // CQC's rule for GP practices: Outstanding needs at least two key questions Outstanding and the other three Good
+  else if (n('o') >= 2 && n('ri') === 0) overall = 'o';
   S.cqc = { overall, rates };
   const fx = { o: { team: 10, you: 8, patients: 4, rep: 6 }, g: { team: 5, you: 4, rep: 2 }, ri: { team: -6, you: -8, safety: 4, rep: -4, cash: -6, aim: { safety: 2 } }, i: { team: -12, you: -15, patients: -8, safety: 6, rep: -10, icb: -10, cash: -15, aim: { safety: 4 } } }[overall];
   applyFx(fx);
@@ -30,10 +32,12 @@ function runCQC(reinspect) {
   if (overall === 'i') { if (reinspect) S.forceOver = 'cqc'; else schedule('cqc_reinspect', 3); }
   if (overall === 'ri') schedule('cqc_factual', 1);
   S.flags.cqcDone = 1;
+  // the preparation was for this inspection; the next one needs its own
+  S.cqcAt = (S.yr || 0) * 12 + S.month; S.flags.cqcPrep = 0;
   const html = `<div class="cqc-card" role="table" aria-label="CQC ratings">${Object.keys(rates).map(k => `<div class="row"><span>${k}</span><span class="rate ${rates[k]}">${RATE_NAME[rates[k]]}</span></div>`).join('')}<div class="row overall"><span>Overall</span><span class="rate">${RATE_NAME[overall]}</span></div></div>`;
   return { o, html };
 }
-EVENTS.push({ id: 'cqc_reinspect', arc: 1, who: 'cqc', title: 'The re-inspection', tag: 'rule', src: ['S33'],
+EVENTS.push({ id: 'cqc_reinspect', arc: 1, rep: 1, who: 'cqc', title: 'The re-inspection', tag: 'rule', src: ['S33'],
   text: 'Patricia Sharpe is back, three months to the day. She has the action plan. She has your last report. She has, you notice, a new and larger clipboard.',
   choices: [{ t: 'Show her what\'s changed', run() { return runCQC(true); } }] });
 EVMAP.cqc_reinspect = EVENTS[EVENTS.length - 1];
@@ -136,7 +140,7 @@ function continueYear() {
   S.drawTotal = 0; S.penTotal = 0; S.aspPaid = 0; S.hoursTotal = 0; S.leaveUsed = 0;
   S.history = []; S.end = null; S.exit = null; S.report = null;
   // the card pool refreshes; one-off story arcs, life events (once) and last-chance crises stay used
-  const keep = id => (EVMAP[id] && (EVMAP[id].arc || EVMAP[id].once)) || /^crisis_|^last_partner|^lifeline/.test(id);
+  const keep = id => !YEARLY.includes(id) && ((EVMAP[id] && (EVMAP[id].arc || EVMAP[id].once)) || /^crisis_|^last_partner|^lifeline/.test(id));
   Object.keys(S.seen).forEach(id => { if (!keep(id)) delete S.seen[id]; });
   S.counts = {};
   delete S.flags.cqcDone;
@@ -147,9 +151,9 @@ function continueYear() {
   S.later.forEach(x => { x.m -= 12; });
   S.newRegs.forEach(x => { x.until -= 12; });
   ['remedialAt', 'breachAt'].forEach(k => { if (S.flags[k] != null) S.flags[k] -= 12; });
-  [['year_new', 0], ['mini_docman', 1], ['pay_award', 2], ['mini_triage', 2], ['survey', 3], ['headline', 4], ['flu_saturday', 5],
-   ['winter_phones', 8], ['qof_yearend', 10], ['contract_new', 11]].forEach(([id, m]) => S.sched.push({ id, m }));
-  S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
+  CALENDAR.forEach(([id, m]) => S.sched.push({ id, m }));
+  // a late-year shock: a partner off sick can happen any year, but the fire doors and the burst pipe only once
+  S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood'].filter(id => !S.seen[id])), m: 6 + Math.floor(Math.random() * 4) });
   // a mid-year crunch for the suburb and town, so good players are at risk before the winter (the city has its turnover)
   if (S.practiceKey !== 'city') { S.sched.push({ id: 'twist_summer', m: 2 + Math.floor(Math.random() * 3) }); S.flags.summerGP = S.staff.salaried > 0 && Math.random() < 0.5 ? 1 : 0; }
   if (S.yr % 3 === 2) S.sched.push({ id: 'review_3y', m: 5 });
@@ -175,6 +179,8 @@ function takeOver() {
   if (STAT_KEYS.includes(k)) S.st[k] = Math.max(S.st[k], 32);
   if (k === 'cash') S.cash = Math.max(S.cash, S.overdraft + 30);
   if (k === 'patients' || k === 'cqc') { S.st.patients = Math.max(S.st.patients, 32); S.st.safety = Math.max(S.st.safety, 30); ['remedialAt', 'breachAt', 'lowAccess'].forEach(f => delete S.flags[f]); }
+  if (k === 'cqc' || k === 'safety') { S.st.safety = Math.max(S.st.safety, SAFETY_LINE + 2); S.cqcAt = (S.yr || 0) * 12 + S.month; }
+  ['lowTeam', 'lowSafety'].forEach(f => delete S.flags[f]);
   ['crisis_you', 'crisis_team', 'crisis_patients', 'crisis_safety', 'breach_notice', 'cqc_urgent'].forEach(id => delete S.seen[id]);
   delete S.flags.lifelineOffered;
   S.forceOver = null; S.over = null; S.exit = null; S.end = null; S.overPost = null;
@@ -202,13 +208,21 @@ function archetype(shareK, others) {
   const min = Math.min(st.patients, st.team, st.you, st.safety);
   const counter = { counter: 'Partners averaged £164,200 before tax in 2024/25. The median was £151,200.', src: ['S8'] };
   if (others === 0) return { t: 'Last Partner Standing', s: 'Sole partner', d: 'Everyone else left. You held the contract, the lease and the overdraft on your own, and you are still here on 31st March. It\'s either heroic or a cry for help. Possibly both.', counter: 'Full-time equivalent partners in England fell by 336 in the year to August 2026.', src: ['S11'] };
-  if (st.patients >= 65 && st.team >= 65 && st.you >= 65 && st.safety >= 65 && shareK >= 165) return { t: 'The Unicorn', s: 'Mythical', d: 'Happy patients, happy team, a safe practice, a decent income and your sanity intact. Other partners will not believe you exist.', ...counter };
-  if (shareK >= 205 && st.you < 40) return { t: 'Golden Handcuffs', s: 'Well paid', d: 'The accountant is thrilled. You are exhausted. You\'ve made excellent money, and you\'re too tired to spend it.', ...counter };
-  if (st.patients >= 75 && shareK < 145) return { t: `Patron Saint of ${place}`, s: 'Beloved', d: 'The patients adore you. Mrs Higgins has put you in her will (the shortbread tin). Financially, it has been a vocation rather than a business.', ...counter };
-  if (st.you >= 75 && st.patients < 45) return { t: 'Master of Boundaries', s: 'Well rested', d: 'You leave at 6:30pm, eat lunch sitting down and never read the Facebook group. The patients have noticed. You\'ve noticed that you don\'t mind.', ...counter };
-  if (S.cqc && S.cqc.overall === 'o') return { t: 'The Inspector\'s Darling', s: 'Outstanding', d: 'Outstanding. The certificate is in reception, the policies are colour-coded, and Patricia Sharpe uses your practice as an example in training.', counter: 'About 5% of practices are rated Requires Improvement or Inadequate. Outstanding is rarer still.', src: ['S33'] };
-  if (st.team >= 80) return { t: 'Everybody\'s Favourite Boss', s: 'Much loved', d: 'The team would walk through fire for you. Maureen has stopped threatening to retire. Kayleigh stayed rather than go to Aldi. That\'s the real prize.', ...counter };
-  if (min < 20) return { t: 'Survived. Technically.', s: 'Held together', d: 'You made it to 31st March, but only just. Something is always about to break. Next year will be different, you tell yourself, again.', ...counter };
+  // Each title is a real way to play, reached by about the top tenth of good years on its own measure (calibrated with
+  // tools/simulate.mjs), and when several fit, the run gets the one it shows most strongly. Still Standing is the usual
+  // good year; the suburb, being gentler, earns the flattering titles more often than the town or the city.
+  if (S.cqc && S.cqc.overall === 'o') return { t: 'The Inspector\'s Darling', s: 'Outstanding', d: 'Outstanding. The certificate is in reception, the policies are colour-coded, and Patricia Sharpe uses your practice as an example in training.', counter: 'Outstanding needs at least two of CQC\'s five key questions rated Outstanding, and the other three Good.', src: ['S105'] };
+  if (min >= 58 && shareK >= 145) return { t: 'The Unicorn', s: 'Mythical', d: 'Happy patients, happy team, a safe practice, a decent income and your sanity intact. Other partners will not believe you exist.', ...counter };
+  const fits = [];
+  if (shareK >= 160 && st.you < 32) fits.push([(shareK - 160) / 15 + (32 - st.you) / 15, { t: 'Golden Handcuffs', s: 'Well paid', d: 'The accountant is thrilled. You are exhausted. You\'ve made excellent money, and you\'re too tired to spend it.', ...counter }]);
+  if (st.team >= 67) fits.push([(st.team - 67) / 6 + 0.5, { t: 'Everybody\'s Favourite Boss', s: 'Much loved', d: 'The team would walk through fire for you. Maureen has stopped threatening to retire. Kayleigh stayed rather than go to Aldi. That\'s the real prize.', ...counter }]);
+  if (st.patients >= 64 && shareK < 150) fits.push([(st.patients - 64) / 8 + 0.5, { t: `Patron Saint of ${place}`, s: 'Beloved', d: 'The patients adore you. Mrs Higgins has put you in her will (the shortbread tin). Financially, it has been a vocation rather than a business.', ...counter }]);
+  // you kept yourself well, and it showed in the waiting room: You at least 54, and at least 5 above Patients
+  if (st.you >= 54 && st.you - st.patients >= 5) fits.push([(st.you - 54) / 6 + 0.5, { t: 'Master of Boundaries', s: 'Well rested', d: 'You leave at 6:30pm, eat lunch sitting down and never read the Facebook group. The patients have noticed. You\'ve noticed that you don\'t mind.', ...counter }]);
+  fits.sort((a, b) => b[0] - a[0]);
+  // a year that nearly broke something is "Survived. Technically.", unless it was the money that kept it going
+  if (min < 20) { const g = fits.find(f => f[1].t === 'Golden Handcuffs'); return g ? g[1] : { t: 'Survived. Technically.', s: 'Held together', d: 'You made it to 31st March, but only just. Something is always about to break. Next year will be different, you tell yourself, again.', ...counter }; }
+  if (fits.length) return fits[0][1];
   return { t: 'Still Standing', s: 'Year complete', d: 'A solid year. Not glamorous, not a disaster. You kept the doors open, the patients seen and the bank quiet. That\'s what most partners dream of.', ...counter };
 }
 

@@ -35,6 +35,7 @@ Or download [`last-partner-standing/last-partner-standing-play.html`](last-partn
 - **Two mini-games:**
   - Docman Dash: file, action, urgent or bounce
   - The 8am Rush: route requests to 999, GP, routine, Pharmacy First or physio
-- **Ways it can end:** a year-end title, or crashing out through burnout, special measures, a breach notice or unlimited liability, or leaving early by selling up, merging, going salaried, emigrating or handing back the contract.
+- **Ways it can end:** a year-end title, or crashing out through burnout, the team walking out, special measures, a breach notice or unlimited liability, or leaving early by selling up, merging, going salaried, emigrating or handing back the contract. None comes out of nowhere: the month plan warns when one has started and says what's driving it.
+- **Carry on for years.** After 31 March you can carry on into year 2 and beyond. The calendar comes round again, CQC comes back when the risk calls for it, and each year is harder than the last.
 
 The practices, people and companies are fictional, and the scenarios are satire. This is a simplified model, not financial, tax or medical advice, and it isn't affiliated with the NHS, the BMA or any government body.

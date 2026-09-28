@@ -6,9 +6,9 @@ Games about life in UK general practice.
 
 A survival game about one financial year, April 2026 to March 2027, as a new GP partner in England. Each month you plan your sessions, locum cover, staff and one project, then deal with whatever lands on your desk: patients, the team, the ICB, CQC and a leaking flat roof. Keep Patients, Team, You and Safety above zero and the bank inside its overdraft, and at year end the accountant tells you what it was all worth after pension and tax.
 
-**Play online:** https://gp-games.vercel.app
+**Play online:** https://last-partner-standing.vercel.app
 
-**Watch the trailer:** https://gp-games.vercel.app/trailer, 75 seconds drawn with the game's own art (also as [`trailer.mp4`](last-partner-standing/trailer.mp4)).
+**Watch the trailer:** https://last-partner-standing.vercel.app/trailer, 75 seconds drawn with the game's own art (also as [`trailer.mp4`](last-partner-standing/trailer.mp4)).
 
 Or download [`last-partner-standing/last-partner-standing-play.html`](last-partner-standing/last-partner-standing-play.html) and open it in any browser. It's a single file with nothing to install.
 

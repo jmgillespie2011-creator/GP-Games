@@ -17,7 +17,7 @@ JS="../src/c-data.js ../src/c3-art.js t-engine.js $SCENES t-boot.js"
   if [ "$MODE" = play ]; then
     SITE=https://last-partner-standing.vercel.app
     DESC='75 seconds of general practice: a new GP partner, five lit windows, a year of cards and one name left on the brass plate. The trailer for Last Partner Standing, the free browser game.'
-    IMG=https://gp-games.vercel.app/last-partner-standing/trailer-poster.png
+    IMG=$SITE/last-partner-standing/trailer-poster.png
     ICON=$(base64 < ../src/icon.svg | tr -d '\n')
     printf '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
     printf '<meta name="theme-color" content="#E3EDE1" media="(prefers-color-scheme: light)">\n<meta name="theme-color" content="#0D1712" media="(prefers-color-scheme: dark)">\n'

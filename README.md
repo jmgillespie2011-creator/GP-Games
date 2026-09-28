@@ -32,9 +32,10 @@ Or download [`last-partner-standing/last-partner-standing-play.html`](last-partn
   - the GP Patient Survey and flu Saturday
   - a CQC inspection
   - merger talks and a corporate takeover offer
-- **Two mini-games:**
-  - Docman Dash: file, action, urgent or bounce
-  - The 8am Rush: route requests to 999, GP, routine, Pharmacy First or physio
+- **Three mini-games,** with no question repeated until you've seen the whole pool:
+  - Docman Dash: 89 letters and results to file, action, mark urgent or bounce
+  - The 8am Rush: 90 requests to route to 999, GP, routine, Pharmacy First or physio
+  - The Walkround: 77 things an inspector might spot, to fix now, show the log for, risk-assess or bust as a myth
 - **Ways it can end:** a year-end title, or crashing out through burnout, the team walking out, special measures, a breach notice or unlimited liability, or leaving early by selling up, merging, going salaried, emigrating or handing back the contract. None comes out of nowhere: the month plan warns when one has started and says what's driving it.
 - **Carry on for years.** After 31 March you can carry on into year 2 and beyond. The calendar comes round again, CQC comes back when the risk calls for it, and each year is harder than the last.
 

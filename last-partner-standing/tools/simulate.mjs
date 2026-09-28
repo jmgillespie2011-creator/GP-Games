@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const FILES = ['c-data.js', 'c2-minidata.js', 'd-events1.js', 'e-events2.js', 'f-events3.js', 'f2-events4.js', 'f3-events5.js', 'f4-events6.js', 'f5-events7.js', 'f6-events8.js', 'f7-events9.js', 'f8-events10.js', 'g-engine.js', 'g2-endings.js'];
 const code = FILES.map(f => readFileSync(path.join(dir, '..', 'src', f), 'utf8')).join('\n') +
-  '\n;globalThis.__lps = { ctxFx, newGame, gpHeadroom, locumMax, beginMonth, currentEvent, resolveChoice, continueOutcome, nextMonth, continueYear, calc, arrsLeft, arrsClaimOf, activeOthers, arrsCount, roomsNeeded, roomsAvail, ROLES, STAT_KEYS, val, S: () => S };';
+  '\n;globalThis.__lps = { ctxFx, newGame, gpHeadroom, locumMax, beginMonth, currentEvent, resolveChoice, continueOutcome, nextMonth, continueYear, calc, arrsLeft, arrsClaimOf, activeOthers, arrsCount, roomsNeeded, roomsAvail, pcnClaim, pcnPosts, advertise, ROLES, STAT_KEYS, val, S: () => S };';
 const ctx = vm.createContext({ console, Math, JSON, Date });
 vm.runInContext(code, ctx, { filename: 'lps.js' });
 const L = ctx.__lps;
@@ -49,6 +49,8 @@ function smartPlan(S) {
   let c = L.calc();
   if (S.month >= 1 && S.month <= 7) {
     const roomFree = L.roomsNeeded() + 8 <= L.roomsAvail();
+    // since 2026/27 a new practice nurse can be paid from the PCN's budget: the best value when appointments or QOF are short
+    if (roomFree && (c.ratio < 1.02 || S.qof < 8 * S.month) && !L.pcnPosts('nurse').length && !S.vac.arrsnurse && L.arrsLeft() >= L.pcnClaim('nurse', 1)) L.advertise('arrsnurse', 1);
     // within the PCN budget, or paying the excess when the bank can stand it
     if (roomFree) for (const r of ['physio', 'para', 'mhp']) if (!S.staff[r] && !S.vac[r] && (L.arrsLeft() >= L.arrsClaimOf(r) || S.cash > S.overdraft + 60)) { S.vac[r] = 1; break; }
     if (c.ratio < 1.02 && L.gpHeadroom() >= 6 && !S.vac.salaried && S.staff.salaried < 3 && S.cash > S.overdraft + 50) { S.vac.salaried = 1; S.cash -= 1.5; }

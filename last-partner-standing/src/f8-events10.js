@@ -72,7 +72,7 @@ EVENTS.push(
      ['QOF aspiration', tchK(i.qof), '80% of last year\'s QOF, paid monthly'],
      ['Vaccinations', tchK(i.vacc), 'Paid for each one given'],
      ['Enhanced services', tchK(i.es), 'Paid for what you deliver, so they fall when appointments run short'],
-     ['Network and PCN', tchK(i.npp + i.pcn), 'Your share of the PCN\'s money'],
+     ['Network and PCN', tchK(i.npp + i.pcn), 'Your share of the PCN\'s money: core funding, evening and weekend access, the IIF'],
      ['Private fees', tchK(i.priv), 'Reports, medicals and letters']
     ], ['Income this month', tchK(tot)], 'Staff, locums, rent and running costs all come out of this before the partners see any of it.') }; },
    o:()=>{ const t = tutor(); return `You go through it together. The global sum is the biggest line by far, and it doesn't rise when demand does. "So being busier doesn't pay," ${t.scheme ? 'says a registrar' : t.n + ' says'}. Only a bigger list does, slowly, and the extra patients bring their own demand.`; }},
@@ -125,7 +125,7 @@ EVENTS.push(
  after(){ teachDone(); if (lcsNext() && chance(0.4)) schedule('lcs_cut', 3 + Math.floor(Math.random() * 3)); }},
 
 {id:'teach_arrs',arc:1,get who(){ return tutor().who; },title:'Who pays for the pharmacist?',cond:teachOn,tag:'real',src:['S4','S84'],
- info:'The Additional Roles Reimbursement Scheme pays each PCN £27.668 per weighted patient a year (2026/27) to claim back the pay of set roles, such as clinical pharmacists, physios, paramedics, care coordinators and, from 2026/27, GPs, up to a national maximum for each role that includes employer NI and pension: in 2026/27, £71,725 a year for a clinical pharmacist or a first contact physio, £69,515 for a paramedic, £38,739 for a care coordinator and £152,900 for a full-time GP. Practices still provide the rooms, equipment and supervision, and pay for anything over the budget. The game claims each post at its maximum.',
+ info:'The Additional Roles Reimbursement Scheme pays each PCN £27.668 per weighted patient a year (2026/27) to claim back the pay of set roles, such as clinical pharmacists, physios, paramedics, care coordinators and, from 2026/27, GPs and practice nurses, up to a national maximum for each role that includes employer NI and pension: in 2026/27, £71,725 a year for a clinical pharmacist or a first contact physio, £69,515 for a paramedic, £38,739 for a care coordinator, £46,447 for a nurse new to general practice (£57,114 experienced) and £152,900 for a full-time GP. A GP or nurse who has worked in the PCN in the last 12 months can\'t be claimed. Practices still provide the rooms, equipment and supervision, and pay for anything over the budget. The game claims each post at its maximum, and GPs and nurses at their real cost.',
  text:()=>{ const t = tutor(), roles = teachArrsRoles(), b = arrsBudget(), used = arrsSpend(true);
   const q = t.scheme ? 'Who pays for all the pharmacists and physios?' : roles.length ? `Who pays for the ${ROLES[roles[0]].name.replace(/^[A-Z](?![A-Z])/, c => c.toLowerCase())}?` : 'Other practices have pharmacists and physios. Are they free?';
   return teachAsk(t, `${t.n} is looking at the rota.`, q) +
@@ -134,9 +134,10 @@ EVENTS.push(
   {t:()=>tutor().scheme ? 'Show them a real claims spreadsheet' : `Show ${tutor().n} the PCN's claims spreadsheet`,fx:()=>teachFx({you:-2},2),
    run(){ const b = arrsBudget(), left = arrsLeft(), w = weightedList(); taught();
     const rows = [['Your share of the PCN budget', `£${tchN(b)}k a year`, `${tchN(w)} weighted patients × £${P.arrs}`]];
-    ROLE_ORDER.filter(r => ROLES[r].arrs).forEach(r => { const n = S.staff[r] + (S.vac[r] || 0); if (n) rows.push([`${ROLES[r].name}${n > 1 ? ' × ' + n : ''}${S.vac[r] ? ' (advert open)' : ''}`, `−£${tchN(arrsClaimOf(r) * n)}k`, `About £${tchN(arrsClaimOf(r))}k a year each (${ROLES[r].band}), claimed back`]); });
-    const gps = arrsGPs() + (S.vac.arrsgp || 0);
-    if (gps) rows.push([`GP${gps > 1 ? 's' : ''} through the PCN`, `−£${tchN(gps * ARRS_GP_CLAIM)}k`, 'Six sessions a week, claimed at their real cost']);
+    ROLE_ORDER.filter(r => ROLES[r].arrs).forEach(r => { const n = headcount(r) + adsOf(r).length, fte = S.staff[r] + vacUnits(r); if (n) rows.push([`${ROLES[r].name}${n > 1 ? ' × ' + n : ''}${S.vac[r] ? ' (advert open)' : ''}`, `−£${tchN(arrsClaimOf(r) * fte)}k`, `About £${tchN(arrsClaimOf(r))}k a year full time (${ROLES[r].band})${Math.abs(fte - n) > 0.01 ? `, ${fteTxt(fte)} full-time equivalent` : ''}, claimed back`]); });
+    // GPs and nurses recruited through the PCN, claimed at their real pay and on-costs
+    [['salaried', 'arrsgp', 'GP'], ['nurse', 'arrsnurse', 'Practice nurse']].forEach(([r, k, nm]) => { const ps = pcnPosts(r), ads = adsOf(k), n = ps.length + ads.length;
+      if (n) rows.push([`${nm}${n > 1 ? 's' : ''} through the PCN${ads.length ? ' (advert open)' : ''}`, `−£${tchN(ps.reduce((a, q) => a + pcnClaim(r, q.u), 0) + ads.reduce((a, u) => a + pcnClaim(r, u), 0))}k`, 'Claimed at their real pay and on-costs']); });
     const scale = rows.length > 1 ? '' : `Nobody is claimed yet. For scale, a clinical pharmacist costs about £${tchN(arrsClaimOf('pharm'))}k a year with on-costs, so this would cover about ${['none', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'][Math.floor(left / arrsClaimOf('pharm'))] || Math.floor(left / arrsClaimOf('pharm'))}. `;
     return { html: tchTable(`${prac().surgery}: the additional roles budget`, rows, [left >= 0 ? 'Left to claim' : 'Over budget: the practice pays', `£${tchN(Math.abs(left))}k a year`], `${scale}Each post is claimed back only while it's filled. The practice still finds the room, the kit and a GP to supervise.`) }; },
    o:()=>{ const t = tutor(); return `You go through how it works: each role is paid back up to its limit, and only while the post is filled. "So they're free," ${t.scheme ? 'says a registrar' : t.n + ' says'}. "Free the way a puppy is free," you say.`; }},

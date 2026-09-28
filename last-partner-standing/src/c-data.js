@@ -69,17 +69,22 @@ const PRACTICES = {
     staff:{recep:7,nurse:2,hca:2,salaried:2,pharm:1,physio:0,para:1,mhp:0,cc:1,sp:1,gpa:0,anp:0}
   }
 };
-// income per registered patient a year, £ (scaled from the 2026/27 reference practice) [S8,S9]
-const PER_PATIENT = { vacc: 4.85, es: 3.88, pcn: 1.94 };
+// income per registered patient a year, £ (scaled from the 2026/27 reference practice) [S8,S9].
+// pcn is the practice's share of PCN money other than ARRS, after the PCN pays its clinical director, manager and the
+// evening and Saturday enhanced access sessions (our estimate): the DES 2026/27 pays core PCN funding of £3.059 a patient,
+// enhanced access of £8.903 a patient and the Investment and Impact Fund (58 points at £198) [S4].
+const PER_PATIENT = { vacc: 4.85, es: 3.88, pcn: 7.94 };
 const CORE_ADMIN = 0.0017;  // £k per patient a month: practice manager, secretaries, summarisers, coders
 const RUNNING = 0.00154;    // £k per patient a month: office, clinical supplies, insurance, IT, CQC fee
 
-// cost in £k a month including employer NI and pension. cap = appointments a week. clear = inbox items cleared a week.
+// For one standard post: full time (37.5 hours), or six sessions for a salaried GP. pay = a year's pay for that post and pen = the share
+// in the NHS Pension Scheme, from which cost is worked out (£k a month with employer NI and pension). Part-timers scale from these.
+// cap = appointments a week. clear = inbox items cleared a week. room = room sessions booked a week.
 const ROLES = {
-  recep:{name:'Receptionist',cost:empCostK(24690,0.7),hire:0.8,desc:'Takes the 8am calls and the abuse. Knows everyone\'s nan.'},
-  nurse:{name:'Practice nurse',cost:empCostK(35884,0.85),cap:104,qof:1.2,room:8,hire:0.4,desc:'Chronic disease reviews, smears, imms. Your QOF engine.'},
-  hca:{name:'Healthcare assistant',cost:empCostK(24500,0.7),cap:120,qof:0.8,room:9,hire:0.6,desc:'Bloods, blood pressures, ECGs, health checks.'},
-  salaried:{name:'Salaried GP',cost:empCostK(P.salaried*6/9,1),cap:84,clear:50,room:6,hire:0.4,desc:'Six sessions a week. Doesn\'t have to think about the overdraft.'},
+  recep:{name:'Receptionist',pay:24690,pen:0.7,hire:0.8,desc:'Takes the 8am calls and the abuse. Knows everyone\'s nan.'},
+  nurse:{name:'Practice nurse',pay:35884,pen:0.85,cap:104,qof:1.2,room:8,hire:0.4,desc:'Chronic disease reviews, smears, imms. Your QOF engine.'},
+  hca:{name:'Healthcare assistant',pay:24500,pen:0.7,cap:120,qof:0.8,room:9,hire:0.6,desc:'Bloods, blood pressures, ECGs, health checks.'},
+  salaried:{name:'Salaried GP',pay:P.salaried*6/9,pen:1,cap:84,clear:50,room:6,hire:0.4,desc:'Clinics, results and letters. Doesn\'t have to think about the overdraft.'},
   anp:{name:'Advanced nurse practitioner',arrs:1,claim:78.534,band:'Band 8a',cost:0.35,cap:80,clear:15,room:9,hire:0.35,desc:'Sees same-day problems start to finish, examines, diagnoses and prescribes. Needs a GP supervisor: a daily debrief, about two hours a week of yours. Experienced ones are scarce. Not a GP, but the nearest thing you can hire when no GP will come.'},
   pharm:{name:'Clinical pharmacist',arrs:1,claim:71.725,band:'Band 7 to 8a',sup:1,cost:0.35,cap:60,clear:40,qof:0.8,room:4,hire:0.65,desc:'Med reviews, scripts, and queries about the queries.'},
   physio:{name:'First contact physio',arrs:1,claim:71.725,band:'Band 7 to 8a',sup:1,cost:0.35,cap:80,room:9,hire:0.6,desc:'Backs, knees and shoulders, straight to the right person.'},
@@ -89,6 +94,7 @@ const ROLES = {
   sp:{name:'Social prescriber',arrs:1,claim:46.447,band:'up to Band 5',cost:0.35,demand:-2,hire:0.75,desc:'Loneliness, debt, housing: the things a prescription can\'t fix.'},
   gpa:{name:'GP assistant',arrs:1,claim:38.739,band:'Band 4',cost:0.35,clear:80,hire:0.7,desc:'Codes letters, preps results, tames the inbox.'}
 };
+for (const r in ROLES) if (ROLES[r].pay) ROLES[r].cost = empCostK(ROLES[r].pay, ROLES[r].pen);
 const ROLE_ORDER = ['salaried','anp','nurse','hca','recep','pharm','physio','para','mhp','cc','sp','gpa'];
 // ARRS roles are claimed from the PCN's additional-roles budget (P.arrs per weighted patient; the practice's share is modelled).
 // `claim` is each role's 2026/27 national maximum reimbursement, £k a year: actual salary plus employer NI and pension, outside London
@@ -107,7 +113,7 @@ const PARTNERS0 = {
   priya:{name:'Dr Priya Nair',short:'Priya',clin:6,capital:25}
 };
 // cash drawings per partner per month, £k. Pension contributions are paid on top from the practice account.
-const DRAW = {low:8.5,std:10,high:11.5};
+const DRAW = {low:9.5,std:11,high:12.5};
 
 const PROJECTS = [
   {id:'none',name:'Keep the lights on',desc:'No project this month. Breathe.',fx:{you:2}},
@@ -315,7 +321,7 @@ const GLOSSARY = [
   ['Weighted list (Carr-Hill)','Your list adjusted for need: age, sex, care-home residence (1.43x), new registration (1.46x for a year), rurality and staff costs. The global sum is paid on this, not on headcount.',['S3']],
   ['QOF','The Quality and Outcomes Framework. 582 points in 2026/27, each worth £227.95 for an average-sized practice, scaled for list size and disease prevalence.',['S3']],
   ['Aspiration payment','80% of last year\'s QOF value, paid monthly during the year. The balance for what you actually achieved is due by the end of the following June. Under-achieve and you pay some back.',['S3']],
-  ['ARRS','The Additional Roles Reimbursement Scheme. Each PCN gets a budget of £27.668 per weighted patient a year (2026/27) and claims back the pay of pharmacists, physios, paramedics, advanced nurse practitioners (up to £78,534 a year at Band 8a), care coordinators and others, up to a maximum for each role. From 2026/27 GPs can be claimed too, up to £152,900 a year with on-costs. Staff beyond the budget are paid for by the practices. The practice still has to find the room and the supervision.',['S4','S84']],
+  ['ARRS','The Additional Roles Reimbursement Scheme. Each PCN gets a budget of £27.668 per weighted patient a year (2026/27) and claims back the pay of pharmacists, physios, paramedics, advanced nurse practitioners (up to £78,534 a year at Band 8a), care coordinators and others, up to a maximum for each role. From 2026/27 GPs and practice nurses can be claimed too (a full-time GP up to £152,900 a year with on-costs, a nurse up to £46,447 new to general practice or £57,114 experienced), but not anyone who worked in the PCN in the last 12 months. Staff beyond the budget are paid for by the practices. The practice still has to find the room and the supervision.',['S4','S84']],
   ['PCN','Primary Care Network: a group of neighbouring practices working together under the Network Contract DES. Practices get £1.761 per weighted patient for taking part.',['S4']],
   ['ICB','Integrated Care Board: the NHS body that commissions and pays practices in your area, and issues remedial and breach notices.',[]],
   ['CQC','The Care Quality Commission, which inspects and rates practices on five questions: safe, effective, caring, responsive and well-led. About 5% of practices are rated Requires Improvement or Inadequate.',['S33']],

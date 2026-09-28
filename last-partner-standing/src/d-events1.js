@@ -88,14 +88,14 @@ EVENTS.push(
  info:'Partner numbers are falling: full-time equivalent partners in England dropped by 336 in a year. Many salaried GPs are wary of unlimited liability and premises debt.',
  text:`Tom, your salaried GP, catches you by the kettle. "I've been thinking. I'd like to become a partner." He has been reading the accounts. He has questions about the overdraft.`,
  choices:[
-  {t:'"Yes. Welcome to the partnership."',fx:{team:4,you:2,capital:25},run(){ S.staff.salaried--; S.partners.tom.status='active'; },o:`Tom buys in with £25,000 of working capital and a bottle of prosecco. He'll share the profits, the decisions and the liability.`},
+  {t:'"Yes. Welcome to the partnership."',fx:{team:4,you:2,capital:25},run(){ loseStaff('salaried','std'); S.partners.tom.status='active'; },o:`Tom buys in with £25,000 of working capital and a bottle of prosecco. He'll share the profits, the decisions and the liability.`},
   {t:'"Not this year. Let\'s review it in twelve months."',fx:{team:-2},alt:{p:()=>S.flags.taughtTom ? 0.25 : 0.5,o:`Tom nods. Six weeks later he hands in his notice. He's joining a practice across town as a partner.`,fx:{team:-3,sched:[['tom_leaves',1]]}},o:`Tom nods slowly. "Fair enough." He stays, but he has stopped volunteering for things.`},
   {t:'Offer him a pay rise to stay salaried',fx:{team:1},run(){ S.tomRaise=0.8; },o:`An extra £800 a month. He takes it. "No liability, no drawings, no HMRC in January," he says. You are briefly jealous of your own employee.`}
  ]},
 
 {id:'tom_leaves',arc:1,who:'tom',title:'Tom\'s last day',cond:()=>S.staff.salaried>=1&&!S.flags.tomGone&&!isActive('tom'),tag:'story',
  text:`Tom's last day. He's off to be a partner at the practice on the other side of the ring road. He leaves 40 unfiled results and a thank-you card.`,
- choices:[{t:'Wish him well',fx:{inbox:40,team:-2},run(){ S.staff.salaried--; S.flags.tomGone=1; },o:`You now have one fewer GP and a new appreciation for how much Tom actually did.`}]},
+ choices:[{t:'Wish him well',fx:{inbox:40,team:-2},run(){ loseStaff('salaried','std'); S.flags.tomGone=1; },o:`You now have one fewer GP and a new appreciation for how much Tom actually did.`}]},
 
 {id:'partner_advert',who:'bev',title:'Advertise for a partner?',months:[4,5,6,7,8,9],cond:()=>activeOthers()<=1,tag:'real',src:['S11'],
  info:'Partnership adverts often get few or no applicants. Nationally, 15% of GPs said they couldn\'t find suitable GP work, but most newly qualified GPs want salaried or locum roles rather than partnership.',

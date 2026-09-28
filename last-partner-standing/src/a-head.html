@@ -498,6 +498,15 @@ details.more-opts[open]>summary{margin-bottom:14px}
 .role .acts .advert{font-size:12.5px;font-weight:700;color:var(--good);align-self:center;white-space:nowrap}
 .role .acts .advert::before{content:"✓ "}
 .role .acts .fire{border-color:var(--rule);background:transparent}
+.role .acts .fire small,.role .acts .advert small{font-weight:500;opacity:.8;margin-left:2px}
+.role .l .inpost{margin-top:3px;color:var(--ink)}
+.hrs{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:6px}
+.role .hrs{grid-column:1/-1;margin-top:-4px}
+.hrs span{font-size:12px;color:var(--ink-2);margin-right:2px}
+.hrs button{font:600 11.5px/1.2 var(--mono);padding:3px 9px;border:1.5px solid var(--rule);border-radius:99px;background:transparent;color:var(--ink-2);cursor:pointer}
+.hrs button:hover{border-color:var(--ink-2)}
+.hrs button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--sheet)}
+@media (max-width:640px){.hrs button{padding:6px 11px;font-size:12.5px}.role .hrs{order:1;margin-top:0}.role .acts{order:2}.role .role-off{order:3}}
 .suggestbox{margin-top:10px;border:1.5px solid var(--accent);background:var(--sheet);border-radius:12px;padding:10px 14px;max-width:46ch;font-size:15px}
 .suggestbox .sb-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .suggestbox .sb-x{border:0;background:transparent;font-size:22px;line-height:1;color:var(--ink-2);cursor:pointer;padding:0 4px}

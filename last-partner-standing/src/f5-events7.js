@@ -25,8 +25,8 @@ EVENTS.push(
 {id:'p_sandra_retires',once:1,who:'kayleigh',title:'Sandra retires',pmin:1,tag:'story',
  text:`Sandra is retiring after twenty years on reception. She knows every patient by voice, which consultant's secretary actually answers, and how to reset the phone system with a paperclip.`,
  choices:[
-  {t:'A proper send-off and a paid handover month',fx:{team:5,cash:-2.5},run(){ S.staff.recep = Math.max(1, S.staff.recep - 1); S.vac.recep = (S.vac.recep || 0) + 1; },o:`Sandra trains her replacement for a month and leaves a notebook titled "What Actually Happens". It becomes the most important document in the building.`},
-  {t:'Cake, card, and advertise the post',fx:{team:1},run(){ S.staff.recep = Math.max(1, S.staff.recep - 1); S.vac.recep = (S.vac.recep || 0) + 1; addMod({id:'sandra', label:'Nobody knows where anything is', months:2, aim:{patients:-2, team:-2}}); },o:`She goes on Friday. On Monday nobody can find the paperclip.`}
+  {t:'A proper send-off and a paid handover month',fx:{team:5,cash:-2.5},run(){ if (S.staff.recep > 1) vacate('recep', 'std'); else advertise('recep', 1); },o:`Sandra trains her replacement for a month and leaves a notebook titled "What Actually Happens". It becomes the most important document in the building.`},
+  {t:'Cake, card, and advertise the post',fx:{team:1},run(){ if (S.staff.recep > 1) vacate('recep', 'std'); else advertise('recep', 1); addMod({id:'sandra', label:'Nobody knows where anything is', months:2, aim:{patients:-2, team:-2}}); },o:`She goes on Friday. On Monday nobody can find the paperclip.`}
  ]},
 {id:'p_partner_hours',who:'okoye',title:'Fewer sessions',pmin:1,cond:()=>isActive('okoye'),tag:'story',
  text:`Nadia wants to drop to four sessions a week. "I've done the maths. I'm working 55 hours for the pay of 40. I'd rather work 35 for the pay of 30."`,
@@ -56,7 +56,7 @@ EVENTS.push(
 {id:'p_trainee_returns',once:1,who:'reg',title:'Ellie is back',pmin:1,cond:()=>!!S.flags.training,w:()=>(S.flags.taughtEllie || 0) >= 2 ? 3 : 1,tag:'story',
  text:`Ellie, your old registrar, has finished training. She'd like to come back as a salaried GP, and she's asking about partnership "in a year or two".`,
  choices:[
-  {t:'Offer her a job, and a route to partnership',need:()=>gpHeadroom() >= 6,why:'No room for another GP in this area',fx:{team:5,you:3},run(){ S.staff.salaried++; },o:`Ellie starts next month. This is what growing your own GPs was for.`},
+  {t:'Offer her a job, and a route to partnership',need:()=>gpHeadroom() >= 6,why:'No room for another GP in this area',fx:{team:5,you:3},run(){ addStaff('salaried', 1); },o:`Ellie starts next month. This is what growing your own GPs was for.`},
   {t:'You can\'t afford another GP',fx:{team:-2},o:`She takes a job across town. She sends a very gracious email.`}
  ]},
 {id:'p_nhs_app',who:'patient',title:'The app',pmin:1,tag:'story',

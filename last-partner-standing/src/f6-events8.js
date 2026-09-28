@@ -32,28 +32,28 @@ EVENTS.push(
  info:'New partners usually buy in with a share of the working capital, often around £25,000, and sometimes a share of the premises. It shares the liability and the profit.',
  text:`Dr Priya Nair, one of your salaried GPs, asks to become a partner. She has read the accounts, twice, and wants to buy in with £30,000 of working capital. "I'd rather own the problem than rent it," she says.`,
  choices:[
-  {t:'Welcome her to the partnership',fx:{capital:30,team:4,you:3},run(){ S.staff.salaried--; S.partners.priya.status = 'active'; S.partners.priya.clin = 6; },o:`The partnership deed gets a new signature. The profit is split one more way, and so is everything else.`},
+  {t:'Welcome her to the partnership',fx:{capital:30,team:4,you:3},run(){ loseStaff('salaried', 'std'); S.partners.priya.status = 'active'; S.partners.priya.clin = 6; },o:`The partnership deed gets a new signature. The profit is split one more way, and so is everything else.`},
   {t:'Not yet',fx:{team:-2},o:`She takes it well. Six months later she takes a partnership across town.`}
  ]},
 {id:'p_arrs_gp',who:'ward',title:'A GP through the PCN',pmin:1,cond:()=>S.practiceKey!=='city'||gpHeadroom()<6,tag:'real',src:['S4','S84'],
  info:'From 2026/27, PCNs can claim GPs through the Additional Roles Reimbursement Scheme, up to £152,900 a year for a full-time GP including on-costs, as long as the GP hasn\'t worked substantively for a practice in the PCN in the previous 12 months.',
  text:()=>`Dr Sam Ward is back, fully qualified and still looking. Since this year's contract, the PCN can claim a GP from its additional-roles budget, and Clare says your share could cover him for six sessions a week. The budget has about £${Math.max(0, Math.round(arrsLeft()))}k a year left.`,
  choices:[
-  {t:'Employ him through the PCN budget',fx:{team:3,patients:2},run(){ S.staff.salaried++; S.arrsGP = (S.arrsGP || 0) + 1; },o:()=>`Sam starts next month. His pay is claimed from the additional-roles budget${arrsLeft() < 0 ? ', which is now over, so the practice pays the difference' : ''}. He needs a room, which is the other budget you're always over.`},
+  {t:'Employ him through the PCN budget',fx:{team:3,patients:2},run(){ addStaff('salaried', 1, 1); },o:()=>`Sam starts next month. His pay is claimed from the additional-roles budget${arrsLeft() < 0 ? ', which is now over, so the practice pays the difference' : ''}. He needs a room, which is the other budget you're always over.`},
   {t:'Keep the budget for pharmacists and physios',fx:{},o:`Sam takes a job in the next PCN. He sends a thank-you email anyway.`}
  ]},
 {id:'p_drawings',who:'accountant',title:'Tighten the belts',pmin:1,cond:()=>S.cash<S.overdraft/2,tag:'story',
  text:`Neville wants the partners to leave £20,000 each in the practice for a year. "It's that or the bank decides for you," he says, not unkindly.`,
  choices:[
   {t:'Leave the money in',fx:{capital:20,you:-4,okoye:6},o:`The overdraft breathes out. At home, the conversation about the holiday is shorter than you'd like.`},
-  {t:'Cut staff costs instead',need:()=>S.staff.recep>2,why:'There is no one left to cut',fx:{cash:4,team:-6,patients:-2},run(){ S.staff.recep--; },o:`A receptionist's post isn't replaced. The queue at 8am notices before anyone else does.`}
+  {t:'Cut staff costs instead',need:()=>S.staff.recep>2,why:'There is no one left to cut',fx:{cash:4,team:-6,patients:-2},run(){ loseStaff('recep'); },o:`A receptionist's post isn't replaced. The queue at 8am notices before anyone else does.`}
  ]},
 /* ---------- people coming back ---------- */
 {id:'p_nadia_back',once:1,who:'okoye',title:'Postcard from Perth',cond:()=>yr1()&&S.partners.okoye.status==='left',tag:'story',
  text:`An email from Nadia, from Perth. "The pay is great and the patients are lovely. But the heat, the snakes, and I miss the rain, which I never thought I'd type. Is there still a room with a window?"`,
  choices:[
   {t:'Welcome her back as a partner',fx:{capital:25,team:6,you:4},run(){ S.partners.okoye.status = 'active'; S.okoye = 20; },o:`Nadia is back by the autumn, tanned and oddly calm. She takes the room with the window. Nobody argues.`},
-  {t:'Offer her salaried sessions',fx:{team:3,patients:2},run(){ S.staff.salaried++; },o:`Six sessions, no liability, no overdraft. "Honestly," she says, "that's why I left."`},
+  {t:'Offer her salaried sessions',fx:{team:3,patients:2},run(){ addStaff('salaried', 1); },o:`Six sessions, no liability, no overdraft. "Honestly," she says, "that's why I left."`},
   {t:'Tell her she\'s better off in the sun',fx:{you:-1},o:`She replies with a photo of a beach and the words "you're right, I'm sorry".`}
  ]},
 {id:'p_alan_locum',once:1,who:'hartley',title:'Alan is bored',cond:()=>yr1()&&S.partners.hartley.status==='left',tag:'story',
@@ -77,7 +77,7 @@ EVENTS.push(
 {id:'p_kayleigh_train',once:1,who:'kayleigh',title:'Kayleigh has a plan',cond:()=>yr1()&&S.staff.recep>=3&&!S.flags.kayleighNA,tag:'story',
  text:`Kayleigh wants to train as a nursing associate: an apprenticeship, two years, mostly on the job. "I'm good with people and I'm good under pressure," she says. "I've done eight years on the front desk. Nursing will be restful."`,
  choices:[
-  {t:'Back her, and fund the apprenticeship',fx:{team:5,cash:-1.5,flags:{kayleighNA:1}},run(){ S.staff.recep--; S.staff.hca++; plant({ in: 12, fx: { team: 3, patients: 2, qof: 1 }, note: 'Kayleigh passed her nursing associate apprenticeship. She runs the Tuesday blood pressure clinic and still answers the phone when it rings too long.' }); },o:`Reception loses its best voice. The treatment room gains its most unflappable trainee.`},
+  {t:'Back her, and fund the apprenticeship',fx:{team:5,cash:-1.5,flags:{kayleighNA:1}},run(){ loseStaff('recep', 'std'); addStaff('hca', 1); plant({ in: 12, fx: { team: 3, patients: 2, qof: 1 }, note: 'Kayleigh passed her nursing associate apprenticeship. She runs the Tuesday blood pressure clinic and still answers the phone when it rings too long.' }); },o:`Reception loses its best voice. The treatment room gains its most unflappable trainee.`},
   {t:'Not now, reception needs her',fx:{team:-4},later:[{in:4,p:0.5,fx:{team:-2},note:'Kayleigh has started the nursing associate course at the hospital instead. She popped in to say goodbye.'}],o:`She understands. She also downloads the hospital's application form that evening.`}
  ]},
 /* ---------- the grind of later years ---------- */
@@ -112,7 +112,7 @@ EVENTS.push(
  text:`One of your practice nurses has been offered a PCN post: Band 7, study leave, no QOF recalls. The PCN is, technically, you and ten other practices.`,
  choices:[
   {t:'Match it (£400 a month)',fx:{team:3},run(){ S.payX = (S.payX || 0) + 0.4; },o:`She stays. The other nurses find out what she's paid by lunchtime.`},
-  {t:'Wish her well',fx:{team:-3,qof:-2},run(){ S.staff.nurse--; S.vac.nurse = (S.vac.nurse || 0) + 1; },o:`She moves across to the PCN. You'll see her at the hub on Thursdays, doing the job she used to do here.`}
+  {t:'Wish her well',fx:{team:-3,qof:-2},run(){ vacate('nurse', 'std'); },o:`She moves across to the PCN. You'll see her at the hub on Thursdays, doing the job she used to do here.`}
  ]},
 {id:'p_insurance',who:'bev',title:'The renewal',pmin:1,tag:'story',
  text:`The buildings and liability insurance renewal is up 38%. The broker blames "the claims environment", the flat roof, and the fish tank.`,

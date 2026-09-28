@@ -204,6 +204,18 @@ function headingHTML(c) {
     return `<details class="explain heading"><summary><span class="hd-ic">${ICON[k]}</span><span class="hd-l">${STAT_LABEL[k]}</span><span class="hd-v mono">${now} → <b class="${dir === 'up' ? 'good-t' : dir === 'down' ? 'bad-t' : ''}">${next}</b></span><span class="hd-t mono" title="Where it settles if nothing changes">settles at ${T}</span></summary><div class="explain-body">${whyList(c.T[k].why)}</div></details>`;
   }).join('');
 }
+// The processes that end a practice, on the plan while they run: the ICB watching access, the team close to walking out,
+// care getting unsafe (CQC's concerns) and special measures. Each says how far along it is and the biggest pull on the meter.
+function riskHTML(c) {
+  const f = S.flags, out = [], line = prac().accessLine || 10;
+  const pull = k => { const w = c.T[k].why.filter(x => x[0] < 0).sort((a, b) => a[0] - b[0])[0]; return w ? ` The biggest pull on it: ${w[1].charAt(0).toLowerCase() + w[1].slice(1)}.` : ''; };
+  if (f.remedialAt != null && S.st.patients < line) out.push(['The ICB is watching access.', `Patients is at ${Math.round(S.st.patients)}, under the ICB's line of ${line}. Three month-ends in a row under it and the ICB can end the contract (${f.lowAccess || 0} so far).${pull('patients')}`]);
+  if (S.st.team < TEAM_LINE) out.push(['The team is close to walking out.', `Team is at ${Math.round(S.st.team)} and heading for ${c.T.team.v}. Below ${TEAM_LINE} at three month-ends in a row, they leave together (${f.lowTeam || 0} so far).${pull('team')}`]);
+  const re = S.sched.find(x => x.id === 'cqc_reinspect'), reIn = S.queue.includes('cqc_reinspect') ? 0 : re ? re.m - S.month : -1;
+  if (S.cqc && S.cqc.overall === 'i' && reIn >= 0) out.push(['Special measures.', `CQC comes back ${reIn ? `in ${reIn} month${reIn === 1 ? '' : 's'}` : 'this month'}, and a second Inadequate ends the contract. The rating turns mostly on Safe: the Safety meter (now ${Math.round(S.st.safety)}) plus any preparation. Under 32 is Inadequate.`]);
+  else if (S.st.safety < SAFETY_LINE) out.push(['Care is getting unsafe.', `Safety is at ${Math.round(S.st.safety)} and heading for ${c.T.safety.v}. Below ${SAFETY_LINE} at two month-ends in a row, concerns reach CQC and an inspector comes unannounced (${f.lowSafety || 0} so far).${pull('safety')}`]);
+  return out.map(([h, t]) => `<div class="warnbox" role="note"><b>${esc(h)}</b> ${esc(t)}</div>`).join('');
+}
 function renderPlan() {
   const pl = S.plan, c = calc(), p = prac();
   // the opening: the lights come on one window at a time and your name goes on the plate (new games only, once)
@@ -272,6 +284,7 @@ function renderPlan() {
     ${(() => { const q = S.lastQuiet; if (!q || q.yr !== (S.yr || 0) || q.m !== S.month - 1) return ''; return `<section class="panel lastq" aria-label="Last month"><h3>${MONTHS[q.m]}: a quiet month <small>nothing new landed, so the report was skipped</small></h3><p>“${esc(q.headline)}” ${q.cap} appointments a week offered against ${q.demand} requested. The bank ${q.net >= 0 ? 'rose' : 'fell'} ${fmtK(Math.abs(q.net))} to ${fmtK(q.cash)}.</p>${q.d.length ? `<p class="lastq-d">${q.d.map(([k, d]) => `<span class="${d > 0 ? 'good-t' : 'bad-t'}">${STAT_LABEL[k]} ${d > 0 ? '+' : '−'}${Math.abs(d)}</span>`).join(' ')}</p>` : ''}${q.proj ? `<p><b>Project: ${esc(q.proj.name)}.</b> ${esc(q.proj.text)}</p>` : ''}<p class="fc-note">Prefer every report? Switch it in the menu.</p></section>`; })()}
     <div class="plan-grid">
       ${(() => { const Ty = c.T.you.v; const winterAhead = S.month >= 6 && S.month <= 9; if (!(winterAhead && Ty < 42) && !(S.st.you < 30)) return ''; return `<div class="warnbox" role="note"><b>${winterAhead ? 'Winter is coming for you.' : 'You are running on empty.'}</b> ${winterAhead ? 'January and February are when most partners burn out, and' : ''} your You meter is at ${Math.round(S.st.you)} and heading for ${Ty}. Book a week of leave, drop a clinical session, or add cover now, before the winter peak.</div>`; })()}
+      ${riskHTML(c)}
       <div class="col">
         <section class="panel" aria-labelledby="h-week">
           <h3 id="h-week">Your week <small>${total} sessions, about ${Math.round(c.hours)} hours once everything's counted</small></h3>

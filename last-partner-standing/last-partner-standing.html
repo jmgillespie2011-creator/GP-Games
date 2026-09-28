@@ -597,7 +597,7 @@ button,.choice,.bin,summary{touch-action:manipulation;-webkit-tap-highlight-colo
 </style>
 <div id="app"></div>
 <script>
-const BUILD = '4edc1a5';
+const BUILD = '0a55f7f';
 /* ===================== DATA: world, money, people ===================== */
 const MONTHS = ['April','May','June','July','August','September','October','November','December','January','February','March'];
 const MON3 = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
@@ -898,6 +898,7 @@ const SOURCES = {
   S102:['GMC: Good practice in prescribing and managing medicines and devices, shared care','https://www.gmc-uk.org/professional-standards/the-professional-standards/good-practice-in-prescribing-and-managing-medicines-and-devices/shared-care','A'],
   S103:['BMA: General practice responsibility in responding to private healthcare','https://www.bma.org.uk/advice-and-support/gp-practices/managing-workload/general-practice-responsibility-in-responding-to-private-healthcare','B'],
   S104:['BMA: Principles for shared care prescribing (with the 2025 LMC conference policy and a template letter to decline)','https://www.bma.org.uk/advice-and-support/gp-practices/prescribing/prescribing-in-general-practice/principles-for-shared-care-prescribing','B'],
+  S105:['CQC: Levels of ratings, GP practices (how the five key questions make the overall rating)','https://www.cqc.org.uk/guidance-providers/gps/levels-ratings-gp-practices','A'],
   S94:['NHS England Digital: Appointments in General Practice','https://digital.nhs.uk/data-and-information/publications/statistical/appointments-in-general-practice','A'],
   S44:['Medics Money: cost of buying into a partnership','https://medicsmoney.co.uk/how-much-does-it-cost-to-buy-into-a-gp-partnership/','C'],
   S45:['CQC: GP mythbusters','https://www.cqc.org.uk/guidance-regulation/gps/gp-mythbusters','A'],
@@ -1573,7 +1574,7 @@ EVENTS.push(
   {t:'Tell him where to put his synergies',fx:{team:4,you:3,rep:2},o:`Word reaches the whole building by lunchtime. Morale is briefly excellent.`}
  ]},
 
-{id:'cqc_call',who:'bev',title:'The phone call',months:[4,5,6,7,8],w:()=>S.st.safety<45||S.rep<45?5:3,tag:'real',src:['S33'],
+{id:'cqc_call',who:'bev',title:'The phone call',months:[4,5,6,7,8],cond:()=>cqcDue(),w:()=>S.st.safety<45||S.rep<45?5:3,tag:'real',src:['S33'],
  info:'CQC rates practices on five key questions. About 5% of practices are rated Requires Improvement or Inadequate. Inspections are increasingly triggered by risk: complaints, data and intelligence from the ICB.',
  text:`Bev walks in and closes the door. She never closes the door. "CQC just rang. Inspection in two weeks." Somewhere, a fire safety policy last reviewed in 2021 begins to sweat.`,
  choices:[
@@ -1583,8 +1584,8 @@ EVENTS.push(
  ],
  after(){ schedule('cqc_visit',1); }},
 
-{id:'cqc_visit',arc:1,who:'cqc',title:'Inspection day',tag:'rule',src:['S33'],
- info:'The rating for each key question comes from evidence: your records and policies (safety), outcomes such as QOF (effective), patient feedback (caring), access (responsive) and leadership and culture (well-led).',
+{id:'cqc_visit',arc:1,rep:1,who:'cqc',title:'Inspection day',tag:'rule',src:['S33','S105'],
+ info:'The rating for each key question comes from evidence: your records and policies (safety), outcomes such as QOF (effective), patient feedback (caring), access (responsive) and leadership and culture (well-led).\n\nCQC then combines the five. Outstanding normally needs at least two key questions rated Outstanding and the other three Good. Two or more rated Requires improvement make the practice Requires improvement, and two or more Inadequate make it Inadequate. The game adds one rule of its own: Safe rated Inadequate is enough on its own to make the whole practice Inadequate.',
  text:`Patricia Sharpe arrives at 8:29 with a clipboard, a lanyard and an expression you can't read. She'd like to see the fridge logs, the significant event log, the complaints file, and "just how things really are".`,
  choices:[{t:'Show her how things really are',run(){ return runCQC(); }}]},
 
@@ -2401,6 +2402,14 @@ EVENTS.push(
   {t:'"We\'re all in this together"',fx:{team:-6},o:`Nobody believes it, least of all you.`}
  ]},
 
+{id:'team_walkout',arc:1,rep:1,who:'bev',title:'Notice',tag:'story',
+ text:()=>`Bev closes the door. "Three of the team have interviews on the same day next week, and they've asked me to go with them. I haven't said no." Morale has been below ${TEAM_LINE} for two months. If it's still there at the end of next month, they go together.`,
+ choices:[
+  {t:'Close for an afternoon, listen, and fix the rota they hate (£2,000 of cover)',fx:{team:9,patients:-3,cash:-2,you:-3},o:`Nobody holds back. The rota changes on Monday and the interviews are "postponed". Bev says it buys you a month or two, not a year: the things that wore them down are still there.`},
+  {t:'Retention payments to stay until the autumn (£8,000)',fx:{team:7,cash:-8},alt:{p:0.3,fx:{team:3,cash:-8,staff:{recep:-1}},o:`Most of them take the money and stay. One takes the money and the job, because nobody put a clawback in writing.`},o:`It doesn't fix what's wrong, and everyone knows it. But it's noticed, and it buys time to fix the rest.`},
+  {t:'"We can\'t afford anything this month."',fx:{team:-3,you:-2},o:`Bev nods. "Then I'll tell them the truth." She leaves the door open on her way out.`}
+ ]},
+
 {id:'crisis_patients',arc:1,who:'icb',title:'A remedial notice',tag:'rule',src:['S1'],
  info:'If the ICB believes a practice is breaching its contract, for example on access in core hours, it can issue a remedial notice with a deadline, then a breach notice. Repeated breaches can end the contract.',
  text:`The ICB sends a remedial notice: patients "unable to access services in core hours". You have 28 days to put it right. After that, the ICB will keep watching access month by month.`,
@@ -2420,14 +2429,14 @@ EVENTS.push(
   {t:'Start talks with neighbouring practices about handing over the list',run(){ S.exit='handback'; return {o:`You start the conversation nobody wants to have. By the spring, your patients are spread across three other practices.`}; }}
  ]},
 
-{id:'crisis_safety',arc:1,who:'cqc',title:'Tomorrow',tag:'story',
+{id:'crisis_safety',arc:1,rep:1,who:'cqc',title:'Tomorrow',tag:'story',
  text:`CQC has received several concerns about the practice. An inspector is coming tomorrow.`,
  choices:[
   {t:'Cancel non-urgent clinics and prepare',fx:{safety:8,you:-6,patients:-3},run(){ schedule('cqc_urgent',0); },o:`A long night of logs, policies and checklists.`},
   {t:'Let them see it as it is',fx:{},run(){ schedule('cqc_urgent',0); },o:`You go home at a normal time, which in itself feels like a statement.`}
  ]},
 
-{id:'cqc_urgent',arc:1,who:'cqc',title:'Unannounced',tag:'rule',src:['S33'],
+{id:'cqc_urgent',arc:1,rep:1,who:'cqc',title:'Unannounced',tag:'rule',src:['S33'],
  text:`Patricia Sharpe arrives at 8:29 with a clipboard. This time it isn't planned, and she knows exactly which files she wants to see.`,
  choices:[{t:'Show her what she asks for',run(){ return runCQC(); }}]}
 );
@@ -2501,7 +2510,7 @@ EVENTS.push(
   {t:'Only nurses chaperone until it\'s sorted',fx:{safety:1,patients:-2,team:-1},o:`Patients who need a chaperone now wait until a nurse is free. The nurses notice.`}
  ]},
 
-{id:'cqc_factual',arc:1,who:'bev',title:'The draft report',cond:()=>S.cqc&&S.cqc.overall==='ri',tag:'real',src:['S53'],
+{id:'cqc_factual',arc:1,rep:1,who:'bev',title:'The draft report',cond:()=>S.cqc&&S.cqc.overall==='ri',tag:'real',src:['S53'],
  info:'Before a CQC report is published, the practice gets a draft and can challenge factual errors, with evidence. In one real case, CQC changed a student health service\'s rating from "requires improvement" to good after admitting that due process hadn\'t been followed. Among other things, inspectors had asked about care of older people at a practice whose patients were all students.',
  text:`The draft report has arrived. You have ten working days to challenge anything factually wrong. Paragraph 4 criticises access to "the first-floor lift". There's no first floor. There's no lift. Paragraph 9 quotes a policy that belongs to a different practice.`,
  choices:[
@@ -2601,7 +2610,7 @@ EVENTS.push(
 ,
 /* ---------- endless mode: the start of each new year ---------- */
 {id:'year_new',arc:1,who:'bev',title:()=>`Year ${(S.yr || 0) + 1}`,tag:'speculative',
- info:'From year two the game invents the future: demand grows about 10% a year, funding rises about 2% while staff costs rise about 5%, and the years wear on you. Drawings are reset each April to what the practice earned the year before, and partners who drew more than their share pay it back from their own pockets, as they would in real life. In real life, practice funding has tended to lag behind rising costs and demand.',
+ info:'From year two the game invents the future: demand grows about 10% a year, funding rises about 2% while staff costs rise about 5%, and the years wear on you, on the team and on the systems that keep care safe. Drawings are reset each April to what the practice earned the year before, and partners who drew more than their share pay it back from their own pockets, as they would in real life. In real life, practice funding has tended to lag behind rising costs and demand.',
  text:()=>`1st April ${2026 + (S.yr || 0)}. Year ${(S.yr || 0) + 1} as a partner. Bev has put a cake in the staff room with "${(S.yr || 0) + 1}" piped on it in green icing. The new contract uplift is smaller than the pay award, again, and the list has grown, again. ${S.flags.settle < 0 ? `Last year you drew more than your share, so you've paid £${Math.round(-S.flags.settle)}k back into the practice from your own savings. ` : S.flags.settle > 0 ? `Last year's profit beat your drawings: a balancing payment of £${Math.round(S.flags.settle)}k is on its way to you. ` : ''}${S.drawBase ? `Neville has set this year's drawings at £${S.drawBase}k a month each, to match what the practice earned last year. ` : ''}${activeOthers() === 0 ? 'The brass plate still has only your name on it.' : ''}`,
  choices:[
   {t:'An away day to plan the year (£2,000)',fx:{team:5,cash:-2,you:1},o:`A hotel conference room, bad coffee, good ideas. Three of them survive until June.`},
@@ -3386,7 +3395,20 @@ const GOALS = {
 };
 const GOAL_BONUS = 40;
 // endless mode: what each extra year adds
-const YEAR_DEMAND = 0.1, YEAR_FUNDING = 0.02, YEAR_STAFF = 0.05, YEAR_RUNNING = 0.03, YEAR_YOU = 7;
+const YEAR_DEMAND = 0.1, YEAR_FUNDING = 0.02, YEAR_STAFF = 0.05, YEAR_RUNNING = 0.03, YEAR_YOU = 4;
+// Long careers wear on more than you: each extra year lowers where Team settles (the same pressures, every winter) and where
+// Safety settles (policies and systems age, and inspectors expect more each year), so careers end in more ways than burnout
+// and money. With YEAR_YOU at 4 (it was 7), good careers still end mostly by burnout or money, but between a seventh and
+// a third of them by the team walking out, CQC or the ICB (tools/simulate.mjs endless).
+const YEAR_WEAR = { team: 6, safety: 5 };
+// the calendar that comes round every April in endless mode. The pay award and the headline are year-one cards:
+// later pay rises are in YEAR_STAFF.
+const CALENDAR = [['year_new', 0], ['mini_docman', 1], ['mini_triage', 2], ['survey', 3], ['flu_saturday', 5], ['winter_phones', 8], ['qof_yearend', 10], ['contract_new', 11]];
+// story arcs happen once, but these come back every year: the calendar, a partner off sick, the summer crunch, the three-year review and CQC
+const YEARLY = CALENDAR.map(x => x[0]).concat(['twist_ill', 'twist_summer', 'review_3y', 'cqc_visit', 'cqc_urgent', 'cqc_reinspect', 'cqc_factual']);
+// Failure that goes on ends a practice, as the ICB's access process does for Patients. Team below TEAM_LINE at three
+// month-ends in a row: the team walks out. Safety below SAFETY_LINE at two: concerns reach CQC, which inspects unannounced.
+const TEAM_LINE = 30, SAFETY_LINE = 30;
 const calY = m => CAL_YEAR[Math.min(m, 11)] + ((S && S.yr) || 0);
 const monthsServed = () => ((S && S.yr) || 0) * 12 + Math.min(S.month, 11) + 1 - ((S && S.startAt) || 0);
 const SAVE_KEY = 'lps-save-v2', BEST_KEY = 'lps-best-v1';
@@ -3542,11 +3564,12 @@ function suggestPlan() {
   const done = id => (PROJECTS.find(x => x.id === id) || {}).once && S.flags['proj_' + id];
   // weigh every need, and don't nag: a project done last month (or twice in the last three) counts for much less
   const hist = S.projHist || [], recent = id => hist.slice(-3).filter(x => x === id).length;
-  const cqcSoon = !S.seen.cqc_visit && !(S.yr || 0) ? S.month >= 5 && S.month <= 8 : false;
+  // CQC season: September to December, in a year when an inspection is due (or already on its way) and hasn't happened
+  const cqcSoon = S.month >= 5 && S.month <= 8 && !S.flags.cqcDone && (cqcDue() || cqcPending());
   const opts = [
     ['telephony', S.flags.telephony && !done('telephony') ? 100 : 0, 'the new phones are ready to go live'],
-    ['wellbeing', S.st.team < 45 ? 10 + (45 - S.st.team) * 2 : 0, `Team is down to ${Math.round(S.st.team)}`],
-    ['cqc', (S.st.safety < 45 ? 10 + (45 - S.st.safety) * 2 : 0) + (cqcSoon && S.st.safety < 60 ? 12 : 0), cqcSoon ? 'CQC usually calls before the winter' : `Safety is down to ${Math.round(S.st.safety)}`],
+    ['wellbeing', S.st.team < 45 ? 10 + (45 - S.st.team) * 2 : 0, `Team is down to ${Math.round(S.st.team)}${S.st.team < TEAM_LINE ? `, and three month-ends below ${TEAM_LINE} means they walk out` : ''}`],
+    ['cqc', (S.st.safety < 45 ? 10 + (45 - S.st.safety) * 2 : 0) + (cqcSoon && S.st.safety < 60 ? 12 : 0), S.st.safety < SAFETY_LINE ? `Safety is down to ${Math.round(S.st.safety)}, and two month-ends below ${SAFETY_LINE} bring CQC unannounced` : cqcSoon ? 'CQC usually calls before the winter' : `Safety is down to ${Math.round(S.st.safety)}`],
     ['inbox', S.inbox > 450 ? 10 + (S.inbox - 450) / 10 : 0, `the inbox is at ${Math.round(S.inbox)}`],
     ['ppg', S.st.patients < 40 ? 10 + (40 - S.st.patients) * 2 : 0, `Patients is down to ${Math.round(S.st.patients)}`],
     ['meetingroom', roomsNeeded() + 4 > roomsAvail() && !done('meetingroom') && S.cash > S.overdraft + 10 ? 22 : 0, 'you are nearly out of clinic rooms'],
@@ -3720,7 +3743,7 @@ function newGame(practiceKey, name, opts) {
   S.qofAsp = P.qofAsp * qofValueK(p.lastQof) / 12;
   [['contract_2026', 0], ['welcome', 0], ['hartley_retire', 0], ['okoye_email', 1], ['mini_docman', 1], ['pay_award', 2], ['mini_triage', 2],
    ['tom_partner', 3], ['survey', 3], ['headline', 4], ['flu_saturday', 5], ['okoye_leaving', 7], ['okoye_staying', 7],
-   ['winter_phones', 8], ['qof_yearend', 10], ['contract_new', 11]].forEach(([id, m]) => S.sched.push({ id, m }));
+   ['winter_phones', 8], ['qof_yearend', 10], ['contract_new', 11]].forEach(([id, m]) => S.sched.push({ id, m })); // year one's calendar
   S.goal = pick(Object.keys(GOALS));
   // one late-year shock, so a good plan still gets tested
   S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
@@ -3738,7 +3761,8 @@ function schedule(id, n) {
   if (n <= 0 && (S.phase === 'event' || S.phase === 'outcome' || S.phase === 'mini')) { if (!S.queue.slice(S.qi + 1).includes(id)) S.queue.splice(S.qi + 1, 0, id); return; }
   if (n <= 0 && (S.phase === 'report' || S.phase === 'monthend')) { S.front.push(id); return; }
   const m = S.month + Math.max(n, S.phase === 'plan' ? 0 : 1);
-  if (m <= 11) S.sched.push({ id, m });
+  // past March it waits for next year (continueYear moves it back 12), so a re-inspection after a January rating still comes
+  if (m <= 23) S.sched.push({ id, m });
 }
 function addMod(m) {
   const mod = JSON.parse(JSON.stringify(m));
@@ -3787,16 +3811,26 @@ function crisisQueue() {
   if (S.st.you <= 18 && !S.seen.crisis_you) q.push('crisis_you');
   if (S.st.team <= 18 && !S.seen.crisis_team) q.push('crisis_team');
   if (S.st.patients <= 18 && !S.seen.crisis_patients) q.push('crisis_patients');
-  if (S.st.safety <= 18 && !S.seen.crisis_safety && !S.seen.cqc_visit) q.push('crisis_safety');
+  if (S.st.safety <= 18 && !S.seen.crisis_safety && !cqcPending() && sinceCQC() >= 3) q.push('crisis_safety');
   return q;
+}
+// CQC: months since the last inspection, whether one is already on its way, and whether one is due.
+// CQC inspects by risk: every practice here in its first year, then when the last rating was below Good,
+// three years have passed, or the intelligence looks bad (Safety or reputation below 40).
+const sinceCQC = () => S.cqcAt == null ? 99 : (S.yr || 0) * 12 + S.month - S.cqcAt;
+const CQC_CARDS = ['cqc_visit', 'cqc_urgent', 'cqc_reinspect', 'crisis_safety'];
+const cqcPending = () => CQC_CARDS.some(id => S.sched.some(x => x.id === id) || S.front.includes(id) || S.queue.slice(S.phase === 'plan' ? S.qi : S.qi + 1).includes(id));
+function cqcDue() {
+  if (cqcPending() || sinceCQC() < 6) return false;
+  return !S.cqc || S.cqc.overall === 'ri' || S.cqc.overall === 'i' || sinceCQC() >= 36 || S.st.safety < 40 || S.rep < 40;
 }
 function startMonth() {
   const m = S.month;
   const q = S.front.concat(S.sched.filter(x => x.m === m).map(x => x.id));
   S.front = [];
   S.sched = S.sched.filter(x => x.m > m);
-  if (m === 8 && !S.seen.cqc_call && !q.includes('cqc_call')) q.push('cqc_call');
-  const crisis = crisisQueue().filter(id => !q.includes(id));
+  if (m === 8 && !S.seen.cqc_call && !q.some(id => id === 'cqc_call' || CQC_CARDS.includes(id)) && cqcDue()) q.push('cqc_call');
+  const crisis = crisisQueue().filter(id => !q.includes(id) && !(id === 'crisis_safety' && q.some(x => CQC_CARDS.includes(x))));
   const target = (m === 8 || m === 9) ? 4 : 3;
   let need = Math.max(0, target - q.length);
   const drawn = [];
@@ -4052,7 +4086,8 @@ function targets(c) {
     [ib > 700 ? -4 : 0, 'The inbox is everyone\'s problem'],
     [S.st.team < 30 ? -3 : 0, 'Sickness absence'],
     [p.key === 'city' ? -3 : 0, 'Abuse at the front desk'],
-    [SUMMER_MONTHS.includes(m) ? -3 : 0, 'Summer holidays: the rota has holes']
+    [SUMMER_MONTHS.includes(m) ? -3 : 0, 'Summer holidays: the rota has holes'],
+    [-(S.yr || 0) * YEAR_WEAR.team, `Year ${(S.yr || 0) + 1} together: the same pressures, every winter`]
   ]);
   build('you', 80, [
     [-(S.yr || 0) * YEAR_YOU, `Year ${(S.yr || 0) + 1} as a partner`],
@@ -4074,7 +4109,8 @@ function targets(c) {
     [ib > 700 ? -18 : ib > 400 ? -7 : 0, `${ib} unfiled results and letters`],
     [r < 0.8 ? -10 : r < 0.9 ? -4 : 0, 'Rushed appointments'],
     [S.st.team < 30 ? -6 : 0, 'An exhausted team cuts corners'],
-    [S.staff.pharm > 0 ? 3 : 0, 'Pharmacist-led medication monitoring']
+    [S.staff.pharm > 0 ? 3 : 0, 'Pharmacist-led medication monitoring'],
+    [-(S.yr || 0) * YEAR_WEAR.safety, 'Policies and systems age, and inspectors expect more each year']
   ]);
   return T;
 }
@@ -4199,6 +4235,21 @@ function monthEnd() {
     S.forceOver = 'patients';
     consq.push('Because patients still couldn\'t get through, three months running after the ICB\'s notice: the ICB has given notice to terminate the contract.');
   } else if (f.remedialAt != null && f.lowAccess === 2) consq.push('Warning: two months in a row of poor access since the ICB\'s notice. A third means the contract can be terminated.');
+  // a team that stays demoralised leaves together: Bev warns at the second month-end below the line, and at the third they go
+  f.lowTeam = S.st.team < TEAM_LINE ? (f.lowTeam || 0) + 1 : 0;
+  if (f.lowTeam >= 3) {
+    S.forceOver = 'team';
+    consq.push(`Because morale stayed below ${TEAM_LINE} for three months running: Bev, two receptionists and a nurse handed in their notice on the same morning.`);
+  } else if (f.lowTeam === 2) {
+    schedule('team_walkout', 0);
+    consq.push(`Warning: morale has been below ${TEAM_LINE} for two months. If it's still there at the end of next month, the team will walk out together.`);
+  }
+  // care that stays unsafe reaches CQC: concerns after two month-ends below the line, then an unannounced inspection
+  f.lowSafety = S.st.safety < SAFETY_LINE ? (f.lowSafety || 0) + 1 : 0;
+  if (f.lowSafety >= 2 && !cqcPending() && sinceCQC() >= 3) {
+    schedule('crisis_safety', 0);
+    consq.push(`Because Safety has been below ${SAFETY_LINE} for two months: a whistleblower and two complaints have reached CQC.`);
+  }
   // recruitment: harder when morale or reputation is poor, a little easier for part-time posts
   const hires = [];
   for (const k of Object.keys(S.vac)) {
@@ -4264,7 +4315,7 @@ function nextMonth() {
   save();
 }
 /* ===================== ENGINE: CQC, endings, accounts, storage ===================== */
-function rateOf(v) { return v >= 82 ? 'o' : v >= 50 ? 'g' : v >= 32 ? 'ri' : 'i'; }
+function rateOf(v) { return v >= 85 ? 'o' : v >= 50 ? 'g' : v >= 32 ? 'ri' : 'i'; }
 const RATE_NAME = { o: 'Outstanding', g: 'Good', ri: 'Requires improvement', i: 'Inadequate' };
 function runCQC(reinspect) {
   const st = S.st, expected = (S.month / 12) * 85;
@@ -4274,7 +4325,8 @@ function runCQC(reinspect) {
     Safe: clamp(st.safety + prep + jitter()),
     Effective: clamp(50 + (S.qof - expected) * 1.2 + (st.safety - 50) * 0.3 + jitter()),
     Caring: clamp(st.patients * 0.7 + st.team * 0.3 + jitter()),
-    Responsive: clamp(st.patients * 0.6 + (S.lastRatio - 0.8) * 150 + 10 + jitter()),
+    // access counts up to 105% of demand: appointments nobody needs don't make a practice more responsive
+    Responsive: clamp(st.patients * 0.6 + (Math.min(S.lastRatio, 1.05) - 0.8) * 150 + 10 + jitter()),
     'Well-led': clamp(st.team * 0.55 + st.safety * 0.35 + S.plan.mgmt * 5 + prep / 2 + jitter())
   };
   const rates = {}; for (const k in dom) rates[k] = rateOf(dom[k]);
@@ -4283,7 +4335,8 @@ function runCQC(reinspect) {
   let overall = 'g';
   if (n('i') >= 2 || rates.Safe === 'i') overall = 'i';
   else if (n('i') === 1 || n('ri') >= 2) overall = 'ri';
-  else if (n('o') >= 3) overall = 'o';
+  // CQC's rule for GP practices: Outstanding needs at least two key questions Outstanding and the other three Good
+  else if (n('o') >= 2 && n('ri') === 0) overall = 'o';
   S.cqc = { overall, rates };
   const fx = { o: { team: 10, you: 8, patients: 4, rep: 6 }, g: { team: 5, you: 4, rep: 2 }, ri: { team: -6, you: -8, safety: 4, rep: -4, cash: -6, aim: { safety: 2 } }, i: { team: -12, you: -15, patients: -8, safety: 6, rep: -10, icb: -10, cash: -15, aim: { safety: 4 } } }[overall];
   applyFx(fx);
@@ -4295,10 +4348,12 @@ function runCQC(reinspect) {
   if (overall === 'i') { if (reinspect) S.forceOver = 'cqc'; else schedule('cqc_reinspect', 3); }
   if (overall === 'ri') schedule('cqc_factual', 1);
   S.flags.cqcDone = 1;
+  // the preparation was for this inspection; the next one needs its own
+  S.cqcAt = (S.yr || 0) * 12 + S.month; S.flags.cqcPrep = 0;
   const html = `<div class="cqc-card" role="table" aria-label="CQC ratings">${Object.keys(rates).map(k => `<div class="row"><span>${k}</span><span class="rate ${rates[k]}">${RATE_NAME[rates[k]]}</span></div>`).join('')}<div class="row overall"><span>Overall</span><span class="rate">${RATE_NAME[overall]}</span></div></div>`;
   return { o, html };
 }
-EVENTS.push({ id: 'cqc_reinspect', arc: 1, who: 'cqc', title: 'The re-inspection', tag: 'rule', src: ['S33'],
+EVENTS.push({ id: 'cqc_reinspect', arc: 1, rep: 1, who: 'cqc', title: 'The re-inspection', tag: 'rule', src: ['S33'],
   text: 'Patricia Sharpe is back, three months to the day. She has the action plan. She has your last report. She has, you notice, a new and larger clipboard.',
   choices: [{ t: 'Show her what\'s changed', run() { return runCQC(true); } }] });
 EVMAP.cqc_reinspect = EVENTS[EVENTS.length - 1];
@@ -4401,7 +4456,7 @@ function continueYear() {
   S.drawTotal = 0; S.penTotal = 0; S.aspPaid = 0; S.hoursTotal = 0; S.leaveUsed = 0;
   S.history = []; S.end = null; S.exit = null; S.report = null;
   // the card pool refreshes; one-off story arcs, life events (once) and last-chance crises stay used
-  const keep = id => (EVMAP[id] && (EVMAP[id].arc || EVMAP[id].once)) || /^crisis_|^last_partner|^lifeline/.test(id);
+  const keep = id => !YEARLY.includes(id) && ((EVMAP[id] && (EVMAP[id].arc || EVMAP[id].once)) || /^crisis_|^last_partner|^lifeline/.test(id));
   Object.keys(S.seen).forEach(id => { if (!keep(id)) delete S.seen[id]; });
   S.counts = {};
   delete S.flags.cqcDone;
@@ -4412,9 +4467,9 @@ function continueYear() {
   S.later.forEach(x => { x.m -= 12; });
   S.newRegs.forEach(x => { x.until -= 12; });
   ['remedialAt', 'breachAt'].forEach(k => { if (S.flags[k] != null) S.flags[k] -= 12; });
-  [['year_new', 0], ['mini_docman', 1], ['pay_award', 2], ['mini_triage', 2], ['survey', 3], ['headline', 4], ['flu_saturday', 5],
-   ['winter_phones', 8], ['qof_yearend', 10], ['contract_new', 11]].forEach(([id, m]) => S.sched.push({ id, m }));
-  S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood']), m: 6 + Math.floor(Math.random() * 4) });
+  CALENDAR.forEach(([id, m]) => S.sched.push({ id, m }));
+  // a late-year shock: a partner off sick can happen any year, but the fire doors and the burst pipe only once
+  S.sched.push({ id: pick(['twist_ill', 'twist_fire', 'twist_flood'].filter(id => !S.seen[id])), m: 6 + Math.floor(Math.random() * 4) });
   // a mid-year crunch for the suburb and town, so good players are at risk before the winter (the city has its turnover)
   if (S.practiceKey !== 'city') { S.sched.push({ id: 'twist_summer', m: 2 + Math.floor(Math.random() * 3) }); S.flags.summerGP = S.staff.salaried > 0 && Math.random() < 0.5 ? 1 : 0; }
   if (S.yr % 3 === 2) S.sched.push({ id: 'review_3y', m: 5 });
@@ -4440,6 +4495,8 @@ function takeOver() {
   if (STAT_KEYS.includes(k)) S.st[k] = Math.max(S.st[k], 32);
   if (k === 'cash') S.cash = Math.max(S.cash, S.overdraft + 30);
   if (k === 'patients' || k === 'cqc') { S.st.patients = Math.max(S.st.patients, 32); S.st.safety = Math.max(S.st.safety, 30); ['remedialAt', 'breachAt', 'lowAccess'].forEach(f => delete S.flags[f]); }
+  if (k === 'cqc' || k === 'safety') { S.st.safety = Math.max(S.st.safety, SAFETY_LINE + 2); S.cqcAt = (S.yr || 0) * 12 + S.month; }
+  ['lowTeam', 'lowSafety'].forEach(f => delete S.flags[f]);
   ['crisis_you', 'crisis_team', 'crisis_patients', 'crisis_safety', 'breach_notice', 'cqc_urgent'].forEach(id => delete S.seen[id]);
   delete S.flags.lifelineOffered;
   S.forceOver = null; S.over = null; S.exit = null; S.end = null; S.overPost = null;
@@ -4467,13 +4524,21 @@ function archetype(shareK, others) {
   const min = Math.min(st.patients, st.team, st.you, st.safety);
   const counter = { counter: 'Partners averaged £164,200 before tax in 2024/25. The median was £151,200.', src: ['S8'] };
   if (others === 0) return { t: 'Last Partner Standing', s: 'Sole partner', d: 'Everyone else left. You held the contract, the lease and the overdraft on your own, and you are still here on 31st March. It\'s either heroic or a cry for help. Possibly both.', counter: 'Full-time equivalent partners in England fell by 336 in the year to August 2026.', src: ['S11'] };
-  if (st.patients >= 65 && st.team >= 65 && st.you >= 65 && st.safety >= 65 && shareK >= 165) return { t: 'The Unicorn', s: 'Mythical', d: 'Happy patients, happy team, a safe practice, a decent income and your sanity intact. Other partners will not believe you exist.', ...counter };
-  if (shareK >= 205 && st.you < 40) return { t: 'Golden Handcuffs', s: 'Well paid', d: 'The accountant is thrilled. You are exhausted. You\'ve made excellent money, and you\'re too tired to spend it.', ...counter };
-  if (st.patients >= 75 && shareK < 145) return { t: `Patron Saint of ${place}`, s: 'Beloved', d: 'The patients adore you. Mrs Higgins has put you in her will (the shortbread tin). Financially, it has been a vocation rather than a business.', ...counter };
-  if (st.you >= 75 && st.patients < 45) return { t: 'Master of Boundaries', s: 'Well rested', d: 'You leave at 6:30pm, eat lunch sitting down and never read the Facebook group. The patients have noticed. You\'ve noticed that you don\'t mind.', ...counter };
-  if (S.cqc && S.cqc.overall === 'o') return { t: 'The Inspector\'s Darling', s: 'Outstanding', d: 'Outstanding. The certificate is in reception, the policies are colour-coded, and Patricia Sharpe uses your practice as an example in training.', counter: 'About 5% of practices are rated Requires Improvement or Inadequate. Outstanding is rarer still.', src: ['S33'] };
-  if (st.team >= 80) return { t: 'Everybody\'s Favourite Boss', s: 'Much loved', d: 'The team would walk through fire for you. Maureen has stopped threatening to retire. Kayleigh stayed rather than go to Aldi. That\'s the real prize.', ...counter };
-  if (min < 20) return { t: 'Survived. Technically.', s: 'Held together', d: 'You made it to 31st March, but only just. Something is always about to break. Next year will be different, you tell yourself, again.', ...counter };
+  // Each title is a real way to play, reached by about the top tenth of good years on its own measure (calibrated with
+  // tools/simulate.mjs), and when several fit, the run gets the one it shows most strongly. Still Standing is the usual
+  // good year; the suburb, being gentler, earns the flattering titles more often than the town or the city.
+  if (S.cqc && S.cqc.overall === 'o') return { t: 'The Inspector\'s Darling', s: 'Outstanding', d: 'Outstanding. The certificate is in reception, the policies are colour-coded, and Patricia Sharpe uses your practice as an example in training.', counter: 'Outstanding needs at least two of CQC\'s five key questions rated Outstanding, and the other three Good.', src: ['S105'] };
+  if (min >= 58 && shareK >= 145) return { t: 'The Unicorn', s: 'Mythical', d: 'Happy patients, happy team, a safe practice, a decent income and your sanity intact. Other partners will not believe you exist.', ...counter };
+  const fits = [];
+  if (shareK >= 160 && st.you < 32) fits.push([(shareK - 160) / 15 + (32 - st.you) / 15, { t: 'Golden Handcuffs', s: 'Well paid', d: 'The accountant is thrilled. You are exhausted. You\'ve made excellent money, and you\'re too tired to spend it.', ...counter }]);
+  if (st.team >= 67) fits.push([(st.team - 67) / 6 + 0.5, { t: 'Everybody\'s Favourite Boss', s: 'Much loved', d: 'The team would walk through fire for you. Maureen has stopped threatening to retire. Kayleigh stayed rather than go to Aldi. That\'s the real prize.', ...counter }]);
+  if (st.patients >= 64 && shareK < 150) fits.push([(st.patients - 64) / 8 + 0.5, { t: `Patron Saint of ${place}`, s: 'Beloved', d: 'The patients adore you. Mrs Higgins has put you in her will (the shortbread tin). Financially, it has been a vocation rather than a business.', ...counter }]);
+  // you kept yourself well, and it showed in the waiting room: You at least 54, and at least 5 above Patients
+  if (st.you >= 54 && st.you - st.patients >= 5) fits.push([(st.you - 54) / 6 + 0.5, { t: 'Master of Boundaries', s: 'Well rested', d: 'You leave at 6:30pm, eat lunch sitting down and never read the Facebook group. The patients have noticed. You\'ve noticed that you don\'t mind.', ...counter }]);
+  fits.sort((a, b) => b[0] - a[0]);
+  // a year that nearly broke something is "Survived. Technically.", unless it was the money that kept it going
+  if (min < 20) { const g = fits.find(f => f[1].t === 'Golden Handcuffs'); return g ? g[1] : { t: 'Survived. Technically.', s: 'Held together', d: 'You made it to 31st March, but only just. Something is always about to break. Next year will be different, you tell yourself, again.', ...counter }; }
+  if (fits.length) return fits[0][1];
   return { t: 'Still Standing', s: 'Year complete', d: 'A solid year. Not glamorous, not a disaster. You kept the doors open, the patients seen and the bank quiet. That\'s what most partners dream of.', ...counter };
 }
 
@@ -4706,6 +4771,18 @@ function headingHTML(c) {
     return `<details class="explain heading"><summary><span class="hd-ic">${ICON[k]}</span><span class="hd-l">${STAT_LABEL[k]}</span><span class="hd-v mono">${now} → <b class="${dir === 'up' ? 'good-t' : dir === 'down' ? 'bad-t' : ''}">${next}</b></span><span class="hd-t mono" title="Where it settles if nothing changes">settles at ${T}</span></summary><div class="explain-body">${whyList(c.T[k].why)}</div></details>`;
   }).join('');
 }
+// The processes that end a practice, on the plan while they run: the ICB watching access, the team close to walking out,
+// care getting unsafe (CQC's concerns) and special measures. Each says how far along it is and the biggest pull on the meter.
+function riskHTML(c) {
+  const f = S.flags, out = [], line = prac().accessLine || 10;
+  const pull = k => { const w = c.T[k].why.filter(x => x[0] < 0).sort((a, b) => a[0] - b[0])[0]; return w ? ` The biggest pull on it: ${w[1].charAt(0).toLowerCase() + w[1].slice(1)}.` : ''; };
+  if (f.remedialAt != null && S.st.patients < line) out.push(['The ICB is watching access.', `Patients is at ${Math.round(S.st.patients)}, under the ICB's line of ${line}. Three month-ends in a row under it and the ICB can end the contract (${f.lowAccess || 0} so far).${pull('patients')}`]);
+  if (S.st.team < TEAM_LINE) out.push(['The team is close to walking out.', `Team is at ${Math.round(S.st.team)} and heading for ${c.T.team.v}. Below ${TEAM_LINE} at three month-ends in a row, they leave together (${f.lowTeam || 0} so far).${pull('team')}`]);
+  const re = S.sched.find(x => x.id === 'cqc_reinspect'), reIn = S.queue.includes('cqc_reinspect') ? 0 : re ? re.m - S.month : -1;
+  if (S.cqc && S.cqc.overall === 'i' && reIn >= 0) out.push(['Special measures.', `CQC comes back ${reIn ? `in ${reIn} month${reIn === 1 ? '' : 's'}` : 'this month'}, and a second Inadequate ends the contract. The rating turns mostly on Safe: the Safety meter (now ${Math.round(S.st.safety)}) plus any preparation. Under 32 is Inadequate.`]);
+  else if (S.st.safety < SAFETY_LINE) out.push(['Care is getting unsafe.', `Safety is at ${Math.round(S.st.safety)} and heading for ${c.T.safety.v}. Below ${SAFETY_LINE} at two month-ends in a row, concerns reach CQC and an inspector comes unannounced (${f.lowSafety || 0} so far).${pull('safety')}`]);
+  return out.map(([h, t]) => `<div class="warnbox" role="note"><b>${esc(h)}</b> ${esc(t)}</div>`).join('');
+}
 function renderPlan() {
   const pl = S.plan, c = calc(), p = prac();
   // the opening: the lights come on one window at a time and your name goes on the plate (new games only, once)
@@ -4774,6 +4851,7 @@ function renderPlan() {
     ${(() => { const q = S.lastQuiet; if (!q || q.yr !== (S.yr || 0) || q.m !== S.month - 1) return ''; return `<section class="panel lastq" aria-label="Last month"><h3>${MONTHS[q.m]}: a quiet month <small>nothing new landed, so the report was skipped</small></h3><p>“${esc(q.headline)}” ${q.cap} appointments a week offered against ${q.demand} requested. The bank ${q.net >= 0 ? 'rose' : 'fell'} ${fmtK(Math.abs(q.net))} to ${fmtK(q.cash)}.</p>${q.d.length ? `<p class="lastq-d">${q.d.map(([k, d]) => `<span class="${d > 0 ? 'good-t' : 'bad-t'}">${STAT_LABEL[k]} ${d > 0 ? '+' : '−'}${Math.abs(d)}</span>`).join(' ')}</p>` : ''}${q.proj ? `<p><b>Project: ${esc(q.proj.name)}.</b> ${esc(q.proj.text)}</p>` : ''}<p class="fc-note">Prefer every report? Switch it in the menu.</p></section>`; })()}
     <div class="plan-grid">
       ${(() => { const Ty = c.T.you.v; const winterAhead = S.month >= 6 && S.month <= 9; if (!(winterAhead && Ty < 42) && !(S.st.you < 30)) return ''; return `<div class="warnbox" role="note"><b>${winterAhead ? 'Winter is coming for you.' : 'You are running on empty.'}</b> ${winterAhead ? 'January and February are when most partners burn out, and' : ''} your You meter is at ${Math.round(S.st.you)} and heading for ${Ty}. Book a week of leave, drop a clinical session, or add cover now, before the winter peak.</div>`; })()}
+      ${riskHTML(c)}
       <div class="col">
         <section class="panel" aria-labelledby="h-week">
           <h3 id="h-week">Your week <small>${total} sessions, about ${Math.round(c.hours)} hours once everything's counted</small></h3>

@@ -523,8 +523,17 @@ details.more-opts[open]>summary{margin-bottom:14px}
 .jump{display:inline-block;margin-top:6px;font-size:13px;padding:.3em .8em}
 .lastq{margin:0 0 14px}.lastq p{margin:6px 0}.lastq-d span{display:inline-block;margin-right:12px;font-weight:700;font-variant-numeric:tabular-nums}
 /* ---------- weekly challenge and goals ---------- */
-.sponsor{display:grid;gap:6px;border:1.5px solid var(--rule);border-radius:12px;padding:12px 14px;background:var(--sheet);margin:14px 0}
-.sponsor p{margin:0;font-size:14.5px}.sponsor .btn{justify-self:start;color:var(--ink);text-decoration:none}
+.sponsor{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 18px;border:2px solid var(--accent);border-radius:14px;padding:14px 18px 16px;background:var(--accent-soft);margin:14px 0}
+.sponsor .eyebrow{flex-basis:100%}
+.sponsor .sp-body{flex:1 1 220px;display:grid;gap:2px;min-width:0}
+.sponsor .sp-name{font-family:var(--display);font-size:22px;line-height:1.1}
+.sponsor p{margin:0;font-size:15px}
+.sponsor .btn{flex:none;text-decoration:none}
+.support{display:grid;gap:8px;border-top:1.5px solid var(--rule);padding-top:18px;margin:26px 0 6px;max-width:68ch}
+.support h3{font-size:18px}
+.support p{margin:0;font-size:14.5px;color:var(--ink-2)}
+.support p b{color:var(--ink)}
+.support a{justify-self:start;font-weight:700;color:var(--accent);text-underline-offset:3px}
 .weekly{display:grid;gap:8px;border:1.5px dashed var(--accent);border-radius:12px;padding:12px 14px;background:var(--accent-soft)}
 .weekly p{font-size:14.5px}
 .weekly .btn{justify-self:start}

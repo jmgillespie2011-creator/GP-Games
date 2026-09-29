@@ -155,10 +155,11 @@ function renderEnd() {
     <section class="panel"><h3>The practice</h3>${statLines(null)}
       ${S.cqc ? `<div class="cqc-card">${Object.keys(S.cqc.rates).map(k => `<div class="row"><span>${k}</span><span class="rate ${S.cqc.rates[k]}">${RATE_NAME[S.cqc.rates[k]]}</span></div>`).join('')}<div class="row overall"><span>Overall</span><span class="rate">${RATE_NAME[S.cqc.overall]}</span></div></div>` : '<p class="fc-note">CQC never came. Enjoy it while it lasts.</p>'}
       ${chartSVG()}</section>
+    ${sponsorHTML()}
     ${boardPanelHTML()}
     ${partnersBoardHTML(8)}
-    ${sponsorHTML()}
     <div class="end-actions"><button class="btn" data-act="shareimg">Share a picture</button><button class="btn" data-act="share">Copy my result</button><button class="btn ghost" data-act="again">New partner, same practice</button><button class="btn ghost" data-act="home">Title screen</button></div>
+    ${supportHTML()}
   </div></main>`;
 }
 function renderOver() {
@@ -177,6 +178,7 @@ function renderOver() {
     ${partnersBoardHTML(8)}
     <section class="carry-on"><div><b>Take over the practice?</b><p>A new partner walks in where Dr ${esc(S.name)} fell: same staff, same list, same overdraft, same queue. The longer the practice struggles, the harder it gets.</p></div><button class="btn primary" data-act="takeover">Take over →</button></section>
     <div class="end-actions"><button class="btn" data-act="again">Start afresh</button><button class="btn" data-act="shareimg">Share a picture</button><button class="btn ghost" data-act="home">Title screen</button></div>
+    ${supportHTML()}
   </div></main>`;
 }
 

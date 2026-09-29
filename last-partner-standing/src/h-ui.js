@@ -7,14 +7,20 @@ const gbp = v => (v < 0 ? '−£' : '£') + Math.round(Math.abs(v)).toLocaleStri
 const pct = v => Math.round(v * 100) + '%';
 let UI = { screen: 'title', pickPractice: 'town', nameDraft: '', look: { s: 0, c: 0 } };
 // settings kept in this browser; the 45-second card timer is off by default
-// The maker's own product, shown as a clearly labelled panel on the title and year-end screens,
-// never inside cards. Website only: hidden inside the Claude Artifact (framed) and while `url` is empty.
+// The maker's own product, shown as a clearly labelled panel on the title and year-end screens (there after the
+// practice's figures), never inside cards. Website only: hidden inside the Claude Artifact (framed) and while `url` is empty.
 const SPONSOR = { name: 'Datim-QI', line: 'An AI quality improvement analyst to support GP practice management.', url: 'https://datim-qi.uk' };
 function sponsorHTML() {
   if (!SPONSOR.url) return '';
   let framed = false; try { framed = window.self !== window.top; } catch (e) { framed = true; }
   if (framed) return '';
-  return `<aside class="sponsor" aria-label="From the maker of this game"><div class="eyebrow">From the maker of this game</div><p><b>${esc(SPONSOR.name)}</b>: ${esc(SPONSOR.line)}</p><a class="btn ghost" href="${esc(SPONSOR.url)}" target="_blank" rel="noopener sponsored">Find out more</a></aside>`;
+  return `<aside class="sponsor" aria-label="From the maker of this game"><div class="eyebrow">From the maker of this game</div><div class="sp-body"><b class="sp-name">${esc(SPONSOR.name)}</b><p>${esc(SPONSOR.line)}</p></div><a class="btn primary" href="${esc(SPONSOR.url)}" target="_blank" rel="noopener sponsored">Visit ${esc(SPONSOR.url.replace(/^https?:\/\//, ''))} →</a></aside>`;
+}
+// At the end of every game, a signpost to a charity for health workers' mental health. It isn't an advert or a
+// partner: the charity has nothing to do with the game, and the panel says so. Shown everywhere, the Artifact included.
+const SUPPORT = { name: 'Doctors in Distress', url: 'https://doctors-in-distress.org.uk/' };
+function supportHTML() {
+  return `<aside class="support" aria-label="Support for doctors and health workers"><h3>If the real job is weighing on you</h3><p><b>${esc(SUPPORT.name)}</b> is a UK charity that supports the mental health of doctors and other healthcare workers and works to reduce burnout. It runs facilitated peer support groups, webinars and workshops.</p><a href="${esc(SUPPORT.url)}" target="_blank" rel="noopener">doctors-in-distress.org.uk</a><p class="fc-note">Doctors in Distress isn't involved with this game or website.</p></aside>`;
 }
 const SETTINGS_KEY = 'lps-settings-v1', CARD_SECONDS = 45;
 function loadSettings() { try { return Object.assign({ timer: false, quick: true, teach: true }, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) { return { timer: false, quick: true, teach: true }; } }

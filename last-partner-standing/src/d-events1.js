@@ -113,7 +113,7 @@ EVENTS.push(
  ]},
 
 {id:'apex_offer',who:'apex',title:'An exciting opportunity',months:[6,7,8,9],w:()=>activeOthers()<=1||S.cash<0?2:1,tag:'real',src:['S11'],
- info:'Some practices hand their contracts to larger organisations or corporate providers. Since 2015, 1,480 practices in England have closed or merged.',
+ info:`Some practices hand their contracts to larger organisations or corporate providers. Since 2015, ${CLOSED.n} practices in England have closed or merged.`,
  text:`A man in a gilet takes you for lunch. Apex Primary Care Ltd would like to "acquire the contract and unlock synergies". They'll pay for your share, and you can stay on as a salaried "Clinical Lead". Your lunch is £38. He doesn't stay for pudding.`,
  choices:[
   {t:'Sell. Let someone else hold the liability.',run(){ S.exit='sold'; return {o:`You sign. The papers take three minutes. The phones switch to a national call centre the following Monday.`}; }},

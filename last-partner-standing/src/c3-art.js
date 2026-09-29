@@ -275,7 +275,7 @@ function brassPlate(intro) {
 }
 
 /* ---------- the year's brief: four numbers ---------- */
-function briefHTML(months) {
+function briefHTML(months, o) {
   const st = S.st, ks = STAT_KEYS.slice().sort((a, b) => st[a] - st[b]);
   const weak = ks[0], strong = ks[ks.length - 1], best = Math.max(bestMonths(), months);
   const tile = (l, v, cls) => `<div class="btile"><span>${esc(l)}</span><b class="${cls || ''}">${v}</b></div>`;
@@ -284,7 +284,7 @@ function briefHTML(months) {
     ${tile('Personal best', `${best} month${best === 1 ? '' : 's'}`)}
     ${tile('Most fragile', `${STAT_LABEL[weak]} ${Math.round(st[weak])}`, 'bad-t')}
     ${tile('Strongest', `${STAT_LABEL[strong]} ${Math.round(st[strong])}`, 'good-t')}
-  </section>${avgLineHTML(months)}`;
+  </section>${avgLineHTML(months, o)}`;
 }
 
 /* ---------- the Partners' Board: an honours board of every run in this browser ---------- */

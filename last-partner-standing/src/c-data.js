@@ -104,6 +104,9 @@ const ROOM_SESSIONS = 9;
 const GP_FTE_SESSIONS = 9; // a full-time GP is about nine sessions a week
 // England, 31 August 2026, per 10,000 registered patients (63.0m) [S58,S59]
 const BENCH = { gp: 29057, nurse: 16644, dpc: 18082, admin: 77287, patients: 63.0e6 };
+// GP practices in England closed or merged since 2015, and how many were left, August 2026 [S11]. The BMA updates
+// these every month from NHS England Digital's practice counts; "about one in five" holds until about 1,900.
+const CLOSED = { n: '1,480', left: '6,143', at: 'August 2026' };
 const OFFICE_COST = empCostK(26500, 0.6); // a typical practice office post, all in
 
 const PARTNERS0 = {

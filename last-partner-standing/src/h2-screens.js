@@ -131,7 +131,7 @@ function renderEnd() {
       <div class="score">${(S.yr || 0) >= 1 || (S.gen || 1) > 1 ? `<span>Months as a partner <b>${E.months}</b></span>` : ''}<span>${(S.yr || 0) >= 1 ? `Year ${S.yr + 1} score` : 'Year score'} <b>${E.score}</b></span><span>Profit share <b>£${Math.round(E.annualK)}k</b></span><span>Take-home <b>${gbp(pers.takeHome)}</b></span><span>Per hour <b>£${Math.round(E.perHour)}</b></span></div>
       ${counterHTML(E.arche)}
     </section>
-    ${briefHTML(E.months || 12)}
+    ${briefHTML(E.months || 12, E.arche)}
     ${E.exit ? '' : `<section class="carry-on"><div><b>Carry on into year ${(S.yr || 0) + 2}?</b><p>Same practice, same staff, same overdraft. Demand keeps rising, the funding doesn't quite keep up, and the years wear on you. How long can you last?</p></div><button class="btn primary" data-act="nextyear">Carry on: year ${(S.yr || 0) + 2} →</button></section>`}
     <div class="rgrid">
       <section class="panel"><h3>The accounts</h3>${accounts}
@@ -170,7 +170,7 @@ function renderOver() {
       <h1>${esc(O.title)}</h1><p class="lede">${esc(O.text())}</p>
       <div class="score"><span>You lasted <b>${S.over.months || S.over.month + 1}</b> month${(S.over.months || S.over.month + 1) === 1 ? '' : 's'} as a partner</span></div>
       ${counterHTML(O)}</section>
-    ${briefHTML(S.over.months || S.over.month + 1)}
+    ${briefHTML(S.over.months || S.over.month + 1, O)}
     <section class="panel"><h3>Where it ended</h3>${statLines(null)}<p class="fc-note">Bank ${fmtK(S.cash)} · QOF ${Math.round(S.qof)}% · Inbox ${Math.round(S.inbox)}</p>
       ${explain('What went wrong', `<p>Meters drift toward wherever the practice's situation is taking them. When capacity falls behind demand, the inbox grows or your hours climb, the pull is downward every month until something changes: more staff, fewer sessions, a different project, time off.</p><p>Watch the <b>Where things are heading</b> panel in the month plan. It shows where each meter will settle, and why.</p>`)}</section>
     ${S.history.length > 1 ? `<section class="panel"><h3>How it went</h3>${chartSVG()}</section>` : ''}

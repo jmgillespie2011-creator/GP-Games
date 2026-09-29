@@ -201,6 +201,9 @@ p{margin:0}
 @media (max-width:640px){.brief-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.btile b{font-size:19px}}
 .avg-line{font-size:14.5px;color:var(--ink-2);max-width:60ch;margin:12px 0 0}
 .avg-line b{color:var(--ink)}
+.avg-line a{color:var(--accent);text-underline-offset:2px}
+.avg-line>span{display:block}
+.avg-line>span+span{margin-top:6px}
 .brief-tiles + .avg-line{margin:-6px 0 18px}
 .toggle{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ink-2);cursor:pointer}
 .toggle input{margin-top:3px;width:18px;height:18px;accent-color:var(--accent);flex:none}
@@ -638,7 +641,7 @@ button,.choice,.bin,summary{touch-action:manipulation;-webkit-tap-highlight-colo
 <body>
 <div id="app"></div>
 <script>
-const BUILD = 'b4fa144';
+const BUILD = 'cc34be1';
 /* ===================== DATA: world, money, people ===================== */
 const MONTHS = ['April','May','June','July','August','September','October','November','December','January','February','March'];
 const MON3 = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
@@ -745,6 +748,9 @@ const ROOM_SESSIONS = 9;
 const GP_FTE_SESSIONS = 9; // a full-time GP is about nine sessions a week
 // England, 31 August 2026, per 10,000 registered patients (63.0m) [S58,S59]
 const BENCH = { gp: 29057, nurse: 16644, dpc: 18082, admin: 77287, patients: 63.0e6 };
+// GP practices in England closed or merged since 2015, and how many were left, August 2026 [S11]. The BMA updates
+// these every month from NHS England Digital's practice counts; "about one in five" holds until about 1,900.
+const CLOSED = { n: '1,480', left: '6,143', at: 'August 2026' };
 const OFFICE_COST = empCostK(26500, 0.6); // a typical practice office post, all in
 
 const PARTNERS0 = {
@@ -1539,7 +1545,7 @@ function brassPlate(intro) {
 }
 
 /* ---------- the year's brief: four numbers ---------- */
-function briefHTML(months) {
+function briefHTML(months, o) {
   const st = S.st, ks = STAT_KEYS.slice().sort((a, b) => st[a] - st[b]);
   const weak = ks[0], strong = ks[ks.length - 1], best = Math.max(bestMonths(), months);
   const tile = (l, v, cls) => `<div class="btile"><span>${esc(l)}</span><b class="${cls || ''}">${v}</b></div>`;
@@ -1548,7 +1554,7 @@ function briefHTML(months) {
     ${tile('Personal best', `${best} month${best === 1 ? '' : 's'}`)}
     ${tile('Most fragile', `${STAT_LABEL[weak]} ${Math.round(st[weak])}`, 'bad-t')}
     ${tile('Strongest', `${STAT_LABEL[strong]} ${Math.round(st[strong])}`, 'good-t')}
-  </section>${avgLineHTML(months)}`;
+  </section>${avgLineHTML(months, o)}`;
 }
 
 /* ---------- the Partners' Board: an honours board of every run in this browser ---------- */
@@ -1728,7 +1734,7 @@ EVENTS.push(
  ]},
 
 {id:'apex_offer',who:'apex',title:'An exciting opportunity',months:[6,7,8,9],w:()=>activeOthers()<=1||S.cash<0?2:1,tag:'real',src:['S11'],
- info:'Some practices hand their contracts to larger organisations or corporate providers. Since 2015, 1,480 practices in England have closed or merged.',
+ info:`Some practices hand their contracts to larger organisations or corporate providers. Since 2015, ${CLOSED.n} practices in England have closed or merged.`,
  text:`A man in a gilet takes you for lunch. Apex Primary Care Ltd would like to "acquire the contract and unlock synergies". They'll pay for your share, and you can stay on as a salaried "Clinical Lead". Your lunch is £38. He doesn't stay for pudding.`,
  choices:[
   {t:'Sell. Let someone else hold the liability.',run(){ S.exit='sold'; return {o:`You sign. The papers take three minutes. The phones switch to a national call centre the following Monday.`}; }},
@@ -4544,7 +4550,7 @@ function checkOver() {
   return null;
 }
 const OVER = {
-  patients: { title: 'Contract terminated', stamp: 'Breach notice', text: () => `The complaints became a petition, the petition became a front page, and the front page became a breach notice from the ICB. The contract for ${prac().surgery} goes to Apex Primary Care Ltd, who replace the phone line with a QR code.`, counter: '1,480 practices in England have closed or merged since 2015.', src: ['S11'] },
+  patients: { title: 'Contract terminated', stamp: 'Breach notice', text: () => `The complaints became a petition, the petition became a front page, and the front page became a breach notice from the ICB. The contract for ${prac().surgery} goes to Apex Primary Care Ltd, who replace the phone line with a QR code.`, counter: `${CLOSED.n} practices in England have closed or merged since 2015.`, src: ['S11'] },
   team: { title: 'Nobody came in', stamp: 'Mass resignation', text: () => 'Bev resigned on a Monday. By Friday, reception was a laminated sign reading "PLEASE USE THE APP". Without a team there is no practice, just a building with a flat roof.', counter: 'In a 2026 survey, 92.3% of practice staff had faced verbal abuse at work.', src: ['S37'] },
   you: { title: 'Burnt out', stamp: 'Signed off', text: () => 'You didn\'t come in on Tuesday. Or Wednesday. A locum signs you off with burnout. Six months later you\'re doing four sessions a week somewhere sunny, and you have never been happier. The partnership carries on without you, just.', counter: '37% of GPs say they are likely to leave direct patient care within five years.', src: ['S36'] },
   safety: { title: 'Special measures', stamp: 'Inadequate', text: () => 'A serious incident, then another. CQC rates the practice inadequate and uses the phrase "systemic failure" eleven times. You get to know your medical defence organisation very well.', counter: 'About 5% of practices are rated Requires Improvement or Inadequate.', src: ['S33'] },
@@ -4552,11 +4558,11 @@ const OVER = {
   cash: { title: 'Unlimited liability', stamp: 'Account frozen', text: () => 'Payroll bounced. Partners carry unlimited liability, so you remortgage your house to pay the staff their last wages. The practice hands back its contract. The lease on the building does not end with it.', counter: 'A GP partner\'s liability is unlimited, joint and several. Lease rent can continue after the NHS reimbursement stops.', src: ['S23', 'S43'] }
 };
 const EXITS = {
-  sold: { t: 'The Sell-Out', s: 'Sold', f: 0.6, d: 'You sold to Apex. The money was fine. The phones now go to a national call centre, and your patients call you "the one who sold us". You are a salaried "Clinical Lead" with a lanyard and no say.', counter: '1,480 practices in England have closed or merged since 2015.', src: ['S11'] },
+  sold: { t: 'The Sell-Out', s: 'Sold', f: 0.6, d: 'You sold to Apex. The money was fine. The phones now go to a national call centre, and your patients call you "the one who sold us". You are a salaried "Clinical Lead" with a lanyard and no say.', counter: `${CLOSED.n} practices in England have closed or merged since 2015.`, src: ['S11'] },
   merged: { t: 'Merged', s: 'Bigger now', f: 0.85, d: 'You are now one site of a 24,000-patient partnership with seven partners, a head of operations and a WhatsApp group you can\'t mute. Somebody else worries about the boiler.', counter: 'Partners in practices of 20,000+ patients averaged £177,200 in 2024/25, against £144,900 in practices under 5,000.', src: ['S8'] },
   salaried: { t: 'Went salaried', s: 'Resigned', f: 0.5, d: 'Six sessions a week, no premises, no payroll, no HMRC in January. You miss the patients you knew. You don\'t miss the rest.', counter: 'Salaried GPs averaged £74,800 in 2024/25. Partners averaged £164,200.', src: ['S8'] },
   emigrated: { t: 'Emigrated', s: 'Sunshine', f: 0.4, d: 'Your new clinic shuts at 5pm, and nobody there has heard of QOF. You still check the Bramleigh Facebook group, out of habit.', counter: 'This ending is a joke. The partner numbers aren\'t: full-time equivalent partners fell by 336 in a year.', src: ['S11'] },
-  handback: { t: 'Handed back the contract', s: 'Doors closed', f: 0.3, d: 'You gave the contract back rather than carry it alone. The ICB finds a caretaker provider. The lease on the building, you discover, keeps running.', counter: '1,480 practices have closed or merged since 2015. If you lease the building, rent continues after the reimbursement stops.', src: ['S11', 'S23'] }
+  handback: { t: 'Handed back the contract', s: 'Doors closed', f: 0.3, d: 'You gave the contract back rather than carry it alone. The ICB finds a caretaker provider. The lease on the building, you discover, keeps running.', counter: `${CLOSED.n} practices have closed or merged since 2015. If you lease the building, rent continues after the reimbursement stops.`, src: ['S11', 'S23'] }
 };
 function gameOver(k) {
   S.over = { k, month: S.month, months: (S.yr || 0) * 12 + S.month + 1 - (S.startAt || 0) };
@@ -5325,7 +5331,7 @@ function renderEnd() {
       <div class="score">${(S.yr || 0) >= 1 || (S.gen || 1) > 1 ? `<span>Months as a partner <b>${E.months}</b></span>` : ''}<span>${(S.yr || 0) >= 1 ? `Year ${S.yr + 1} score` : 'Year score'} <b>${E.score}</b></span><span>Profit share <b>£${Math.round(E.annualK)}k</b></span><span>Take-home <b>${gbp(pers.takeHome)}</b></span><span>Per hour <b>£${Math.round(E.perHour)}</b></span></div>
       ${counterHTML(E.arche)}
     </section>
-    ${briefHTML(E.months || 12)}
+    ${briefHTML(E.months || 12, E.arche)}
     ${E.exit ? '' : `<section class="carry-on"><div><b>Carry on into year ${(S.yr || 0) + 2}?</b><p>Same practice, same staff, same overdraft. Demand keeps rising, the funding doesn't quite keep up, and the years wear on you. How long can you last?</p></div><button class="btn primary" data-act="nextyear">Carry on: year ${(S.yr || 0) + 2} →</button></section>`}
     <div class="rgrid">
       <section class="panel"><h3>The accounts</h3>${accounts}
@@ -5364,7 +5370,7 @@ function renderOver() {
       <h1>${esc(O.title)}</h1><p class="lede">${esc(O.text())}</p>
       <div class="score"><span>You lasted <b>${S.over.months || S.over.month + 1}</b> month${(S.over.months || S.over.month + 1) === 1 ? '' : 's'} as a partner</span></div>
       ${counterHTML(O)}</section>
-    ${briefHTML(S.over.months || S.over.month + 1)}
+    ${briefHTML(S.over.months || S.over.month + 1, O)}
     <section class="panel"><h3>Where it ended</h3>${statLines(null)}<p class="fc-note">Bank ${fmtK(S.cash)} · QOF ${Math.round(S.qof)}% · Inbox ${Math.round(S.inbox)}</p>
       ${explain('What went wrong', `<p>Meters drift toward wherever the practice's situation is taking them. When capacity falls behind demand, the inbox grows or your hours climb, the pull is downward every month until something changes: more staff, fewer sessions, a different project, time off.</p><p>Watch the <b>Where things are heading</b> panel in the month plan. It shows where each meter will settle, and why.</p>`)}</section>
     ${S.history.length > 1 ? `<section class="panel"><h3>How it went</h3>${chartSVG()}</section>` : ''}
@@ -5599,13 +5605,22 @@ function loadStats() {
   BD.stats = null;
   boardFetch('rpc/lps_stats', { method: 'POST', headers: boardHeaders(), body: '{}' })
     .then(r => r.ok ? r.json() : null)
-    .then(j => { if (j && j.runs >= 10 && j.avg_months) { BD.stats = j; const el = document.getElementById('avg-line'); if (el) el.outerHTML = avgLineHTML(); } })
+    .then(j => { if (j && j.runs >= 10 && j.avg_months) { BD.stats = j; const el = document.getElementById('avg-line'); if (el) el.insertAdjacentHTML('afterbegin', statsHTML(el.dataset.mine)); } })
     .catch(() => { });
 }
-const REAL_LINE = 'In real life, the number of GP partners under 40 in England fell by 17% in 15 months, to September 2025.';
-function avgLineHTML(mine) {
+// real figures under the number to beat; n is the figure, so a screen whose counter already quotes it leaves that line out
+const REAL_LINES = [
+  { n: '17%', t: 'In real life, the number of GP partners under 40 in England fell by 17% in 15 months, to September 2025.', src: 'S83', by: 'Institute for Government' },
+  { n: CLOSED.n, t: `Since 2015, ${CLOSED.n} GP practices in England, about one in five, have closed or merged, leaving ${CLOSED.left} by ${CLOSED.at}.`, src: 'S11', by: 'BMA' }
+];
+function statsHTML(mine) {
   const st = BD.stats;
-  return `<p class="avg-line" id="avg-line">${st ? `Partners on the leaderboard last <b>${Math.round(st.avg_months)} months</b> on average.${mine != null ? ` You lasted <b>${mine}</b>.` : ''} ` : ''}${esc(REAL_LINE)} <a href="${esc(SOURCES.S83[1])}" target="_blank" rel="noopener">Institute for Government</a></p>`;
+  return st ? `<span>Partners on the leaderboard last <b>${Math.round(st.avg_months)} months</b> on average.${mine != null && mine !== '' ? ` You lasted <b>${mine}</b>.` : ''}</span>` : '';
+}
+function avgLineHTML(mine, o) {
+  const said = (o && o.counter) || '';
+  const real = REAL_LINES.filter(r => !said.includes(r.n)).map(r => `<span>${esc(r.t)} <a href="${esc(SOURCES[r.src][1])}" target="_blank" rel="noopener">${esc(r.by)}</a></span>`).join('');
+  return `<p class="avg-line" id="avg-line" data-mine="${mine != null ? mine : ''}">${statsHTML(mine)}${real}</p>`;
 }
 function loadBoard() {
   if (!boardOn()) { BD.err = 'off'; return; }

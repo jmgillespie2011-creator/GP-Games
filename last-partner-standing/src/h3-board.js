@@ -38,13 +38,22 @@ function loadStats() {
   BD.stats = null;
   boardFetch('rpc/lps_stats', { method: 'POST', headers: boardHeaders(), body: '{}' })
     .then(r => r.ok ? r.json() : null)
-    .then(j => { if (j && j.runs >= 10 && j.avg_months) { BD.stats = j; const el = document.getElementById('avg-line'); if (el) el.outerHTML = avgLineHTML(); } })
+    .then(j => { if (j && j.runs >= 10 && j.avg_months) { BD.stats = j; const el = document.getElementById('avg-line'); if (el) el.insertAdjacentHTML('afterbegin', statsHTML(el.dataset.mine)); } })
     .catch(() => { });
 }
-const REAL_LINE = 'In real life, the number of GP partners under 40 in England fell by 17% in 15 months, to September 2025.';
-function avgLineHTML(mine) {
+// real figures under the number to beat; n is the figure, so a screen whose counter already quotes it leaves that line out
+const REAL_LINES = [
+  { n: '17%', t: 'In real life, the number of GP partners under 40 in England fell by 17% in 15 months, to September 2025.', src: 'S83', by: 'Institute for Government' },
+  { n: CLOSED.n, t: `Since 2015, ${CLOSED.n} GP practices in England, about one in five, have closed or merged, leaving ${CLOSED.left} by ${CLOSED.at}.`, src: 'S11', by: 'BMA' }
+];
+function statsHTML(mine) {
   const st = BD.stats;
-  return `<p class="avg-line" id="avg-line">${st ? `Partners on the leaderboard last <b>${Math.round(st.avg_months)} months</b> on average.${mine != null ? ` You lasted <b>${mine}</b>.` : ''} ` : ''}${esc(REAL_LINE)} <a href="${esc(SOURCES.S83[1])}" target="_blank" rel="noopener">Institute for Government</a></p>`;
+  return st ? `<span>Partners on the leaderboard last <b>${Math.round(st.avg_months)} months</b> on average.${mine != null && mine !== '' ? ` You lasted <b>${mine}</b>.` : ''}</span>` : '';
+}
+function avgLineHTML(mine, o) {
+  const said = (o && o.counter) || '';
+  const real = REAL_LINES.filter(r => !said.includes(r.n)).map(r => `<span>${esc(r.t)} <a href="${esc(SOURCES[r.src][1])}" target="_blank" rel="noopener">${esc(r.by)}</a></span>`).join('');
+  return `<p class="avg-line" id="avg-line" data-mine="${mine != null ? mine : ''}">${statsHTML(mine)}${real}</p>`;
 }
 function loadBoard() {
   if (!boardOn()) { BD.err = 'off'; return; }
